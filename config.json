@@ -1,0 +1,16 @@
+{
+  "vnstock": {
+    "api_key": ""
+  },
+  "ssi_fastconnect": {
+    "consumer_id": "YOUR_CONSUMER_ID",
+    "consumer_secret": "YOUR_CONSUMER_SECRET",
+    "private_key_path": "path/to/private.key",
+    "use_mock_fallback": true
+  },
+  "fireant": {
+    "auth_token": "YOUR_BEARER_TOKEN",
+    "cookie": "YOUR_COOKIE",
+    "use_mock_fallback": true
+  }
+}
