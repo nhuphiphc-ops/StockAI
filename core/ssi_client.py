@@ -15,12 +15,12 @@ class SsiClient:
         self.token_expiry = 0
         self.base_url = "https://fc-data.ssi.com.vn/api/v2/Market"
         self.base_prices = {
-            "FPT": 135.0, "SSI": 38.0, "VIC": 42.0, "VNM": 68.0, "HPG": 28.0, "PHC": 8.5,
-            "MBB": 22.0, "TCB": 24.5, "VCB": 92.0, "ACB": 28.0, "CTD": 65.0, "HBC": 6.0,
+            "FPT": 71.5, "SSI": 27.15, "VIC": 205.1, "VNM": 59.0, "HPG": 23.6, "PHC": 4.62,
+            "MBB": 22.0, "TCB": 24.5, "VCB": 92.0, "ACB": 22.2, "CTD": 65.0, "HBC": 6.0,
             "VCG": 22.0, "STB": 29.0, "VPB": 18.0, "CTG": 32.0, "BID": 45.0, "VHM": 38.0,
             "VRE": 20.0, "DIG": 24.0, "DXG": 16.0, "NLG": 38.0, "VCI": 45.0, "HCM": 28.0,
             "VND": 20.0, "DGC": 115.0, "GVR": 33.0, "GAS": 78.0, "PVD": 28.0, "PVS": 38.0,
-            "VN30F1M": 1960.0, "VNINDEX": 1800.00, "VN30": 1960.00, "HNXINDEX": 310.00, "UPCOMINDEX": 127.00
+            "VN30F1M": 1824.5, "VNINDEX": 1824.5, "VN30": 1824.5, "HNXINDEX": 310.00, "UPCOMINDEX": 127.00
         }
         self.cache = {}
 
@@ -417,7 +417,78 @@ class SsiClient:
             })
         return trades
 
+    def _get_yahoo_finance_fallback(self, symbol: str) -> dict:
+        symbol_upper = symbol.upper().strip()
+        if symbol_upper == "VNINDEX":
+            yahoo_sym = "^VNINDEX"
+        elif symbol_upper == "VN30":
+            yahoo_sym = "^VN30"
+        elif symbol_upper == "VN30F1M":
+            return None
+        else:
+            yahoo_sym = f"{symbol_upper}.VN"
+            
+        import requests
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_sym}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        try:
+            r = requests.get(url, headers=headers, timeout=5)
+            if r.status_code == 200:
+                data = r.json()
+                meta = data.get("chart", {}).get("result", [{}])[0].get("meta", {})
+                raw_price = meta.get("regularMarketPrice")
+                raw_prev_close = meta.get("previousClose")
+                if raw_price:
+                    last_price = raw_price
+                    prev_close = raw_prev_close or last_price
+                    
+                    if last_price > 2000:
+                        last_price = last_price / 1000.0
+                    if prev_close > 2000:
+                        prev_close = prev_close / 1000.0
+                        
+                    change = last_price - prev_close
+                    change_pct = (change / prev_close) * 100.0 if prev_close != 0 else 0.0
+                    
+                    import random
+                    if "VNINDEX" in symbol_upper or "VN30" in symbol_upper:
+                        spread = 0.50
+                        step = 0.50
+                    else:
+                        spread = 0.05
+                        step = 0.05
+                        
+                    bids = [
+                        {"price": round(last_price - spread, 2), "volume": random.randint(1000, 15000) * 10},
+                        {"price": round(last_price - spread - step, 2), "volume": random.randint(2000, 20000) * 10},
+                        {"price": round(last_price - spread - (step * 2), 2), "volume": random.randint(3000, 30000) * 10}
+                    ]
+                    asks = [
+                        {"price": round(last_price + spread, 2), "volume": random.randint(1000, 15000) * 10},
+                        {"price": round(last_price + spread + step, 2), "volume": random.randint(2000, 20000) * 10},
+                        {"price": round(last_price + spread + (step * 2), 2), "volume": random.randint(3000, 30000) * 10}
+                    ]
+                    
+                    return {
+                        "symbol": symbol_upper,
+                        "last_price": round(last_price, 2),
+                        "change": round(change, 2),
+                        "change_pct": round(change_pct, 2),
+                        "bids": bids,
+                        "asks": asks
+                    }
+        except Exception as e:
+            print(f"SSI Yahoo Finance fallback failed for {symbol_upper}: {e}")
+        return None
+
     def _generate_mock_price_depth(self, symbol: str) -> dict:
+        # Try Yahoo Finance fallback first
+        yahoo_res = self._get_yahoo_finance_fallback(symbol)
+        if yahoo_res:
+            return yahoo_res
+
         base_p = self.base_prices.get(symbol.upper(), 30.0)
         curr_price = base_p + random.uniform(-0.005, 0.005) * base_p
         spread = 0.05
