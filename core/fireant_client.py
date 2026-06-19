@@ -125,7 +125,7 @@ class FireAntClient:
                 "url": "https://baodautu.vn"
             },
             {
-                "title": "VN-Index giằng co quanh vùng 1.250 điểm, dòng tiền luân chuyển thông minh",
+                "title": "VN-Index giằng co quanh vùng 1.820 điểm, dòng tiền luân chuyển thông minh",
                 "summary": "Áp lực chốt lời tăng nhẹ ở nhóm ngân hàng nhưng nhóm bất động sản và khu công nghiệp đã nâng đỡ chỉ số thành công.",
                 "source": "Vietstock",
                 "publish_date": (datetime.now() - timedelta(hours=3)).isoformat(),
