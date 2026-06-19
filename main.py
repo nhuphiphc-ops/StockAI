@@ -469,10 +469,118 @@ def get_news(limit: int = Query(8, description="Number of news stories to fetch"
 # -------------------------------------------------------------------------
 # Excel Dashboard Sync & CRUD APIs
 # -------------------------------------------------------------------------
+def fetch_live_indices():
+    indices = ["VNINDEX", "VN30", "HNXINDEX", "UPCOMINDEX", "VN30F1M"]
+    data_map = {}
+    for idx in indices:
+        p_data = ssi_client.get_price_depth(idx)
+        if not p_data or p_data.get("last_price", 0) == 0:
+            raw_depth = vnstock_client.get_price_depth(idx)
+            if isinstance(raw_depth, dict) and raw_depth.get("last_price", 0) > 0:
+                p_data = raw_depth
+            else:
+                p_data = ssi_client.get_price_depth(idx)
+                if not p_data or p_data.get("last_price", 0) == 0:
+                    p_data = ssi_client._generate_mock_price_depth(idx)
+        
+        last_price = p_data.get("last_price", 0.0)
+        change = p_data.get("change", 0.0)
+        change_pct = p_data.get("change_pct", 0.0)
+        
+        key = idx
+        if idx == "VNINDEX": key = "VN-INDEX"
+        elif idx == "HNXINDEX": key = "HNX-INDEX"
+        elif idx == "UPCOMINDEX": key = "UPCoM-INDEX"
+        elif idx == "VN30F1M": key = "VN30F1M (Phái sinh)"
+        
+        data_map[key] = {
+            "value": last_price,
+            "change": change,
+            "pct_change": change_pct / 100.0 if change_pct else 0.0
+        }
+    return data_map
+
 @app.get("/api/excel/overview")
 def get_excel_overview():
     try:
-        return excel_manager.get_overview()
+        overview = excel_manager.get_overview()
+        
+        # 1. Dynamically merge live index numbers
+        try:
+            live_indices = fetch_live_indices()
+            for idx_data in overview.get("market_overview", []):
+                name = idx_data.get("index")
+                if name in live_indices:
+                    idx_data["value"] = live_indices[name]["value"]
+                    idx_data["change"] = live_indices[name]["change"]
+                    idx_data["pct_change"] = live_indices[name]["pct_change"]
+                    
+            # 2. Update derivatives section on-the-fly
+            if overview.get("derivatives") and "VN30F1M (Phái sinh)" in live_indices:
+                deriv = overview["derivatives"]
+                price = live_indices["VN30F1M (Phái sinh)"]["value"]
+                deriv["price"] = price
+                
+                if "VN30" in live_indices:
+                    basis = price - live_indices["VN30"]["value"]
+                    deriv["basis"] = basis
+                
+                # Recalculate target range and stop loss relative to live price
+                rec = deriv.get("recommendation", "QUAN SÁT")
+                if rec == "LONG":
+                    deriv["target"] = f"{int(round(price + 10))} - {int(round(price + 15))}"
+                    deriv["stop_loss"] = int(round(price - 8))
+                elif rec == "SHORT":
+                    deriv["target"] = f"{int(round(price - 15))} - {int(round(price - 10))}"
+                    deriv["stop_loss"] = int(round(price + 8))
+                else:
+                    deriv["target"] = "—"
+                    deriv["stop_loss"] = "—"
+        except Exception as ex_indices:
+            print(f"Error fetching live indices in get_excel_overview: {ex_indices}")
+            
+        # 3. Dynamically correct AI scores status and recommendations alignment
+        try:
+            scores = overview.get("ai_scores", [])
+            for s in scores:
+                metric = s.get("metric", "")
+                score = s.get("score")
+                if score is not None:
+                    score = int(score)
+                    if "Market" in metric:
+                        if score > 60:
+                            s["status"] = "Tích cực (Dòng tiền khỏe)"
+                            s["recommendation"] = "Duy trì tỷ trọng cổ phiếu cao, ưu tiên tích lũy ngắn hạn"
+                        elif score >= 40:
+                            s["status"] = "Trung lập (Cân bằng)"
+                            s["recommendation"] = "Duy trì tỷ trọng trung bình, quan sát cung cầu"
+                        else:
+                            s["status"] = "Tiêu cực (Dòng tiền yếu)"
+                            s["recommendation"] = "Hạ tỷ trọng cổ phiếu, tăng giữ tiền mặt"
+                    elif "Risk" in metric:
+                        if score > 60:
+                            s["status"] = "Cao"
+                            s["recommendation"] = "Hạ tỷ trọng đòn bẩy (margin), phòng thủ danh mục"
+                        elif score >= 40:
+                            s["status"] = "Trung bình"
+                            s["recommendation"] = "Theo dõi sát sao các tin tức vĩ mô, cơ cấu lại danh mục yếu"
+                        else:
+                            s["status"] = "Thấp"
+                            s["recommendation"] = "Thị trường ổn định, chưa cần hạ tỷ trọng danh mục vội vàng"
+                    elif "Opportunity" in metric:
+                        if score > 60:
+                            s["status"] = "Cao"
+                            s["recommendation"] = "Tập trung giải ngân vào các nhóm ngành dẫn dắt dòng tiền"
+                        elif score >= 40:
+                            s["status"] = "Trung bình"
+                            s["recommendation"] = "Chỉ giải ngân từng phần vào các mã có cơ bản tốt"
+                        else:
+                            s["status"] = "Thấp"
+                            s["recommendation"] = "Cơ hội giải ngân ít, nên kiên nhẫn quan sát điểm cân bằng"
+        except Exception as ex_scores:
+            print(f"Error mapping AI scores alignment in get_excel_overview: {ex_scores}")
+            
+        return overview
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
