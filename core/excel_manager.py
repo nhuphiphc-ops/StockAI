@@ -482,8 +482,37 @@ class ExcelManager:
         ws = wb["Dashboard Tong Quan"]
         
         ws.cell(row=16, column=2, value=market_score)
+        if market_score > 60:
+            ws.cell(row=16, column=3, value="Tích cực (Dòng tiền khỏe)")
+            ws.cell(row=16, column=4, value="Duy trì tỷ trọng cổ phiếu cao, ưu tiên tích lũy ngắn hạn")
+        elif market_score >= 40:
+            ws.cell(row=16, column=3, value="Trung lập (Cân bằng)")
+            ws.cell(row=16, column=4, value="Duy trì tỷ trọng trung bình, quan sát cung cầu")
+        else:
+            ws.cell(row=16, column=3, value="Tiêu cực (Dòng tiền yếu)")
+            ws.cell(row=16, column=4, value="Hạ tỷ trọng cổ phiếu, tăng giữ tiền mặt")
+
         ws.cell(row=17, column=2, value=risk_score)
+        if risk_score > 60:
+            ws.cell(row=17, column=3, value="Cao")
+            ws.cell(row=17, column=4, value="Hạ tỷ trọng đòn bẩy (margin), phòng thủ danh mục")
+        elif risk_score >= 40:
+            ws.cell(row=17, column=3, value="Trung bình")
+            ws.cell(row=17, column=4, value="Theo dõi sát sao các tin tức vĩ mô, cơ cấu lại danh mục yếu")
+        else:
+            ws.cell(row=17, column=3, value="Thấp")
+            ws.cell(row=17, column=4, value="Thị trường ổn định, chưa cần hạ tỷ trọng danh mục vội vàng")
+
         ws.cell(row=18, column=2, value=opportunity_score)
+        if opportunity_score > 60:
+            ws.cell(row=18, column=3, value="Cao")
+            ws.cell(row=18, column=4, value="Tập trung giải ngân vào các nhóm ngành dẫn dắt dòng tiền")
+        elif opportunity_score >= 40:
+            ws.cell(row=18, column=3, value="Trung bình")
+            ws.cell(row=18, column=4, value="Chỉ giải ngân từng phần vào các mã có cơ bản tốt")
+        else:
+            ws.cell(row=18, column=3, value="Thấp")
+            ws.cell(row=18, column=4, value="Cơ hội giải ngân ít, nên kiên nhẫn quan sát điểm cân bằng")
         
         self.save_wb(wb)
         return True
