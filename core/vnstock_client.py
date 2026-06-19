@@ -303,19 +303,35 @@ class VnstockClient:
         else:
             cols = ["2025-Q4", "2025-Q3", "2025-Q2", "2025-Q1"]
 
-        mult = 1.0
+        # Base multiplier in 10^12 VND (Thousand Billion VND)
+        # Represents realistic annual/quarterly revenue
+        mult = 5.0
+        margin_rate = 0.10 # default 10% net profit margin
+        
+        # Scaling factor based on period (Quarterly is approx 1/4 of Annual)
+        period_factor = 1.0 if period == "year" else 0.25
+        
         if symbol_upper == "FPT":
-            mult = 15.0
+            mult = 52.6 * period_factor
+            margin_rate = 0.15
         elif symbol_upper == "VIC":
-            mult = 25.0
+            mult = 161.0 * period_factor
+            margin_rate = 0.03
         elif symbol_upper == "VNM":
-            mult = 18.0
+            mult = 60.4 * period_factor
+            margin_rate = 0.15
         elif symbol_upper == "HPG":
-            mult = 20.0
+            mult = 120.0 * period_factor
+            margin_rate = 0.08
         elif symbol_upper == "SSI":
-            mult = 3.5
+            mult = 7.2 * period_factor
+            margin_rate = 0.35
         elif symbol_upper == "PHC":
-            mult = 0.15
+            mult = 1.81 * period_factor
+            margin_rate = 0.015
+        else:
+            mult = 5.0 * period_factor
+            margin_rate = 0.10
 
         def row(item, item_id, vals, is_header=False):
             res = {"item": item, "item_id": item_id}
@@ -323,59 +339,65 @@ class VnstockClient:
                 if is_header:
                     res[year] = None
                 else:
-                    res[year] = float(vals[i] * 1000000000.0)
+                    res[year] = float(vals[i] * 1000000000000.0) # Absolute VND (using 10^12 multiplier)
             return res
+
+        # Generate profit values based on margin rate
+        profit_mult = mult * margin_rate
+        tax_mult = profit_mult * 0.20 # 20% tax rate
+        net_profit_mult = profit_mult - tax_mult
 
         if report_type == "income_statement":
             return [
                 row("I. DOANH THU HOẠT ĐỘNG", "revenue", [], True),
-                row("1. Doanh thu bán hàng và cung cấp dịch vụ", "sales_revenue", [10 * mult, 9 * mult, 8.5 * mult, 7.5 * mult]),
+                row("1. Doanh thu bán hàng và cung cấp dịch vụ", "sales_revenue", [1.0 * mult, 0.9 * mult, 0.85 * mult, 0.75 * mult]),
                 row("2. Các khoản giảm trừ doanh thu", "revenue_deductions", [0.0, 0.0, 0.0, 0.0]),
-                row("II. DOANH THU THUẦN", "net_revenue", [10 * mult, 9 * mult, 8.5 * mult, 7.5 * mult]),
-                row("III. GIÁ VỐN HÀNG BÁN / CHI PHÍ HĐ", "cost_of_goods_sold", [6 * mult, 5.5 * mult, 5 * mult, 4.5 * mult]),
-                row("IV. LỢI NHUẬN GỘP", "gross_profit", [4 * mult, 3.5 * mult, 3.5 * mult, 3 * mult]),
-                row("V. CHI PHÍ TÀI CHÍNH / BÁN HÀNG / QL", "operating_expenses", [1.5 * mult, 1.3 * mult, 1.2 * mult, 1.1 * mult]),
-                row("VI. LỢI NHUẬN THUẦN TỪ HĐKD", "operating_profit", [2.5 * mult, 2.2 * mult, 2.3 * mult, 1.9 * mult]),
-                row("VII. LỢI NHUẬN TRƯỚC THUẾ", "profit_before_tax", [2.5 * mult, 2.2 * mult, 2.3 * mult, 1.9 * mult]),
-                row("VIII. THUẾ TNDN", "corporate_income_tax", [0.5 * mult, 0.44 * mult, 0.46 * mult, 0.38 * mult]),
-                row("IX. LỢI NHUẬN SAU THUẾ", "net_profit", [2.0 * mult, 1.76 * mult, 1.84 * mult, 1.52 * mult])
+                row("II. DOANH THU THUẦN", "net_revenue", [1.0 * mult, 0.9 * mult, 0.85 * mult, 0.75 * mult]),
+                row("III. GIÁ VỐN HÀNG BÁN / CHI PHÍ HĐ", "cost_of_goods_sold", [0.7 * mult, 0.65 * mult, 0.62 * mult, 0.58 * mult]),
+                row("IV. LỢI NHUẬN GỘP", "gross_profit", [0.3 * mult, 0.25 * mult, 0.23 * mult, 0.17 * mult]),
+                row("V. CHI PHÍ TÀI CHÍNH / BÁN HÀNG / QL", "operating_expenses", [0.15 * mult, 0.13 * mult, 0.12 * mult, 0.09 * mult]),
+                row("VI. LỢI NHUẬN THUẦN TỪ HĐKD", "operating_profit", [1.0 * profit_mult, 0.9 * profit_mult, 0.85 * profit_mult, 0.75 * profit_mult]),
+                row("VII. LỢI NHUẬN TRƯỚC THUẾ", "profit_before_tax", [1.0 * profit_mult, 0.9 * profit_mult, 0.85 * profit_mult, 0.75 * profit_mult]),
+                row("VIII. THUẾ TNDN", "corporate_income_tax", [1.0 * tax_mult, 0.9 * tax_mult, 0.85 * tax_mult, 0.75 * tax_mult]),
+                row("IX. LỢI NHUẬN SAU THUẾ", "net_profit", [1.0 * net_profit_mult, 0.9 * net_profit_mult, 0.85 * net_profit_mult, 0.75 * net_profit_mult])
             ]
         elif report_type == "balance_sheet":
+            asset_mult = mult * 4.0 if period == "year" else mult * 16.0
             return [
-                row("A. TÀI SẢN NGẮN HẠN", "short_term_assets", [40 * mult, 35 * mult, 32 * mult, 28 * mult]),
-                row("I. Tiền và các khoản tương đương tiền", "cash_and_equivalents", [8 * mult, 7 * mult, 6.5 * mult, 5 * mult]),
-                row("II. Các khoản đầu tư tài chính ngắn hạn", "short_term_investments", [12 * mult, 10 * mult, 9 * mult, 8 * mult]),
-                row("III. Các khoản phải thu ngắn hạn", "short_term_receivables", [10 * mult, 9 * mult, 8 * mult, 7 * mult]),
-                row("IV. Hàng tồn kho", "inventories", [8 * mult, 7.5 * mult, 7 * mult, 6.5 * mult]),
-                row("B. TÀI SẢN DÀI HẠN", "long_term_assets", [30 * mult, 28 * mult, 25 * mult, 22 * mult]),
-                row("I. Tài sản cố định", "fixed_assets", [15 * mult, 14 * mult, 13 * mult, 12 * mult]),
-                row("TỔNG CỘNG TÀI SẢN", "total_assets", [70 * mult, 63 * mult, 57 * mult, 50 * mult]),
-                row("C. NỢ PHẢI TRẢ", "total_liabilities", [35 * mult, 31 * mult, 28 * mult, 25 * mult]),
-                row("I. Nợ ngắn hạn", "short_term_liabilities", [25 * mult, 22 * mult, 20 * mult, 18 * mult]),
-                row("D. VỐN CHỦ SỞ HỮU", "owners_equity", [35 * mult, 32 * mult, 29 * mult, 25 * mult]),
-                row("TỔNG CỘNG NGUỒN VỐN", "total_resources", [70 * mult, 63 * mult, 57 * mult, 50 * mult])
+                row("A. TÀI SẢN NGẮN HẠN", "short_term_assets", [0.55 * asset_mult, 0.52 * asset_mult, 0.5 * asset_mult, 0.48 * asset_mult]),
+                row("I. Tiền và các khoản tương đương tiền", "cash_and_equivalents", [0.1 * asset_mult, 0.08 * asset_mult, 0.09 * asset_mult, 0.07 * asset_mult]),
+                row("II. Các khoản đầu tư tài chính ngắn hạn", "short_term_investments", [0.15 * asset_mult, 0.14 * asset_mult, 0.13 * asset_mult, 0.12 * asset_mult]),
+                row("III. Các khoản phải thu ngắn hạn", "short_term_receivables", [0.18 * asset_mult, 0.19 * asset_mult, 0.18 * asset_mult, 0.2 * asset_mult]),
+                row("IV. Hàng tồn kho", "inventories", [0.12 * asset_mult, 0.11 * asset_mult, 0.1 * asset_mult, 0.09 * asset_mult]),
+                row("B. TÀI SẢN DÀI HẠN", "long_term_assets", [0.45 * asset_mult, 0.48 * asset_mult, 0.5 * asset_mult, 0.52 * asset_mult]),
+                row("I. Tài sản cố định", "fixed_assets", [0.25 * asset_mult, 0.26 * asset_mult, 0.27 * asset_mult, 0.28 * asset_mult]),
+                row("TỔNG CỘNG TÀI SẢN", "total_assets", [1.0 * asset_mult, 1.0 * asset_mult, 1.0 * asset_mult, 1.0 * asset_mult]),
+                row("C. NỢ PHẢI TRẢ", "total_liabilities", [0.55 * asset_mult, 0.54 * asset_mult, 0.52 * asset_mult, 0.5 * asset_mult]),
+                row("I. Nợ ngắn hạn", "short_term_liabilities", [0.35 * asset_mult, 0.33 * asset_mult, 0.32 * asset_mult, 0.3 * asset_mult]),
+                row("D. VỐN CHỦ SỞ HỮU", "owners_equity", [0.45 * asset_mult, 0.46 * asset_mult, 0.48 * asset_mult, 0.5 * asset_mult]),
+                row("TỔNG CỘNG NGUỒN VỐN", "total_resources", [1.0 * asset_mult, 1.0 * asset_mult, 1.0 * asset_mult, 1.0 * asset_mult])
             ]
         elif report_type == "cash_flow":
             return [
                 row("I. LƯU CHUYỂN TIỀN TỪ HĐ KINH DOANH CO BẢN", "cash_flow_from_operating_activities", [], True),
-                row("1. Lợi nhuận trước thuế", "profit_before_tax", [2.5 * mult, 2.2 * mult, 2.3 * mult, 1.9 * mult]),
-                row("2. Điều chỉnh cho các khoản", "adjustments_for", [-0.5 * mult, -0.4 * mult, -0.3 * mult, -0.2 * mult]),
-                row("3. Lợi nhuận từ HĐKD trước thay đổi vốn lưu động", "operating_profit_before_changes_in_working_capital", [2.0 * mult, 1.8 * mult, 2.0 * mult, 1.7 * mult]),
-                row("Lưu chuyển tiền thuần từ HĐKD", "net_cash_flow_from_operating_activities", [1.8 * mult, 1.6 * mult, 1.5 * mult, 1.4 * mult]),
+                row("1. Lợi nhuận trước thuế", "profit_before_tax", [1.0 * profit_mult, 0.9 * profit_mult, 0.85 * profit_mult, 0.75 * profit_mult]),
+                row("2. Điều chỉnh cho các khoản", "adjustments_for", [-0.2 * profit_mult, -0.18 * profit_mult, -0.15 * profit_mult, -0.12 * profit_mult]),
+                row("3. Lợi nhuận từ HĐKD trước thay đổi vốn lưu động", "operating_profit_before_changes_in_working_capital", [0.8 * profit_mult, 0.72 * profit_mult, 0.7 * profit_mult, 0.63 * profit_mult]),
+                row("Lưu chuyển tiền thuần từ HĐKD", "net_cash_flow_from_operating_activities", [0.7 * profit_mult, 0.65 * profit_mult, 0.6 * profit_mult, 0.55 * profit_mult]),
                 row("II. LƯU CHUYỂN TIỀN TỪ HĐ ĐẦU TƯ", "cash_flow_from_investing_activities", [], True),
-                row("Lưu chuyển tiền thuần từ HĐĐT", "net_cash_flow_from_investing_activities", [-1.0 * mult, -0.8 * mult, -0.7 * mult, -0.6 * mult]),
+                row("Lưu chuyển tiền thuần từ HĐĐT", "net_cash_flow_from_investing_activities", [-0.4 * profit_mult, -0.35 * profit_mult, -0.32 * profit_mult, -0.3 * profit_mult]),
                 row("III. LƯU CHUYỂN TIỀN TỪ HĐ TÀI CHÍNH", "cash_flow_from_financing_activities", [], True),
-                row("Lưu chuyển tiền thuần từ HĐTC", "net_cash_flow_from_financing_activities", [-0.5 * mult, -0.4 * mult, -0.3 * mult, -0.2 * mult]),
-                row("Tiền và tương đương tiền cuối kỳ", "cash_and_equivalents_at_end_of_period", [8 * mult, 7 * mult, 6.5 * mult, 5 * mult])
+                row("Lưu chuyển tiền thuần từ HĐTC", "net_cash_flow_from_financing_activities", [-0.2 * profit_mult, -0.18 * profit_mult, -0.15 * profit_mult, -0.12 * profit_mult]),
+                row("Tiền và tương đương tiền cuối kỳ", "cash_and_equivalents_at_end_of_period", [0.1 * mult, 0.08 * mult, 0.09 * mult, 0.07 * mult])
             ]
         else:
             return [
-                row("Tỷ số thanh toán hiện hành (Lần)", "current_ratio", [1.4, 1.35, 1.3, 1.25]),
-                row("Tỷ số thanh toán nhanh (Lần)", "quick_ratio", [1.1, 1.05, 1.0, 0.95]),
-                row("Tỷ suất lợi nhuận gộp biên (%)", "gross_profit_margin", [40.0, 38.8, 41.1, 40.0]),
-                row("Tỷ suất lợi nhuận ròng (%)", "net_profit_margin", [20.0, 19.5, 21.6, 20.2]),
-                row("Tỷ suất sinh lợi của tài sản (ROA) (%)", "return_on_assets_roa", [5.0, 4.8, 5.2, 5.0]),
-                row("Tỷ suất sinh lợi của VCSH (ROE) (%)", "return_on_equity_roe", [12.0, 11.5, 12.8, 12.0])
+                row("Tỷ số thanh toán hiện hành (Lần)", "current_ratio", [1.57, 1.58, 1.56, 1.6]),
+                row("Tỷ số thanh toán nhanh (Lần)", "quick_ratio", [1.23, 1.24, 1.25, 1.3]),
+                row("Tỷ suất lợi nhuận gộp biên (%)", "gross_profit_margin", [30.0, 27.7, 27.0, 22.6]),
+                row("Tỷ suất lợi nhuận ròng (%)", "net_profit_margin", [margin_rate * 100.0, margin_rate * 96.0, margin_rate * 103.5, margin_rate * 85.3]),
+                row("Tỷ suất sinh lợi của tài sản (ROA) (%)", "return_on_assets_roa", [5.2, 4.9, 5.0, 4.8] if symbol_upper != "PHC" else [1.5, 1.4, 1.5, 1.3]),
+                row("Tỷ suất sinh lợi của VCSH (ROE) (%)", "return_on_equity_roe", [12.5, 12.0, 11.8, 11.2] if symbol_upper != "PHC" else [6.2, 6.0, 6.3, 5.8])
             ]
 
     def get_all_symbols(self, source: str = None) -> list:
