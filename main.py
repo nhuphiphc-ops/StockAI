@@ -535,8 +535,56 @@ def get_derivatives_analysis():
 @app.get("/api/excel/portfolio")
 def get_excel_portfolio():
     try:
-        return excel_manager.get_portfolio()
+        port = excel_manager.get_portfolio()
+        # Dynamically fetch live prices for all tickers
+        for item in port["items"]:
+            t = item.get("ticker")
+            if not t:
+                continue
+            
+            p_data = ssi_client.get_price_depth(t)
+            if not p_data or p_data.get("last_price", 0) == 0:
+                raw_depth = vnstock_client.get_price_depth(t)
+                if isinstance(raw_depth, dict) and raw_depth.get("last_price", 0) > 0:
+                    p_data = raw_depth
+                else:
+                    p_data = ssi_client.get_price_depth(t)
+                    if not p_data or p_data.get("last_price", 0) == 0:
+                        p_data = ssi_client._generate_mock_price_depth(t)
+            
+            raw_p = p_data.get("last_price", 0)
+            if raw_p > 0:
+                live_price = int(raw_p * 1000) if raw_p < 2000 else int(raw_p)
+                item["current_price"] = live_price
+                
+                buy_price = item.get("buy_price") or 0
+                quantity = item.get("quantity") or 0
+                item["cost_basis"] = buy_price * quantity
+                item["current_val"] = live_price * quantity
+                item["pnl"] = item["current_val"] - item["cost_basis"]
+                item["pnl_pct"] = (item["pnl"] / item["cost_basis"]) if item["cost_basis"] > 0 else 0
+                
+        # Recalculate totals
+        total_cost = sum((x.get("cost_basis") or 0) for x in port["items"])
+        total_value = sum((x.get("current_val") or 0) for x in port["items"])
+        total_pnl = total_value - total_cost
+        total_pnl_pct = (total_pnl / total_cost) if total_cost > 0 else 0
+        
+        # Re-inject weights
+        for item in port["items"]:
+            item["weight"] = (item.get("current_val", 0) / total_value) if total_value > 0 else 0
+            
+        port["totals"] = {
+            "cost_basis": total_cost,
+            "current_val": total_value,
+            "pnl": total_pnl,
+            "pnl_pct": total_pnl_pct
+        }
+        
+        return port
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/excel/portfolio")
