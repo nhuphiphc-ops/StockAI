@@ -266,6 +266,24 @@ class VnstockClient:
         return None
 
 
+    def _scale_financial_records(self, records: list, report_type: str) -> list:
+        if not records or report_type == "ratio":
+            return records
+        
+        scaled = []
+        for r in records:
+            row = {}
+            for k, v in r.items():
+                if k not in ["item", "item_id", "ticker", "symbol", "organ_name"]:
+                    if isinstance(v, (int, float)):
+                        row[k] = v / 1000000.0
+                    else:
+                        row[k] = v
+                else:
+                    row[k] = v
+            scaled.append(row)
+        return scaled
+
     def get_financials(self, symbol: str, report_type: str = "income_statement", period: str = "quarter", source: str = None) -> list:
         src = source or self.default_source
         cache_key = ("financials", symbol, report_type, period, src)
@@ -288,6 +306,7 @@ class VnstockClient:
                 raise ValueError(f"Unknown financial report type: {report_type}")
                 
             res = self._clean_records(df)
+            res = self._scale_financial_records(res, report_type)
             self._set_cached(cache_key, res, 1800) # Cache static financial reports for 30 minutes
             return res
         except BaseException as e:
@@ -339,7 +358,10 @@ class VnstockClient:
                 if is_header:
                     res[year] = None
                 else:
-                    res[year] = float(vals[i] * 1000000000000.0) # Absolute VND (using 10^12 multiplier)
+                    if report_type == "ratio":
+                        res[year] = float(vals[i])
+                    else:
+                        res[year] = float(vals[i] * 1000000.0) # Scale to Millions of VND (using 10^6 multiplier)
             return res
 
         # Generate profit values based on margin rate
