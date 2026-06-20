@@ -1,6 +1,8 @@
 import pandas as pd
 import math
 import time
+import requests
+import re
 from vnstock import Quote, Finance, Listing
 
 class VnstockClient:
@@ -284,6 +286,164 @@ class VnstockClient:
             scaled.append(row)
         return scaled
 
+    def _get_cafef_financials(self, symbol: str, report_type: str, period: str) -> list:
+        symbol = symbol.upper().strip()
+        time_type = "QUY" if period == "quarter" else "NAM"
+        
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+            "Referer": "https://cafef.vn/"
+        }
+        
+        if report_type == "income_statement":
+            url = f"https://apiweb.cafef.vn/api/v1/BCTC/GetReportDetail?symbol={symbol}&pageIndex=1&pageSize=4&reportType=KQKD&TypeTime={time_type}"
+        elif report_type == "balance_sheet":
+            url = f"https://apiweb.cafef.vn/api/v2/BCTC/GetReportCDKT?symbol={symbol}&pageIndex=1&pageSize=4&reportType=ALL&TypeTime={time_type}"
+        elif report_type == "cash_flow":
+            url = f"https://apiweb.cafef.vn/api/v1/BCTC/GetReportLCTT?symbol={symbol}&pageIndex=1&pageSize=4&reportType=ALL&TypeTime={time_type}"
+        elif report_type == "ratio":
+            url = f"https://apiweb.cafef.vn/api/v2/BCTC/FinancialIndicators?symbol={symbol}&pageIndex=1&pageSize=4"
+        else:
+            return None
+            
+        r = requests.get(url, headers=headers, timeout=10)
+        if r.status_code != 200:
+            return None
+            
+        data = r.json()
+        if not data.get("isSuccess") or not data.get("value"):
+            return None
+            
+        val = data.get("value", {})
+        rows = []
+        
+        def get_year(time_str):
+            m = re.search(r'(\d{4})', time_str)
+            return int(m.group(1)) if m else 9999
+            
+        if report_type == "income_statement":
+            template = val.get("templace", [])
+            periods_data = val.get("data", [])
+            kqkd_new_to_old_map = {
+                '22': '21',
+                '23': '22',
+                '24': '23',
+                '27': '24'
+            }
+            
+            for temp in template:
+                code = str(temp.get("code"))
+                row = {
+                    "item": temp.get("name"),
+                    "item_id": code
+                }
+                for p in periods_data:
+                    p_key = p.get("time")
+                    year = get_year(p_key)
+                    p_items = p.get("data", [])
+                    
+                    target_code = code
+                    if year <= 2025:
+                        if target_code == '21':
+                            target_code = None
+                        else:
+                            target_code = kqkd_new_to_old_map.get(target_code, target_code)
+                            
+                    matching_val = None
+                    if target_code:
+                        for pit in p_items:
+                            if str(pit.get("code")) == target_code:
+                                matching_val = pit.get("value")
+                                break
+                    row[p_key] = matching_val if matching_val is not None else 0.0
+                rows.append(row)
+                
+        elif report_type in ["balance_sheet", "cash_flow"]:
+            template_sections = val.get("templace", [])
+            periods_sections = val.get("data", [])
+            
+            period_keys = []
+            if periods_sections:
+                sec0 = periods_sections[0]
+                periods_data = sec0.get("data", [])
+                period_keys = [p.get("time") for p in periods_data]
+                
+            for sec in template_sections:
+                sec_code = sec.get("code")
+                data_sec = None
+                for ds in periods_sections:
+                    if ds.get("code") == sec_code:
+                        data_sec = ds
+                        break
+                        
+                sec_items = sec.get("data", [])
+                for temp in sec_items:
+                    row = {
+                        "item": temp.get("name"),
+                        "item_id": str(temp.get("code"))
+                    }
+                    if data_sec:
+                        periods_data = data_sec.get("data", [])
+                        for p in periods_data:
+                            p_key = p.get("time")
+                            p_items = p.get("data", [])
+                            matching_val = None
+                            for pit in p_items:
+                                if str(pit.get("code")) == str(temp.get("code")):
+                                    matching_val = pit.get("value")
+                                    break
+                            row[p_key] = matching_val if matching_val is not None else 0.0
+                    else:
+                        for p_key in period_keys:
+                            row[p_key] = 0.0
+                    rows.append(row)
+                    
+        elif report_type == "ratio":
+            periods_data = val.get("data", [])
+            if not periods_data:
+                return []
+                
+            codes_set = []
+            for p in periods_data:
+                p_items = p.get("data", [])
+                for pit in p_items:
+                    c = pit.get("code")
+                    if c not in codes_set:
+                        codes_set.append(c)
+                        
+            ratio_names = {
+                "EPS": "EPS (Thu nhập trên mỗi cổ phiếu) (VND)",
+                "BV": "Giá trị sổ sách (Book Value) (VND)",
+                "PE": "Hệ số P/E",
+                "PB": "Hệ số P/B",
+                "GOS": "Biên lợi nhuận gộp (%)",
+                "ROS": "Biên lợi nhuận ròng (%)",
+                "ROE": "ROE (%)",
+                "ROA": "ROA (%)",
+                "TSTTHH": "Tỷ lệ tài sản thanh toán hiện hành",
+                "KNTTLV": "Khả năng thanh toán lãi vay",
+                "NoVCSH": "Nợ phải trả / VCSH",
+                "NoTS": "Nợ phải trả / Tổng tài sản"
+            }
+            
+            for c in codes_set:
+                row = {
+                    "item": ratio_names.get(c, c),
+                    "item_id": c
+                }
+                for p in periods_data:
+                    p_key = p.get("time")
+                    p_items = p.get("data", [])
+                    matching_val = None
+                    for pit in p_items:
+                        if pit.get("code") == c:
+                            matching_val = pit.get("value")
+                            break
+                    row[p_key] = matching_val if matching_val is not None else 0.0
+                rows.append(row)
+                
+        return rows
+
     def get_financials(self, symbol: str, report_type: str = "income_statement", period: str = "quarter", source: str = None) -> list:
         src = source or self.default_source
         cache_key = ("financials", symbol, report_type, period, src)
@@ -291,6 +451,17 @@ class VnstockClient:
         if cached is not None:
             return cached
 
+        # 1. Try CafeF API first
+        try:
+            res = self._get_cafef_financials(symbol, report_type, period)
+            if res:
+                res = self._scale_financial_records(res, report_type)
+                self._set_cached(cache_key, res, 1800)
+                return res
+        except BaseException as ex_cafef:
+            print(f"Failed to fetch financials from CafeF for {symbol}: {ex_cafef}. Trying Vnstock...")
+
+        # 2. Fallback to Vnstock
         try:
             f = Finance(symbol=symbol, source=src, period=period)
             
@@ -314,6 +485,7 @@ class VnstockClient:
             res = self._generate_mock_financials(symbol, report_type, period)
             self._set_cached(cache_key, res, 1800)
             return res
+
 
     def _generate_mock_financials(self, symbol: str, report_type: str, period: str) -> list:
         symbol_upper = symbol.upper().strip()
