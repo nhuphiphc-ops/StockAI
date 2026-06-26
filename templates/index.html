@@ -2566,7 +2566,10 @@
                     trades.slice(0, 12).forEach(t => {
                         const row = document.createElement('div');
                         row.className = "tx-list-item";
-                        const isUp = t.side === 'B' || t.side === 'BUY' || Math.random() > 0.5;
+                        const sideUpper = String(t.side || "").toUpperCase();
+                        const isUp = (sideUpper === 'B' || sideUpper === 'BUY' || sideUpper === 'MUA') ? true :
+                                     (sideUpper === 'S' || sideUpper === 'SELL' || sideUpper === 'BÁN') ? false :
+                                     Math.random() > 0.5;
                         const sideCls = isUp ? 'txt-up' : 'txt-down';
                         row.innerHTML = `
                             <span>${t.time}</span>

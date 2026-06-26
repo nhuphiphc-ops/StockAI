@@ -401,21 +401,75 @@ class SsiClient:
         return history
 
     def _generate_mock_intraday(self, symbol: str) -> list:
-        base_p = self.base_prices.get(symbol.upper(), 30.0)
-        trades = []
-        now = datetime.now()
+        import pytz
+        from datetime import datetime, timedelta, time as datetime_time
+        import random
         
+        symbol_upper = symbol.upper().strip()
+        
+        # Try to get the latest live price from get_price_depth
+        base_p = None
+        try:
+            depth = self.get_price_depth(symbol_upper)
+            if depth and "last_price" in depth:
+                base_p = depth["last_price"]
+        except Exception as e:
+            print(f"Error getting price depth for mock intraday: {e}")
+            
+        if not base_p:
+            base_p = self.base_prices.get(symbol_upper, 30.0)
+            
+        vn_tz = pytz.timezone('Asia/Ho_Chi_Minh')
+        now = datetime.now(vn_tz)
+        
+        # Adjust start time if it's weekend or outside trading hours
+        weekday = now.weekday()
+        if weekday == 5:  # Saturday
+            now = (now - timedelta(days=1)).replace(hour=15, minute=0, second=0, microsecond=0)
+        elif weekday == 6:  # Sunday
+            now = (now - timedelta(days=2)).replace(hour=15, minute=0, second=0, microsecond=0)
+        else:
+            curr_time = now.time()
+            if curr_time < datetime_time(9, 0):
+                prev_day = now - timedelta(days=1)
+                while prev_day.weekday() >= 5:
+                    prev_day -= timedelta(days=1)
+                now = prev_day.replace(hour=15, minute=0, second=0, microsecond=0)
+            elif datetime_time(11, 30) <= curr_time < datetime_time(13, 0):
+                now = now.replace(hour=11, minute=30, second=0, microsecond=0)
+            elif curr_time >= datetime_time(15, 0):
+                now = now.replace(hour=15, minute=0, second=0, microsecond=0)
+                
+        trades = []
+        current_trade_time = now
+        
+        # Let's generate a list of 50 trades going back in time
         for i in range(50):
-            trade_time = (now - timedelta(minutes=i * 2)).strftime("%H:%M:%S")
-            price = base_p + random.uniform(-0.01, 0.01) * base_p
+            # If current_trade_time is during lunch break (11:30 to 13:00)
+            # we roll it back to 11:30
+            if datetime_time(11, 30) <= current_trade_time.time() < datetime_time(13, 0):
+                current_trade_time = current_trade_time.replace(hour=11, minute=30, second=0, microsecond=0)
+                
+            # If current_trade_time is before 9:00 AM, we roll it back to 15:00 of previous day
+            if current_trade_time.time() < datetime_time(9, 0):
+                prev_day = current_trade_time - timedelta(days=1)
+                while prev_day.weekday() >= 5:
+                    prev_day -= timedelta(days=1)
+                current_trade_time = prev_day.replace(hour=15, minute=0, second=0, microsecond=0)
+                
+            trade_time_str = current_trade_time.strftime("%H:%M:%S")
+            price = base_p + random.uniform(-0.005, 0.005) * base_p
             vol = random.randint(1, 500) * 100
             side = random.choice(["B", "S"])
             trades.append({
-                "time": trade_time,
+                "time": trade_time_str,
                 "price": round(price, 2),
                 "volume": vol,
                 "side": side
             })
+            # Decrement time by 30 to 180 seconds
+            current_trade_time -= timedelta(seconds=random.randint(30, 180))
+            
         return trades
 
     def _get_vci_public_fallback(self, symbol: str) -> dict:
