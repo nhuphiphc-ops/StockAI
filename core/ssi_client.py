@@ -488,31 +488,54 @@ class SsiClient:
         return None
 
     def _generate_mock_price_depth(self, symbol: str) -> dict:
-        # Try Yahoo Finance fallback first
+        import pytz
+        from datetime import datetime
+        import random
+        
+        symbol_upper = symbol.upper().strip()
+        vn_tz = pytz.timezone('Asia/Ho_Chi_Minh')
+        date_str = datetime.now(vn_tz).strftime("%Y-%m-%d")
+        
+        state = random.getstate()
+        random.seed(date_str + "_" + symbol_upper)
+        
+        # Try Yahoo Finance fallback first (will use seeded random for volumes)
         yahoo_res = self._get_yahoo_finance_fallback(symbol)
         if yahoo_res:
+            random.setstate(state)
             return yahoo_res
-
-        base_p = self.base_prices.get(symbol.upper(), 30.0)
-        curr_price = base_p + random.uniform(-0.005, 0.005) * base_p
-        spread = 0.05
+            
+        base_p = self.base_prices.get(symbol_upper, 30.0)
         
+        # Change percentage in realistic range [-2.0, 2.0]
+        change_pct = round(random.uniform(-2.0, 2.0), 2)
+        change = round((change_pct / 100.0) * base_p, 2)
+        curr_price = base_p + change
+        
+        spread = 0.05
+        step = 0.05
+        if "VNINDEX" in symbol_upper or "VN30" in symbol_upper:
+            spread = 0.50
+            step = 0.50
+            
         bids = [
             {"price": round(curr_price - spread, 2), "volume": random.randint(1000, 15000) * 10},
-            {"price": round(curr_price - spread - 0.05, 2), "volume": random.randint(2000, 20000) * 10},
-            {"price": round(curr_price - spread - 0.10, 2), "volume": random.randint(3000, 30000) * 10}
+            {"price": round(curr_price - spread - step, 2), "volume": random.randint(2000, 20000) * 10},
+            {"price": round(curr_price - spread - (step * 2), 2), "volume": random.randint(3000, 30000) * 10}
         ]
         asks = [
             {"price": round(curr_price + spread, 2), "volume": random.randint(1000, 15000) * 10},
-            {"price": round(curr_price + spread + 0.05, 2), "volume": random.randint(2000, 20000) * 10},
-            {"price": round(curr_price + spread + 0.10, 2), "volume": random.randint(3000, 30000) * 10}
+            {"price": round(curr_price + spread + step, 2), "volume": random.randint(2000, 20000) * 10},
+            {"price": round(curr_price + spread + (step * 2), 2), "volume": random.randint(3000, 30000) * 10}
         ]
-        change = random.uniform(-2.5, 3.0)
-        return {
-            "symbol": symbol,
+        
+        res = {
+            "symbol": symbol_upper,
             "last_price": round(curr_price, 2),
             "change": round(change, 2),
-            "change_pct": round(change / base_p * 100, 2),
+            "change_pct": round(change_pct, 2),
             "bids": bids,
             "asks": asks
         }
+        random.setstate(state)
+        return res
