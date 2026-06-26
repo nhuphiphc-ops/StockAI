@@ -2148,7 +2148,7 @@
             drawGauge('gauge-risk', 35, '#ff1744');
             drawGauge('gauge-opportunity', 72, '#00e5ff');
             
-            // Periodically refresh active tab's data (Live prices, AI overview indices, and Portfolio holdings)
+            // Periodically refresh active tab's data (Live prices, AI overview indices, Portfolio holdings, and Macro indicators)
             setInterval(() => {
                 const activeBtn = document.querySelector('.nav-btn.active');
                 if (activeBtn) {
@@ -2159,6 +2159,8 @@
                         loadOverviewTab();
                     } else if (viewText.includes("Danh Mục")) {
                         loadPortfolioTab();
+                    } else if (viewText.includes("Vĩ Mô")) {
+                        loadMacroTab();
                     }
                 }
             }, 8000);
@@ -3620,51 +3622,91 @@
                     
                     // Render Macro indicators (Table A)
                     const mContainer = document.getElementById('macro-rows-container');
-                    mContainer.innerHTML = "";
+                    const existingMacroRows = mContainer.getElementsByTagName('tr');
                     
-                    data.macro_indicators.forEach(m => {
-                        const formatMacroVal = (val, label) => {
-                            if (val === null || val === undefined) return '—';
-                            if (label.includes("Tỷ giá")) return val.toLocaleString() + " VND";
-                            if (label.includes("FDI")) return val.toFixed(1) + " Tỷ USD";
-                            return (val * 100).toFixed(2) + "%";
-                        };
+                    const formatMacroVal = (val, label) => {
+                        if (val === null || val === undefined) return '—';
+                        if (label.includes("Tỷ giá")) return val.toLocaleString() + " VND";
+                        if (label.includes("FDI")) return val.toFixed(1) + " Tỷ USD";
+                        return (val * 100).toFixed(2) + "%";
+                    };
 
-                        const tr = document.createElement('tr');
-                        const isPositive = m.comment.includes("Tích cực");
-                        const isNegative = m.comment.includes("Tiêu cực");
-                        const cls = isPositive ? 'txt-up' : (isNegative ? 'txt-down' : 'txt-ref');
-                        
-                        tr.innerHTML = `
-                            <td class="bold">${m.indicator}</td>
-                            <td class="num">${formatMacroVal(m.current, m.indicator)}</td>
-                            <td class="num">${formatMacroVal(m.previous, m.indicator)}</td>
-                            <td class="num ${cls}">${m.change > 0 ? '+' : ''}${(m.change*100).toFixed(2)}%</td>
-                            <td class="${cls}" style="font-weight:600;">${m.comment}</td>
-                        `;
-                        mContainer.appendChild(tr);
-                    });
+                    if (existingMacroRows.length === data.macro_indicators.length) {
+                        data.macro_indicators.forEach((m, idx) => {
+                            const tr = existingMacroRows[idx];
+                            const isPositive = m.comment.includes("Tích cực");
+                            const isNegative = m.comment.includes("Tiêu cực");
+                            const cls = isPositive ? 'txt-up' : (isNegative ? 'txt-down' : 'txt-ref');
+                            
+                            const tds = tr.getElementsByTagName('td');
+                            if (tds.length >= 5) {
+                                tds[0].innerText = m.indicator;
+                                tds[1].innerText = formatMacroVal(m.current, m.indicator);
+                                tds[2].innerText = formatMacroVal(m.previous, m.indicator);
+                                
+                                tds[3].className = `num ${cls}`;
+                                tds[3].innerText = `${m.change > 0 ? '+' : ''}${(m.change*100).toFixed(2)}%`;
+                                
+                                tds[4].className = cls;
+                                tds[4].style.fontWeight = "600";
+                                tds[4].innerText = m.comment;
+                            }
+                        });
+                    } else {
+                        mContainer.innerHTML = "";
+                        data.macro_indicators.forEach(m => {
+                            const tr = document.createElement('tr');
+                            const isPositive = m.comment.includes("Tích cực");
+                            const isNegative = m.comment.includes("Tiêu cực");
+                            const cls = isPositive ? 'txt-up' : (isNegative ? 'txt-down' : 'txt-ref');
+                            
+                            tr.innerHTML = `
+                                <td class="bold">${m.indicator}</td>
+                                <td class="num">${formatMacroVal(m.current, m.indicator)}</td>
+                                <td class="num">${formatMacroVal(m.previous, m.indicator)}</td>
+                                <td class="num ${cls}">${m.change > 0 ? '+' : ''}${(m.change*100).toFixed(2)}%</td>
+                                <td class="${cls}" style="font-weight:600;">${m.comment}</td>
+                            `;
+                            mContainer.appendChild(tr);
+                        });
+                    }
 
                     // Render Geopolitical Risk sliders (Table B)
                     const sContainer = document.getElementById('geopolitical-sliders-container');
-                    sContainer.innerHTML = "";
+                    const existingSliders = sContainer.getElementsByClassName('slider-item');
                     
-                    data.geopolitics.forEach(g => {
-                        const div = document.createElement('div');
-                        div.className = "slider-item";
-                        div.innerHTML = `
-                            <div class="slider-info">
-                                <span class="slider-region">${g.region}</span>
-                                <span class="slider-score" id="lbl-score-${g.region}">${g.risk_score} / 100</span>
-                            </div>
-                            <div class="slider-control">
-                                <input type="range" min="0" max="100" value="${g.risk_score}" id="slide-${g.region}" oninput="updateSliderLabel('${g.region}')" onchange="submitGeopoliticalRisk('${g.region}', ${g.vnindex_impact})">
-                                <span style="font-size: 10px; color: var(--color-text-muted); width: 110px; text-align:right;">Ảnh hưởng Index: <strong>${g.vnindex_impact}%</strong></span>
-                            </div>
-                            <div class="slider-issues">Điểm nóng: ${g.key_issues}</div>
-                        `;
-                        sContainer.appendChild(div);
-                    });
+                    if (existingSliders.length === data.geopolitics.length) {
+                        data.geopolitics.forEach((g, idx) => {
+                            const div = existingSliders[idx];
+                            const issuesEl = div.querySelector('.slider-issues');
+                            if (issuesEl) issuesEl.innerText = `Điểm nóng: ${g.key_issues}`;
+                            
+                            const input = div.querySelector('input');
+                            if (input && document.activeElement !== input) {
+                                input.value = g.risk_score;
+                                const lbl = div.querySelector('.slider-score');
+                                if (lbl) lbl.innerText = `${g.risk_score} / 100`;
+                            }
+                        });
+                    } else {
+                        sContainer.innerHTML = "";
+                        data.geopolitics.forEach(g => {
+                            const div = document.createElement('div');
+                            div.className = "slider-item";
+                            div.innerHTML = `
+                                <div class="slider-info">
+                                    <span class="slider-region">${g.region}</span>
+                                    <span class="slider-score" id="lbl-score-${g.region}">${g.risk_score} / 100</span>
+                                </div>
+                                <div class="slider-control">
+                                    <input type="range" min="0" max="100" value="${g.risk_score}" id="slide-${g.region}" oninput="updateSliderLabel('${g.region}')" onchange="submitGeopoliticalRisk('${g.region}', ${g.vnindex_impact})">
+                                    <span style="font-size: 10px; color: var(--color-text-muted); width: 110px; text-align:right;">Ảnh hưởng Index: <strong>${g.vnindex_impact}%</strong></span>
+                                </div>
+                                <div class="slider-issues">Điểm nóng: ${g.key_issues}</div>
+                            `;
+                            sContainer.appendChild(div);
+                        });
+                    }
 
                     // Generate AI General Commentary
                     let usRisk = 50, cnRisk = 50, ruRisk = 50, euRisk = 50, jpRisk = 50;

@@ -529,10 +529,14 @@ def get_excel_overview():
                 # Recalculate target range and stop loss relative to live price
                 rec = deriv.get("recommendation", "QUAN SÁT")
                 if rec == "LONG":
-                    deriv["target"] = f"{int(round(price + 10))} - {int(round(price + 15))}"
+                    low_val = int(round(price + 10))
+                    high_val = int(round(price + 15))
+                    deriv["target"] = f"{low_val:,} - {high_val:,} điểm"
                     deriv["stop_loss"] = int(round(price - 8))
                 elif rec == "SHORT":
-                    deriv["target"] = f"{int(round(price - 15))} - {int(round(price - 10))}"
+                    low_val = int(round(price - 15))
+                    high_val = int(round(price - 10))
+                    deriv["target"] = f"{low_val:,} - {high_val:,} điểm"
                     deriv["stop_loss"] = int(round(price + 8))
                 else:
                     deriv["target"] = "—"
@@ -779,7 +783,40 @@ def get_excel_fundamentals():
 @app.get("/api/excel/macro-geopolitics")
 def get_excel_macro_geopolitics():
     try:
-        return excel_manager.get_macro_geopolitics()
+        data = excel_manager.get_macro_geopolitics()
+        
+        # Try to fetch live USD/VND exchange rate
+        try:
+            import requests
+            url = "https://query1.finance.yahoo.com/v8/finance/chart/USDVND=X"
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            }
+            r = requests.get(url, headers=headers, timeout=3)
+            if r.status_code == 200:
+                res_data = r.json()
+                meta = res_data.get("chart", {}).get("result", [{}])[0].get("meta", {})
+                rate = meta.get("regularMarketPrice")
+                if rate and rate > 0:
+                    for item in data.get("macro_indicators", []):
+                        ind_name = item.get("indicator") or ""
+                        if "tỷ giá usd" in ind_name.lower():
+                            prev_val = item.get("previous") or 25280.0
+                            item["current"] = float(rate)
+                            item["change"] = (float(rate) - float(prev_val)) / float(prev_val)
+                            
+                            # Update comment based on exchange rate level
+                            if rate > 26000:
+                                item["comment"] = "Tiêu cực (Áp lực tỷ giá cực cao)"
+                            elif rate > 25400:
+                                item["comment"] = "Tiêu cực (Áp lực tỷ giá cao)"
+                            else:
+                                item["comment"] = "Trung lập (Tỷ giá ổn định)"
+                            break
+        except Exception as ex_rate:
+            print(f"Error fetching live USD/VND rate: {ex_rate}")
+            
+        return data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1272,12 +1309,12 @@ def recalculate_excel_dashboard():
         if "Tăng" in trend_name:
             rec = "LONG"
             prob = min(0.85, forecast["probability"] + 0.05)
-            target = f"{int(vf_price + 10):,} - {int(vf_price + 15):,}"
+            target = f"{int(vf_price + 10):,} - {int(vf_price + 15):,} điểm"
             stop_loss = int(vf_price - 8)
         elif "Giảm" in trend_name:
             rec = "SHORT"
             prob = min(0.85, forecast["probability"] + 0.05)
-            target = f"{int(vf_price - 15):,} - {int(vf_price - 10):,}"
+            target = f"{int(vf_price - 15):,} - {int(vf_price - 10):,} điểm"
             stop_loss = int(vf_price + 8)
         else:
             rec = "QUAN SÁT"
