@@ -21,7 +21,7 @@ class SsiClient:
             "VRE": 20.0, "DIG": 24.0, "DXG": 16.0, "NLG": 38.0, "VCI": 45.0, "HCM": 28.0,
             "VND": 20.0, "DGC": 115.0, "GVR": 33.0, "GAS": 78.0, "PVD": 28.0, "PVS": 38.0,
             "MBS": 19.7,
-            "VN30F1M": 1964.00, "VNINDEX": 1824.53, "VN30": 1963.57, "HNXINDEX": 324.83, "UPCOMINDEX": 127.52
+            "VN30F1M": 1997.7, "VNINDEX": 1863.0, "VN30": 1998.0, "HNXINDEX": 321.0, "UPCOMINDEX": 129.0
         }
         self.cache = {}
 
@@ -418,10 +418,78 @@ class SsiClient:
             })
         return trades
 
+    def _get_vci_public_fallback(self, symbol: str) -> dict:
+        symbol_upper = symbol.upper().strip()
+        symbols_map = {
+            "VNINDEX": "VNINDEX",
+            "VN30": "VN30",
+            "HNXINDEX": "HNXIndex",
+            "UPCOMINDEX": "HNXUpcomIndex",
+            "VN30F1M": "VN30F1M"
+        }
+        if symbol_upper not in symbols_map:
+            return None
+            
+        vci_symbol = symbols_map[symbol_upper]
+        url = "https://trading.vietcap.com.vn/api/chart/OHLCChart/gap-chart"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Content-Type": "application/json",
+            "Referer": "https://trading.vietcap.com.vn/priceboard",
+            "Origin": "https://trading.vietcap.com.vn"
+        }
+        payload = {
+            "timeFrame": "ONE_DAY",
+            "symbols": [vci_symbol],
+            "to": int(time.time()),
+            "countBack": 2
+        }
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=5)
+            if r.status_code == 200:
+                data = r.json()
+                if isinstance(data, list) and len(data) > 0:
+                    symbol_data = data[0]
+                    closes = symbol_data.get("c", [])
+                    if len(closes) >= 1:
+                        last_price = closes[-1]
+                        prev_close = closes[-2] if len(closes) >= 2 else last_price
+                        change = last_price - prev_close
+                        change_pct = (change / prev_close) * 100.0 if prev_close != 0 else 0.0
+                        
+                        import random
+                        spread = 0.50 if "VNINDEX" in symbol_upper or "VN30" in symbol_upper else 0.05
+                        step = spread
+                        bids = [
+                            {"price": round(last_price - spread, 2), "volume": random.randint(1000, 15000) * 10},
+                            {"price": round(last_price - spread - step, 2), "volume": random.randint(2000, 20000) * 10},
+                            {"price": round(last_price - spread - (step * 2), 2), "volume": random.randint(3000, 30000) * 10}
+                        ]
+                        asks = [
+                            {"price": round(last_price + spread, 2), "volume": random.randint(1000, 15000) * 10},
+                            {"price": round(last_price + spread + step, 2), "volume": random.randint(2000, 20000) * 10},
+                            {"price": round(last_price + spread + (step * 2), 2), "volume": random.randint(3000, 30000) * 10}
+                        ]
+                        
+                        # Cache latest price back to base_prices
+                        self.base_prices[symbol_upper] = last_price
+                        
+                        return {
+                            "symbol": symbol_upper,
+                            "last_price": round(last_price, 2),
+                            "change": round(change, 2),
+                            "change_pct": round(change_pct, 2),
+                            "bids": bids,
+                            "asks": asks
+                        }
+        except Exception as e:
+            print(f"SSI Vietcap public API fallback failed for {symbol_upper}: {e}")
+        return None
+
     def _get_yahoo_finance_fallback(self, symbol: str) -> dict:
         symbol_upper = symbol.upper().strip()
         if symbol_upper == "VNINDEX":
-            yahoo_sym = "^VNINDEX"
+            yahoo_sym = "0P0000HY8X.VN"
         elif symbol_upper == "VN30":
             yahoo_sym = "^VN30"
         elif symbol_upper == "VN30F1M":
@@ -475,6 +543,9 @@ class SsiClient:
                         {"price": round(last_price + spread + (step * 2), 2), "volume": random.randint(3000, 30000) * 10}
                     ]
                     
+                    # Cache latest price back to base_prices
+                    self.base_prices[symbol_upper] = last_price
+                    
                     return {
                         "symbol": symbol_upper,
                         "last_price": round(last_price, 2),
@@ -499,7 +570,13 @@ class SsiClient:
         state = random.getstate()
         random.seed(date_str + "_" + symbol_upper)
         
-        # Try Yahoo Finance fallback first (will use seeded random for volumes)
+        # Try Vietcap public API first
+        vci_res = self._get_vci_public_fallback(symbol)
+        if vci_res:
+            random.setstate(state)
+            return vci_res
+            
+        # Try Yahoo Finance fallback second (will use seeded random for volumes)
         yahoo_res = self._get_yahoo_finance_fallback(symbol)
         if yahoo_res:
             random.setstate(state)
