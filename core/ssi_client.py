@@ -20,6 +20,7 @@ class SsiClient:
             "VCG": 22.0, "STB": 29.0, "VPB": 18.0, "CTG": 32.0, "BID": 45.0, "VHM": 38.0,
             "VRE": 20.0, "DIG": 24.0, "DXG": 16.0, "NLG": 38.0, "VCI": 45.0, "HCM": 28.0,
             "VND": 20.0, "DGC": 115.0, "GVR": 33.0, "GAS": 78.0, "PVD": 28.0, "PVS": 38.0,
+            "MBS": 19.7,
             "VN30F1M": 1964.00, "VNINDEX": 1824.53, "VN30": 1963.57, "HNXINDEX": 324.83, "UPCOMINDEX": 127.52
         }
         self.cache = {}
@@ -426,7 +427,10 @@ class SsiClient:
         elif symbol_upper == "VN30F1M":
             return None
         else:
-            yahoo_sym = f"{symbol_upper}.VN"
+            if symbol_upper in ["MBS", "PVS", "SHS", "HNXINDEX"]:
+                yahoo_sym = f"{symbol_upper}.HN"
+            else:
+                yahoo_sym = f"{symbol_upper}.VN"
             
         import requests
         url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_sym}"

@@ -95,6 +95,7 @@ DEFAULT_SYMBOLS = [
     {"ticker": "MSN", "name": "CTCP Tập đoàn Masan", "exchange": "HOSE"},
     {"ticker": "TCB", "name": "Ngân hàng TMCP Kỹ thương Việt Nam", "exchange": "HOSE"},
     {"ticker": "ACB", "name": "Ngân hàng TMCP Á Châu", "exchange": "HNX"},
+    {"ticker": "MBS", "name": "Công ty Cổ phần Chứng khoán MB", "exchange": "HNX"},
     {"ticker": "PHC", "name": "CTCP Xây dựng Phục Hưng Holdings", "exchange": "HOSE"},
     {"ticker": "CTD", "name": "CTCP Xây dựng Coteccons", "exchange": "HOSE"},
     {"ticker": "HBC", "name": "CTCP Tập đoàn Xây dựng Hòa Bình", "exchange": "HOSE"},
