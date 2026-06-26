@@ -2148,12 +2148,20 @@
             drawGauge('gauge-risk', 35, '#ff1744');
             drawGauge('gauge-opportunity', 72, '#00e5ff');
             
-            // Periodically refresh live price feeds for the active board tab
+            // Periodically refresh active tab's data (Live prices, AI overview indices, and Portfolio holdings)
             setInterval(() => {
-                if (document.getElementById('view-live-board').classList.contains('active')) {
-                    refreshLivePrices();
+                const activeBtn = document.querySelector('.nav-btn.active');
+                if (activeBtn) {
+                    const viewText = activeBtn.innerText.trim();
+                    if (viewText.includes("Bảng Giá Live")) {
+                        refreshLivePrices();
+                    } else if (viewText.includes("AI Overview")) {
+                        loadOverviewTab();
+                    } else if (viewText.includes("Danh Mục")) {
+                        loadPortfolioTab();
+                    }
                 }
-            }, 6000);
+            }, 8000);
 
             // Listen for Enter key on search input to add ticker directly
             const searchInput = document.getElementById('symbolSearch');
@@ -2946,32 +2954,69 @@
                     
                     // Render Indices Cards
                     const container = document.getElementById('ov-indices-container');
-                    container.innerHTML = "";
+                    const existingCards = container.getElementsByClassName('index-box');
                     
-                    d.market_overview.forEach(index => {
-                        const val = index.value ? Number(index.value) : 0;
-                        const change = index.change ? Number(index.change) : 0;
-                        const pctChg = index.pct_change ? Number(index.pct_change) * 100 : 0;
-                        const sign = change > 0 ? '+' : '';
-                        const cls = change > 0 ? 'txt-up' : (change < 0 ? 'txt-down' : 'txt-ref');
-                        
-                        const div = document.createElement('div');
-                        div.className = "glass-card index-box";
-                        div.innerHTML = `
-                            <span class="label">${index.index}</span>
-                            <span class="points">${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                            <span class="trend ${cls}">
-                                <i class="fa-solid ${change > 0 ? 'fa-caret-up' : (change < 0 ? 'fa-caret-down' : '')}"></i>
-                                ${sign}${change.toFixed(2)} (${sign}${pctChg.toFixed(2)}%)
-                            </span>
-                            <div class="stats-row">
-                                <span>KL: ${(index.volume ? (index.volume/1000000).toFixed(0) : '—')}M cp</span>
-                                <span>GTGD: ${(index.value_vnd ? index.value_vnd.toLocaleString() : '—')} Tỷ</span>
-                            </div>
-                            <span style="font-size:9px; color:var(--color-text-muted); margin-top:2px;">${index.ratio_text || ''}</span>
-                        `;
-                        container.appendChild(div);
-                    });
+                    if (existingCards.length === d.market_overview.length) {
+                        // Update existing elements in-place to avoid flicker
+                        d.market_overview.forEach((index, i) => {
+                            const val = index.value ? Number(index.value) : 0;
+                            const change = index.change ? Number(index.change) : 0;
+                            const pctChg = index.pct_change ? Number(index.pct_change) * 100 : 0;
+                            const sign = change > 0 ? '+' : '';
+                            const cls = change > 0 ? 'txt-up' : (change < 0 ? 'txt-down' : 'txt-ref');
+                            
+                            const card = existingCards[i];
+                            
+                            // Safety checks for child nodes before modifying
+                            const labelEl = card.querySelector('.label');
+                            if (labelEl) labelEl.innerText = index.index;
+                            
+                            const pointsEl = card.querySelector('.points');
+                            if (pointsEl) pointsEl.innerText = val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            
+                            const trendEl = card.querySelector('.trend');
+                            if (trendEl) {
+                                trendEl.className = `trend ${cls}`;
+                                trendEl.innerHTML = `
+                                    <i class="fa-solid ${change > 0 ? 'fa-caret-up' : (change < 0 ? 'fa-caret-down' : '')}"></i>
+                                    ${sign}${change.toFixed(2)} (${sign}${pctChg.toFixed(2)}%)
+                                `;
+                            }
+                            
+                            const statsSpans = card.querySelectorAll('.stats-row span');
+                            if (statsSpans.length >= 2) {
+                                statsSpans[0].innerText = `KL: ${(index.volume ? (index.volume/1000000).toFixed(0) : '—')}M cp`;
+                                statsSpans[1].innerText = `GTGD: ${(index.value_vnd ? index.value_vnd.toLocaleString() : '—')} Tỷ`;
+                            }
+                        });
+                    } else {
+                        // Rebuild all from scratch on first load
+                        container.innerHTML = "";
+                        d.market_overview.forEach(index => {
+                            const val = index.value ? Number(index.value) : 0;
+                            const change = index.change ? Number(index.change) : 0;
+                            const pctChg = index.pct_change ? Number(index.pct_change) * 100 : 0;
+                            const sign = change > 0 ? '+' : '';
+                            const cls = change > 0 ? 'txt-up' : (change < 0 ? 'txt-down' : 'txt-ref');
+                            
+                            const div = document.createElement('div');
+                            div.className = "glass-card index-box";
+                            div.innerHTML = `
+                                <span class="label">${index.index}</span>
+                                <span class="points">${val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                                <span class="trend ${cls}">
+                                    <i class="fa-solid ${change > 0 ? 'fa-caret-up' : (change < 0 ? 'fa-caret-down' : '')}"></i>
+                                    ${sign}${change.toFixed(2)} (${sign}${pctChg.toFixed(2)}%)
+                                </span>
+                                <div class="stats-row">
+                                    <span>KL: ${(index.volume ? (index.volume/1000000).toFixed(0) : '—')}M cp</span>
+                                    <span>GTGD: ${(index.value_vnd ? index.value_vnd.toLocaleString() : '—')} Tỷ</span>
+                                </div>
+                                <span style="font-size:9px; color:var(--color-text-muted); margin-top:2px;">${index.ratio_text || ''}</span>
+                            `;
+                            container.appendChild(div);
+                        });
+                    }
 
                     // Render Gauges
                     const scores = d.ai_scores || [];
@@ -2988,7 +3033,6 @@
                     // Render Derivatives (Section III)
                     const derivContainer = document.getElementById('ov-derivatives-container');
                     if (derivContainer && d.derivatives) {
-                        derivContainer.innerHTML = "";
                         const deriv = d.derivatives;
                         const basis = Number(deriv.basis || 0);
                         const prob = Number(deriv.probability || 0) * 100;
@@ -3008,16 +3052,32 @@
                             { label: "Ngưỡng Cắt Lỗ", val: deriv.stop_loss ? Number(deriv.stop_loss).toLocaleString() + " điểm" : "—", cls: "num txt-down" }
                         ];
                         
-                        items.forEach(item => {
-                            const card = document.createElement('div');
-                            card.className = "indicator-card";
-                            card.style.padding = "8px 12px";
-                            card.innerHTML = `
-                                <span class="indicator-label">${item.label}</span>
-                                <span class="indicator-val ${item.cls}" style="font-size:14px; margin-top:4px;">${item.val}</span>
-                            `;
-                            derivContainer.appendChild(card);
-                        });
+                        const existingDerivs = derivContainer.getElementsByClassName('indicator-card');
+                        if (existingDerivs.length === items.length) {
+                            items.forEach((item, idx) => {
+                                const card = existingDerivs[idx];
+                                const labelEl = card.querySelector('.indicator-label');
+                                if (labelEl) labelEl.innerText = item.label;
+                                
+                                const valEl = card.querySelector('.indicator-val');
+                                if (valEl) {
+                                    valEl.className = `indicator-val ${item.cls}`;
+                                    valEl.innerText = item.val;
+                                }
+                            });
+                        } else {
+                            derivContainer.innerHTML = "";
+                            items.forEach(item => {
+                                const card = document.createElement('div');
+                                card.className = "indicator-card";
+                                card.style.padding = "8px 12px";
+                                card.innerHTML = `
+                                    <span class="indicator-label">${item.label}</span>
+                                    <span class="indicator-val ${item.cls}" style="font-size:14px; margin-top:4px;">${item.val}</span>
+                                `;
+                                derivContainer.appendChild(card);
+                            });
+                        }
                     }
                 }
             } catch (e) {
@@ -3346,34 +3406,66 @@
                     
                     // Render rows
                     const container = document.getElementById('port-rows-container');
-                    container.innerHTML = "";
+                    const existingRows = container.getElementsByTagName('tr');
                     
                     if (data.items && data.items.length) {
-                        data.items.forEach(item => {
-                            const tr = document.createElement('tr');
-                            const rowPnl = item.pnl;
-                            const rowPnlPct = item.pnl_pct * 100;
-                            const rowCls = rowPnl > 0 ? 'txt-up' : (rowPnl < 0 ? 'txt-down' : '');
-                            
-                            tr.innerHTML = `
-                                <td class="ticker">${item.ticker}</td>
-                                <td>${item.name}</td>
-                                <td class="num">${Math.round(item.buy_price).toLocaleString()}</td>
-                                <td class="num">${item.quantity.toLocaleString()}</td>
-                                <td class="num">${item.current_price ? Math.round(item.current_price).toLocaleString() : '—'}</td>
-                                <td class="num">${Math.round(item.cost_basis).toLocaleString()}</td>
-                                <td class="num">${Math.round(item.current_val).toLocaleString()}</td>
-                                <td class="num ${rowCls}">${rowPnl > 0 ? '+' : ''}${Math.round(rowPnl).toLocaleString()}</td>
-                                <td class="num ${rowCls}">${rowPnl > 0 ? '+' : ''}${rowPnlPct.toFixed(2)}%</td>
-                                <td class="num">${(item.weight * 100).toFixed(1)}%</td>
-                                <td>
-                                    <button class="btn-delete" onclick="deletePortfolioRow(${item.row_idx})">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </td>
-                            `;
-                            container.appendChild(tr);
-                        });
+                        if (existingRows.length === data.items.length && !existingRows[0].querySelector('td[colspan]')) {
+                            // Update existing rows in-place to avoid flicker
+                            data.items.forEach((item, idx) => {
+                                const tr = existingRows[idx];
+                                const rowPnl = item.pnl;
+                                const rowPnlPct = item.pnl_pct * 100;
+                                const rowCls = rowPnl > 0 ? 'txt-up' : (rowPnl < 0 ? 'txt-down' : '');
+                                
+                                const tickerTd = tr.querySelector('.ticker');
+                                if (tickerTd && tickerTd.innerText.trim() === item.ticker) {
+                                    const tds = tr.getElementsByTagName('td');
+                                    if (tds.length >= 10) {
+                                        tds[2].innerText = Math.round(item.buy_price).toLocaleString();
+                                        tds[3].innerText = item.quantity.toLocaleString();
+                                        tds[4].innerText = item.current_price ? Math.round(item.current_price).toLocaleString() : '—';
+                                        tds[5].innerText = Math.round(item.cost_basis).toLocaleString();
+                                        tds[6].innerText = Math.round(item.current_val).toLocaleString();
+                                        
+                                        tds[7].className = `num ${rowCls}`;
+                                        tds[7].innerText = `${rowPnl > 0 ? '+' : ''}${Math.round(rowPnl).toLocaleString()}`;
+                                        
+                                        tds[8].className = `num ${rowCls}`;
+                                        tds[8].innerText = `${rowPnl > 0 ? '+' : ''}${rowPnlPct.toFixed(2)}%`;
+                                        
+                                        tds[9].innerText = `${(item.weight * 100).toFixed(1)}%`;
+                                    }
+                                }
+                            });
+                        } else {
+                            // Rebuild all rows on first load or mismatch
+                            container.innerHTML = "";
+                            data.items.forEach(item => {
+                                const tr = document.createElement('tr');
+                                const rowPnl = item.pnl;
+                                const rowPnlPct = item.pnl_pct * 100;
+                                const rowCls = rowPnl > 0 ? 'txt-up' : (rowPnl < 0 ? 'txt-down' : '');
+                                
+                                tr.innerHTML = `
+                                    <td class="ticker">${item.ticker}</td>
+                                    <td>${item.name}</td>
+                                    <td class="num">${Math.round(item.buy_price).toLocaleString()}</td>
+                                    <td class="num">${item.quantity.toLocaleString()}</td>
+                                    <td class="num">${item.current_price ? Math.round(item.current_price).toLocaleString() : '—'}</td>
+                                    <td class="num">${Math.round(item.cost_basis).toLocaleString()}</td>
+                                    <td class="num">${Math.round(item.current_val).toLocaleString()}</td>
+                                    <td class="num ${rowCls}">${rowPnl > 0 ? '+' : ''}${Math.round(rowPnl).toLocaleString()}</td>
+                                    <td class="num ${rowCls}">${rowPnl > 0 ? '+' : ''}${rowPnlPct.toFixed(2)}%</td>
+                                    <td class="num">${(item.weight * 100).toFixed(1)}%</td>
+                                    <td>
+                                        <button class="btn-delete" onclick="deletePortfolioRow(${item.row_idx})">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </td>
+                                `;
+                                container.appendChild(tr);
+                            });
+                        }
                     } else {
                         container.innerHTML = `<tr><td colspan="11" style="text-align: center; color: var(--color-text-muted);">Không tìm thấy cổ phiếu trong danh mục.</td></tr>`;
                     }
