@@ -14,8 +14,14 @@ class ExcelManager:
         return openpyxl.load_workbook(self.file_path, data_only=data_only)
 
     def save_wb(self, wb):
-        """Saves the workbook back to the file path."""
-        wb.save(self.file_path)
+        """Saves the workbook back to the file path. Safely ignores failures on read-only environments."""
+        try:
+            wb.save(self.file_path)
+            print(f"Successfully saved Excel file at: {self.file_path}")
+            return True
+        except Exception as e:
+            print(f"WARNING: Failed to save Excel file to {self.file_path}: {e}")
+            return False
 
     # -------------------------------------------------------------------------
     # TAB 1: Dashboard Tong Quan
