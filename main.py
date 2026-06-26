@@ -1018,7 +1018,79 @@ def update_excel_ai_scores(item: AIScoresItem):
 # -------------------------------------------------------------------------
 @app.get("/api/db/ai-scores-history")
 def get_db_ai_scores_history(limit: int = 30):
-    return db.get_historical_scores(limit)
+    try:
+        # 1. Fetch raw database records
+        history = db.get_historical_scores(limit)
+        
+        # 2. Fetch live index history
+        vn_history = vnstock_client.get_historical_data("VNINDEX", source="kbs")
+        if not vn_history:
+            vn_history = ssi_client.get_historical_data("VNINDEX")
+            
+        if not vn_history:
+            return history
+            
+        # 3. Filter completed history
+        completed_history = forecaster._filter_completed_history(vn_history)
+        if not completed_history:
+            return history
+            
+        completed_dates = []
+        for record in completed_history:
+            rec_date = record.get("time") or record.get("date")
+            if rec_date:
+                if isinstance(rec_date, str):
+                    rec_date = rec_date.split()[0]
+                elif hasattr(rec_date, "strftime"):
+                    rec_date = rec_date.strftime("%Y-%m-%d")
+                completed_dates.append((rec_date, record))
+                
+        # 4. Find newer dates not present in database history
+        if history:
+            latest_db_date = history[-1]["date"] # YYYY-MM-DD
+            new_completed = [x for x in completed_dates if x[0] > latest_db_date]
+        else:
+            new_completed = completed_dates[-limit:]
+            
+        if new_completed:
+            m_g = excel_manager.get_macro_geopolitics()
+            geopolitics = m_g.get("geopolitics", [])
+            macro = m_g.get("macro_indicators", [])
+            
+            for date_str, record in new_completed:
+                try:
+                    idx = completed_history.index(record)
+                    slice_history = completed_history[:idx+1]
+                except Exception:
+                    slice_history = completed_history
+                    
+                scores = forecaster.compute_ai_scores(slice_history, geopolitics, macro)
+                new_rec = {
+                    "date": date_str,
+                    "market_score": scores["market_score"],
+                    "risk_score": scores["risk_score"],
+                    "opportunity_score": scores["opportunity_score"],
+                    "logged_at": None
+                }
+                history.append(new_rec)
+                
+                # Try to log to local DB if writable
+                try:
+                    db.log_ai_scores(scores["market_score"], scores["risk_score"], scores["opportunity_score"], date_str)
+                except Exception:
+                    pass
+                    
+        # Apply limit to returned list
+        if len(history) > limit:
+            history = history[-limit:]
+            
+        return history
+    except Exception as e:
+        print(f"Error in get_db_ai_scores_history: {e}")
+        try:
+            return db.get_historical_scores(limit)
+        except Exception:
+            return []
 
 @app.get("/api/db/predictions-history")
 def get_db_predictions_history(limit: int = 30):
