@@ -2358,86 +2358,91 @@
         // View 1 Handlers: Live candlestick charts, orders depth, statements
         // -------------------------------------------------------------------------
         function initChart() {
-            const container = document.getElementById('tvChart');
-            // Cần set relative để tooltip định vị đúng bên trong biểu đồ
-            container.style.position = 'relative';
+            try {
+                const container = document.getElementById('tvChart');
+                if (!container) return;
+                container.style.position = 'relative';
 
-            chartInstance = LightweightCharts.createChart(container, {
-                layout: {
-                    background: { color: 'transparent' },
-                    textColor: '#90a0c4',
-                },
-                grid: {
-                    vertLines: { color: 'rgba(255, 255, 255, 0.02)' },
-                    horzLines: { color: 'rgba(255, 255, 255, 0.02)' },
-                },
-                crosshair: {
-                    mode: LightweightCharts.CrosshairMode.Normal,
-                    vertLine: { color: '#00e5ff', width: 1, style: 3 },
-                    horzLine: { color: '#00e5ff', width: 1, style: 3 }
-                },
-                rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.05)' },
-                timeScale: { borderColor: 'rgba(255, 255, 255, 0.05)' },
-            });
+                chartInstance = LightweightCharts.createChart(container, {
+                    layout: {
+                        background: { color: 'transparent' },
+                        textColor: '#90a0c4',
+                    },
+                    grid: {
+                        vertLines: { color: 'rgba(255, 255, 255, 0.02)' },
+                        horzLines: { color: 'rgba(255, 255, 255, 0.02)' },
+                    },
+                    crosshair: {
+                        mode: LightweightCharts.CrosshairMode.Normal,
+                        vertLine: { color: '#00e5ff', width: 1, style: 3 },
+                        horzLine: { color: '#00e5ff', width: 1, style: 3 }
+                    },
+                    rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.05)' },
+                    timeScale: { borderColor: 'rgba(255, 255, 255, 0.05)' },
+                });
 
-            candleSeries = chartInstance.addCandlestickSeries({
-                upColor: '#00e676', downColor: '#ff1744',
-                borderDownColor: '#ff1744', borderUpColor: '#00e676',
-                wickDownColor: '#ff1744', wickUpColor: '#00e676',
-            });
-
-            volumeSeries = chartInstance.addHistogramSeries({
-                color: '#26a69a',
-                priceFormat: { type: 'volume' },
-                priceScaleId: '',
-            });
-
-            // --- BẮT ĐẦU: ĐOẠN CODE MỚI THÊM ĐỂ HIỆN TOOLTIP ---
-            const toolTip = document.createElement('div');
-            toolTip.className = 'chart-tooltip';
-            container.appendChild(toolTip);
-
-            chartInstance.subscribeCrosshairMove(function(param) {
-                if (
-                    param.point === undefined || !param.time ||
-                    param.point.x < 0 || param.point.x > container.clientWidth ||
-                    param.point.y < 0 || param.point.y > container.clientHeight
-                ) {
-                    toolTip.style.visibility = 'hidden';
-                    toolTip.style.opacity = '0';
-                } else {
-                    const data = param.seriesData.get(candleSeries);
-                    if (data) {
-                        // Lấy giá trị đóng cửa
-                        const price = data.close !== undefined ? data.close : data.value;
-                        // Định dạng ngày hiển thị
-                        const dateStr = param.time.year ? `${param.time.day}/${param.time.month}/${param.time.year}` : param.time;
-                        
-                        toolTip.innerHTML = `
-                            <div style="font-size: 11px; font-weight: bold; color: #00e5ff; margin-bottom: 4px;">CHI TIẾT PHIÊN LÀM VIÊC</div>
-                            <div style="font-size: 13px; color: #fff; margin-bottom: 2px;">Giá đóng cửa: <span style="font-family: monospace; font-weight: bold; color: #00e676;">${price.toLocaleString()}</span></div>
-                            <div style="font-size: 11px; color: #90a0c4;">Ngày: ${dateStr}</div>
-                        `;
-                        
-                        // Tính toán vị trí hiển thị để không bị tràn ra ngoài màn hình
-                        let left = param.point.x + 15;
-                        if (left > container.clientWidth - 150) {
-                            left = param.point.x - 160;
-                        }
-                        let top = param.point.y + 15;
-                        
-                        toolTip.style.left = left + 'px';
-                        toolTip.style.top = top + 'px';
-                        toolTip.style.visibility = 'visible';
-                        toolTip.style.opacity = '1';
-                    }
+                if (chartInstance && typeof chartInstance.addCandlestickSeries === 'function') {
+                    candleSeries = chartInstance.addCandlestickSeries({
+                        upColor: '#00e676', downColor: '#ff1744',
+                        borderDownColor: '#ff1744', borderUpColor: '#00e676',
+                        wickDownColor: '#ff1744', wickUpColor: '#00e676',
+                    });
                 }
-            });
-            // --- KẾT THÚC ĐOẠN MỚI THÊM ---
 
-            new ResizeObserver(() => {
-                chartInstance.resize(container.clientWidth, container.clientHeight);
-            }).observe(container);
+                if (chartInstance && typeof chartInstance.addHistogramSeries === 'function') {
+                    volumeSeries = chartInstance.addHistogramSeries({
+                        color: '#26a69a',
+                        priceFormat: { type: 'volume' },
+                        priceScaleId: '',
+                    });
+                }
+
+                const toolTip = document.createElement('div');
+                toolTip.className = 'chart-tooltip';
+                container.appendChild(toolTip);
+
+                if (chartInstance && candleSeries) {
+                    chartInstance.subscribeCrosshairMove(function(param) {
+                        if (
+                            param.point === undefined || !param.time ||
+                            param.point.x < 0 || param.point.x > container.clientWidth ||
+                            param.point.y < 0 || param.point.y > container.clientHeight
+                        ) {
+                            toolTip.style.visibility = 'hidden';
+                            toolTip.style.opacity = '0';
+                        } else {
+                            const data = param.seriesData.get(candleSeries);
+                            if (data) {
+                                const price = data.close !== undefined ? data.close : data.value;
+                                const dateStr = param.time.year ? `${param.time.day}/${param.time.month}/${param.time.year}` : param.time;
+                                
+                                toolTip.innerHTML = `
+                                    <div style="font-size: 11px; font-weight: bold; color: #00e5ff; margin-bottom: 4px;">CHI TIẾT PHIÊN LÀM VIỆC</div>
+                                    <div style="font-size: 13px; color: #fff; margin-bottom: 2px;">Giá đóng cửa: <span style="font-family: monospace; font-weight: bold; color: #00e676;">${price.toLocaleString()}</span></div>
+                                    <div style="font-size: 11px; color: #90a0c4;">Ngày: ${dateStr}</div>
+                                `;
+                                
+                                let left = param.point.x + 15;
+                                if (left > container.clientWidth - 150) {
+                                    left = param.point.x - 160;
+                                }
+                                toolTip.style.left = left + 'px';
+                                toolTip.style.top = (param.point.y + 15) + 'px';
+                                toolTip.style.visibility = 'visible';
+                                toolTip.style.opacity = '1';
+                            }
+                        }
+                    });
+                }
+
+                if (chartInstance) {
+                    new ResizeObserver(() => {
+                        chartInstance.resize(container.clientWidth, container.clientHeight);
+                    }).observe(container);
+                }
+            } catch (err) {
+                console.error("Chart initialization failed, but application will continue:", err);
+            }
         }
 
         function setSource(src) {
