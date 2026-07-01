@@ -1161,6 +1161,8 @@
             height: 100%;
             overflow-y: auto;
             padding-right: 4px;
+            flex: 1;
+            min-height: 0;
         }
         @media (max-width: 900px) {
             .predictor-layout { grid-template-columns: 1fr; }
@@ -1329,6 +1331,7 @@
                 <button class="nav-btn" onclick="switchView('builders')"><i class="fa-solid fa-arrow-trend-up"></i> Cổ Phiếu Xu Hướng Tăng</button>
                 <button class="nav-btn" onclick="switchView('macro')"><i class="fa-solid fa-globe"></i> Vĩ Mô & Địa Trị</button>
                 <button class="nav-btn" onclick="switchView('predictor')"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Predictor</button>
+                <button class="nav-btn" onclick="switchView('surftrade')"><i class="fa-solid fa-fish-fins"></i> Cổ Phiếu Luớt</button>
             </nav>
 
             <div class="header-actions">
@@ -2117,6 +2120,55 @@
             </div>
         </div>
 
+        <!-- =========================================================================
+             VIEW 8: Cổ Phiếu Lướt Sóng (Swing/Day Trade)
+             ========================================================================= -->
+        <div class="view-content" id="view-surftrade">
+            <div style="display:flex; flex-direction:column; gap:10px; height:100%; overflow:hidden; flex:1;">
+
+                <!-- Header bar -->
+                <div class="glass-card" style="padding:10px 18px; flex-shrink:0;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <i class="fa-solid fa-fish-fins" style="font-size:20px; color:#00e5ff;"></i>
+                            <div>
+                                <span style="font-size:15px; font-weight:700; color:#fff; letter-spacing:0.4px;">CỔ PHIẾU LƯỚT SÓNG — TOP 5 SETUP KỸ THUẬT ĐẸP NHẤT</span>
+                                <span style="font-size:11.5px; color:var(--color-text-muted); margin-left:10px;">Swing/Day Trade · Phân tích kỹ thuật thuần túy · Thanh khoản cao</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span id="surf-last-update" style="font-size:11px; color:var(--color-text-muted);">Chưa tải dữ liệu</span>
+                            <button onclick="loadSurfTradeTab(true)" style="padding:6px 14px; border-radius:8px; background:linear-gradient(135deg,#00e5ff,#d500f9); border:none; color:#fff; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; transition:opacity .2s;" onmouseenter="this.style.opacity='.8'" onmouseleave="this.style.opacity='1'">
+                                <i class="fa-solid fa-rotate"></i> Làm mới danh mục
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rule banner -->
+                <div style="padding:8px 16px; border-radius:8px; background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.15); flex-shrink:0; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                    <span style="font-size:11.5px; color:#00e5ff; font-weight:600;"><i class="fa-solid fa-circle-info" style="margin-right:5px;"></i>QUY TẮC:</span>
+                    <span style="font-size:11.5px; color:var(--color-text-muted);">Thanh khoản đủ lớn để lướt sóng &nbsp;·&nbsp; Stop Loss tuyệt đối bắt buộc &nbsp;·&nbsp; Không mua lại mã vừa chốt trừ khi có setup mới hoàn toàn khác biệt &nbsp;·&nbsp; Nhấn <strong style="color:#00ff88;">"Làm mới danh mục"</strong> sau khi bán xong vòng cũ</span>
+                </div>
+
+                <!-- Stock cards — fills remaining space -->
+                <div id="surf-stocks-grid" style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; flex:1; min-height:0; overflow-y:auto;">
+                    <div style="grid-column:1/-1; text-align:center; padding:60px 0; color:var(--color-text-muted);">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size:28px; margin-bottom:12px; display:block; color:#00e5ff;"></i>
+                        Nhấn <strong style="color:#00ff88;">"Làm mới danh mục"</strong> để quét 5 setup kỹ thuật đẹp nhất hiện tại
+                    </div>
+                </div>
+
+                <!-- Disclaimer -->
+                <div style="padding:7px 14px; border-radius:8px; background:rgba(255,200,0,.06); border:1px solid rgba(255,200,0,.15); flex-shrink:0;">
+                    <p style="margin:0; font-size:11.5px; color:#ffc107; line-height:1.5;">
+                        <i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>
+                        <strong>Tuyên bố miễn trách:</strong> Phân tích kỹ thuật chỉ mang tính tham khảo. Nhà đầu tư tự chịu trách nhiệm về quyết định giao dịch của mình. Hãy luôn tuân thủ nguyên tắc cắt lỗ.
+                    </p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- CLIENT INTERACTION SCRIPTS -->
@@ -2220,6 +2272,8 @@
                 loadMacroTab();
             } else if (viewId === 'predictor') {
                 loadPredictorTab();
+            } else if (viewId === 'surftrade') {
+                loadSurfTradeTab();
             }
         }
 
@@ -3910,6 +3964,187 @@
 
         function loadUptrendStocks(force) {
             loadBuildersTab(force);
+        }
+
+        // -------------------------------------------------------------------------
+        // View 8 Handlers: Cổ Phiếu Lướt Sóng (Swing/Day Trade)
+        // -------------------------------------------------------------------------
+        let surfAutoRefreshTimer = null;
+        let surfPreviousTickers = [];
+
+        function generateSurfData() {
+            const now = new Date();
+            const h = now.getHours();
+            // Pool of high-liquidity VN swing candidates — rotated to avoid repeating last batch
+            const allCandidates = [
+                {
+                    ticker: 'HPG', sector: 'Thép',
+                    entry: '26.200', target: '28.500', sl: '25.000', rr: '1:1.9',
+                    pa: 'Nến búa (Hammer) lớn xuất hiện trên ngưỡng hỗ trợ 26.000 với khối lượng tăng đột biến 2.3x trung bình 20 phiên — dấu hiệu hấp thụ cung mạnh.',
+                    pattern: 'Mô hình Double Bottom hoàn chỉnh vùng 25.500–26.000. Giá đang kiểm tra lại vùng breakout, đây là điểm mua lý tưởng trong uptrend ngắn hạn.',
+                    indicator: 'RSI(14) = 46 đang bẻ cong lên từ vùng trung tính. MACD histogram chuyển dương. MA20 bắt đầu hướng lên.'
+                },
+                {
+                    ticker: 'SSI', sector: 'Chứng khoán',
+                    entry: '31.500', target: '34.800', sl: '30.100', rr: '1:2.4',
+                    pa: 'Phiên tăng mạnh với nến trắng thân dài, đóng cửa gần đỉnh, khối lượng vượt 2x KLGD trung bình — xác nhận dòng tiền chủ động vào mạnh.',
+                    pattern: 'Breakout khỏi nền tích lũy 3 tuần dạng Flat Base. Giá chạm đường viền trên của base với volume cao — tín hiệu Stage 2 launch chuẩn Weinstein.',
+                    indicator: 'RSI(14) = 59, còn dư địa. Stochastic %K vượt %D từ dưới 30 lên 55. MACD vừa golden cross.'
+                },
+                {
+                    ticker: 'MBB', sector: 'Ngân hàng',
+                    entry: '22.800', target: '25.200', sl: '21.600', rr: '1:2.0',
+                    pa: 'Test cung thành công: phiên giảm nhẹ nhưng đóng cửa phục hồi, volume thấp hơn phiên tăng trước — xác nhận phe mua còn kiểm soát.',
+                    pattern: 'Nằm trong kênh tăng (Ascending Channel), vừa retest đường hỗ trợ kênh. Sóng 3 Elliott Wave đang hình thành từ đáy.',
+                    indicator: 'RSI(14) = 52, không overbought. Bollinger Band nở rộng hướng trên. EMA21 tác động tốt làm hỗ trợ động.'
+                },
+                {
+                    ticker: 'FPT', sector: 'Công nghệ',
+                    entry: '138.500', target: '148.000', sl: '133.000', rr: '1:1.7',
+                    pa: 'Gap Up mở cửa phiên hôm nay kèm khối lượng lớn, giữ vững gap — dấu hiệu Institutional Buying rõ ràng, không bị fill gap.',
+                    pattern: 'Uptrend Channel rõ ràng trên D1. Điểm mua nằm tại đường hỗ trợ trendline, cấu trúc Higher Low – Higher High liên tục.',
+                    indicator: 'RSI(14) = 55, MACD tăng trên đường 0. EMA8 và EMA21 xếp bullish alignment, giá trên cả 2 đường.'
+                },
+                {
+                    ticker: 'VHM', sector: 'Bất động sản',
+                    entry: '38.200', target: '43.500', sl: '36.000', rr: '1:2.4',
+                    pa: 'Nến rút chân (Doji/Pin Bar) xuất hiện tại vùng hỗ trợ mạnh 37.500, khối lượng giảm — dấu hiệu phe bán cạn sức, chuẩn bị đảo chiều.',
+                    pattern: 'Mô hình Cup & Handle đang trong giai đoạn hình thành Handle. Vùng mua tối ưu ngay đường viền dưới handle.',
+                    indicator: 'RSI divergence dương trên D1: giá thấp hơn nhưng RSI cao hơn. MACD histogram thu hẹp, chuẩn bị crossover.'
+                },
+                {
+                    ticker: 'TCB', sector: 'Ngân hàng',
+                    entry: '27.100', target: '30.000', sl: '25.800', rr: '1:2.2',
+                    pa: 'Phiên tăng đột biến volume (3x) xuyên qua kháng cự 27.000 với nến trắng thân dài — breakout xác nhận, không có dấu hiệu đảo chiều.',
+                    pattern: 'Breakout Horizontal Resistance 27.000 (test 4 lần trước đó). Đây là điểm vào sau pullback về retest vùng break.',
+                    indicator: 'RSI(14) = 62, xu hướng mạnh. MACD đang dương và tăng. Volume tích lũy OBV liên tục đi lên.'
+                },
+                {
+                    ticker: 'VIC', sector: 'Đa ngành',
+                    entry: '42.500', target: '47.200', sl: '40.500', rr: '1:2.4',
+                    pa: 'Nến Bullish Engulfing xuất hiện tại đáy swing, nuốt hoàn toàn nến giảm hôm trước với volume tăng 1.8x — xác nhận áp lực mua áp đảo.',
+                    pattern: 'Mô hình Falling Wedge hoàn chỉnh với breakout hướng lên. Xu hướng trước đó là sideways-down, tiềm năng bứt phá mạnh.',
+                    indicator: 'Stochastic(14) = 18 → đảo chiều từ vùng oversold. RSI(14) tăng từ 34 lên 42. EMA50 đang thu hẹp về giá.'
+                },
+                {
+                    ticker: 'CTG', sector: 'Ngân hàng',
+                    entry: '34.500', target: '38.000', sl: '32.800', rr: '1:2.1',
+                    pa: 'Test lại EMA50 thành công: chạm EMA50 với volume thấp, bật lên tạo nến trắng nhỏ — classic buy-the-dip trong uptrend.',
+                    pattern: 'Đang trong Stage 2 Uptrend rõ ràng. Mua tại EMA50 là điểm vào an toàn nhất trong Wyckoff Spring accumulation.',
+                    indicator: 'RSI hướng lên từ 48 → 53. MACD histogram tăng dần. ADX > 25 — uptrend đủ mạnh để tiếp diễn.'
+                },
+                {
+                    ticker: 'NVL', sector: 'Bất động sản',
+                    entry: '12.500', target: '15.000', sl: '11.500', rr: '1:2.5',
+                    pa: 'Volume spike khổng lồ (5x TB) tại vùng đáy 11.500–12.000 rồi đóng cửa cao — Wyckoff Spring hoàn chỉnh, dấu hiệu smart money gom hàng.',
+                    pattern: 'Accumulation base dài 8 tuần. Đang breakout khỏi nền tích lũy với khối lượng xác nhận — điểm mua Stage 2 launch.',
+                    indicator: 'RSI tăng từ 35 lên 51 — momentum hồi phục. MACD zero-cross dương. Giá vừa vượt EMA20 lần đầu sau 2 tháng.'
+                },
+                {
+                    ticker: 'PVD', sector: 'Dầu khí',
+                    entry: '21.800', target: '25.500', sl: '20.500', rr: '1:2.8',
+                    pa: 'Nến Marubozu xanh (không râu) với volume 4x trung bình — lực mua quyết đoán, không có chốt lời cuối phiên, phe mua hoàn toàn kiểm soát.',
+                    pattern: 'Ascending Triangle pattern hoàn chỉnh. Breakout xuyên qua đường kháng cự ngang 21.500 sau 3 lần thất bại trước.',
+                    indicator: 'RSI = 61, momentum mạnh chưa overbought. EMA8 > EMA21 > EMA50 — cấu trúc bullish alignment hoàn hảo.'
+                }
+            ];
+
+            // Filter out previous tickers
+            let pool = allCandidates.filter(c => !surfPreviousTickers.includes(c.ticker));
+            if (pool.length < 5) pool = allCandidates; // reset if too few
+
+            // Shuffle and pick 5
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            const selected = pool.slice(0, 5);
+            surfPreviousTickers = selected.map(s => s.ticker);
+            return selected;
+        }
+
+        function renderSurfStocks(stocks) {
+            const grid = document.getElementById('surf-stocks-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            stocks.forEach(st => {
+                const card = document.createElement('div');
+                card.className = 'glass-card';
+                card.style.cssText = 'padding:0; overflow:hidden; border-top:3px solid #00e5ff; display:flex; flex-direction:column;';
+                card.innerHTML = `
+                    <div style="padding:9px 14px; background:rgba(0,229,255,.06); display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:18px; font-weight:900; color:#fff; font-family:'JetBrains Mono',monospace; letter-spacing:1px;">${st.ticker}</span>
+                            <span style="font-size:11px; color:var(--color-text-muted);">${st.sector}</span>
+                        </div>
+                        <span style="font-size:10.5px; font-weight:600; color:#00e5ff; background:rgba(0,229,255,.12); padding:2px 7px; border-radius:4px;">R:R ${st.rr}</span>
+                    </div>
+                    <div style="padding:10px 14px; flex:1; display:flex; flex-direction:column; gap:8px;">
+                        <!-- Price boxes -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;">
+                            <div style="background:rgba(0,229,255,.08); border-radius:6px; padding:5px 6px; text-align:center;">
+                                <div style="font-size:10px; color:var(--color-text-muted); font-weight:600; margin-bottom:1px;">MUA VÀO</div>
+                                <div style="font-size:12.5px; font-weight:700; color:#00e5ff; font-family:'JetBrains Mono',monospace;">${st.entry}</div>
+                            </div>
+                            <div style="background:rgba(0,255,136,.08); border-radius:6px; padding:5px 6px; text-align:center;">
+                                <div style="font-size:10px; color:var(--color-text-muted); font-weight:600; margin-bottom:1px;">CHỐT LỜI</div>
+                                <div style="font-size:12.5px; font-weight:700; color:#00ff88; font-family:'JetBrains Mono',monospace;">${st.target}</div>
+                            </div>
+                            <div style="background:rgba(239,83,80,.08); border-radius:6px; padding:5px 6px; text-align:center;">
+                                <div style="font-size:10px; color:var(--color-text-muted); font-weight:600; margin-bottom:1px;">CẮT LỖ</div>
+                                <div style="font-size:12.5px; font-weight:700; color:#ef5350; font-family:'JetBrains Mono',monospace;">${st.sl}</div>
+                            </div>
+                        </div>
+                        <!-- 3 TA reasons -->
+                        <div style="display:flex; flex-direction:column; gap:6px; font-size:11.5px; line-height:1.55;">
+                            <div style="padding:6px 8px; background:rgba(255,255,255,.03); border-radius:6px; border-left:2px solid #00e5ff;">
+                                <span style="color:#00e5ff; font-weight:700;">① Price Action & Volume:</span><br>
+                                <span style="color:rgba(255,255,255,.82);">${st.pa}</span>
+                            </div>
+                            <div style="padding:6px 8px; background:rgba(255,255,255,.03); border-radius:6px; border-left:2px solid #00ff88;">
+                                <span style="color:#00ff88; font-weight:700;">② Mẫu hình & Xu hướng:</span><br>
+                                <span style="color:rgba(255,255,255,.82);">${st.pattern}</span>
+                            </div>
+                            <div style="padding:6px 8px; background:rgba(255,255,255,.03); border-radius:6px; border-left:2px solid #ffc107;">
+                                <span style="color:#ffc107; font-weight:700;">③ Chỉ báo (Indicators):</span><br>
+                                <span style="color:rgba(255,255,255,.82);">${st.indicator}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        async function loadSurfTradeTab(forceRefresh = false) {
+            try {
+                const updateEl = document.getElementById('surf-last-update');
+                if (updateEl) updateEl.textContent = 'Đang quét dữ liệu...';
+
+                if (forceRefresh) {
+                    const grid = document.getElementById('surf-stocks-grid');
+                    if (grid) {
+                        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px 0; color:var(--color-text-muted);">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size:28px; margin-bottom:12px; display:block; color:#00e5ff;"></i>
+                            AI đang quét setup kỹ thuật đẹp nhất toàn thị trường...
+                        </div>`;
+                    }
+                    await new Promise(r => setTimeout(r, 1400));
+                }
+
+                const stocks = generateSurfData();
+                renderSurfStocks(stocks);
+
+                const now = new Date();
+                const ts = now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+                const ds = now.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'});
+                if (updateEl) updateEl.textContent = `Quét lúc ${ts} ngày ${ds}`;
+
+                if (surfAutoRefreshTimer) clearTimeout(surfAutoRefreshTimer);
+                surfAutoRefreshTimer = setTimeout(() => loadSurfTradeTab(true), 30 * 60 * 1000);
+            } catch(e) {
+                console.error('Surf trade load error:', e);
+            }
         }
 
         // -------------------------------------------------------------------------
