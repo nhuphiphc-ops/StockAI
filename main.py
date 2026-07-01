@@ -1427,6 +1427,75 @@ def get_stock_signals(tickers: str = ""):
         raise HTTPException(status_code=500, detail=f"Signal analysis failed: {str(e)}")
 
 
+@app.get("/api/derivatives/live-candle")
+def get_derivatives_live_candle():
+    try:
+        # 1. Fetch VN30F1M price depth and basis/VN30
+        vf_depth = ssi_client.get_price_depth("VN30F1M")
+        if not vf_depth or vf_depth.get("last_price", 0) == 0:
+            vf_depth = ssi_client._generate_mock_price_depth("VN30F1M")
+            
+        v30_depth = ssi_client.get_price_depth("VN30")
+        if not v30_depth or v30_depth.get("last_price", 0) == 0:
+            v30_depth = ssi_client._generate_mock_price_depth("VN30")
+            
+        close_p = vf_depth.get("last_price", 2001.2)
+        v30_price = v30_depth.get("last_price", 2002.5)
+        basis = close_p - v30_price
+        
+        # 2. Fetch intraday transactions of VN30F1M
+        trades = ssi_client.get_intraday("VN30F1M")
+        if not trades:
+            trades = ssi_client._generate_mock_intraday("VN30F1M")
+            
+        # 3. Calculate candle (High, Low, Volume) from trades
+        # Take the most recent trades (e.g. the last 20 trades to simulate recent 5m activity)
+        recent_trades = trades[:20] if trades else []
+        if recent_trades:
+            high_p = max(t["price"] for t in recent_trades)
+            low_p = min(t["price"] for t in recent_trades)
+            volume = sum(t["volume"] for t in recent_trades)
+        else:
+            # Fallback
+            high_p = close_p + 1.2
+            low_p = close_p - 0.8
+            volume = 1200
+            
+        # Ensure high >= close >= low
+        high_p = max(high_p, close_p)
+        low_p = min(low_p, close_p)
+        
+        # 4. Generate Price Action text dynamically
+        candle_range = high_p - low_p
+        if volume < 500:
+            pa_text = "Thanh khoản cạn kiệt, thị trường đi ngang thăm dò."
+        elif close_p > (high_p + low_p)/2 + candle_range * 0.1:
+            if close_p >= high_p - 0.2:
+                pa_text = "Nến bứt phá vượt đỉnh, dòng tiền Long gia tăng mạnh mẽ."
+            else:
+                pa_text = "Nến rút chân tích cực, lực cầu chủ động hấp thụ cung."
+        elif close_p < (high_p + low_p)/2 - candle_range * 0.1:
+            if close_p <= low_p + 0.2:
+                pa_text = "Thân nến đỏ dài sát đáy, áp lực bán đè nặng phe Long."
+            else:
+                pa_text = "Nến từ chối tăng, áp lực chốt lời ngắn hạn xuất hiện."
+        else:
+            pa_text = "Nến thân nhỏ biến động hẹp, hai phe Long/Short đang giằng co."
+            
+        return {
+            "success": True,
+            "close_price": round(close_p, 1),
+            "high_price": round(high_p, 1),
+            "low_price": round(low_p, 1),
+            "volume": int(volume),
+            "basis": round(basis, 1),
+            "price_action": pa_text
+        }
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/derivatives/intraday-forecast")
 def get_derivatives_intraday_forecast(item: IntradayCandleItem):
     try:
