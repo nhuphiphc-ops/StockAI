@@ -149,6 +149,14 @@ class AIScoresItem(BaseModel):
     risk_score: int
     opportunity_score: int
 
+class IntradayCandleItem(BaseModel):
+    close_price: float
+    volume: float
+    high_price: float
+    low_price: float
+    basis: float
+    price_action: Optional[str] = ""
+
 # -------------------------------------------------------------------------
 # Webapp Page & Static Handlers
 # -------------------------------------------------------------------------
@@ -1417,6 +1425,97 @@ def get_stock_signals(tickers: str = ""):
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Signal analysis failed: {str(e)}")
+
+
+@app.post("/api/derivatives/intraday-forecast")
+def get_derivatives_intraday_forecast(item: IntradayCandleItem):
+    try:
+        close_p = item.close_price
+        volume = item.volume
+        high_p = item.high_price
+        low_p = item.low_price
+        basis = item.basis
+        pa = item.price_action.strip().lower()
+
+        # Rules
+        is_neutral = False
+        neutral_reason = ""
+        
+        # Rule 1: Volume too low
+        if volume < 500:
+            is_neutral = True
+            neutral_reason = f"Khối lượng nến M5 cực thấp ({volume:.0f} HĐ), dòng tiền cạn kiệt và tín hiệu nhiễu cao."
+        # Rule 2: Basis abnormal
+        elif abs(basis) > 8.0:
+            is_neutral = True
+            neutral_reason = f"Độ lệch basis quá rộng ({basis:+.1f} điểm), rủi ro ép basis đột ngột rất lớn."
+
+        if is_neutral:
+            trend = "ĐI NGANG (QUAN SÁT)"
+            action = "Đứng ngoài"
+            entry = "Không khuyến nghị"
+            sl = "Không có"
+            tp = "Không có"
+            arg_pa = f"Thanh khoản thấp hoặc hành động giá chưa rõ ràng: {neutral_reason}"
+            arg_basis = f"Độ lệch basis là {basis:+.1f} điểm, ở trạng thái rủi ro chênh lệch cao."
+            arg_sr = f"Hỗ trợ gần nhất: {low_p - 1.0:.1f} | Kháng cự gần nhất: {high_p + 1.0:.1f}."
+        else:
+            # Check price position in range
+            candle_range = high_p - low_p
+            mid_p = (high_p + low_p) / 2.0
+            
+            # Check keywords for strong directions
+            long_signals = ["rút chân", "pinbar", "tăng", "bứt phá", "long", "vượt đỉnh", "cạn cung", "bullish"]
+            short_signals = ["đỏ", "giảm", "short", "thủng đáy", "phân kỳ", "bán", "áp lực", "bearish"]
+            
+            has_long_kw = any(kw in pa for kw in long_signals)
+            has_short_kw = any(kw in pa for kw in short_signals)
+            
+            if (close_p > mid_p or has_long_kw) and not has_short_kw and basis >= -2.0:
+                trend = "TĂNG (LONG)"
+                action = "Mở Long"
+                entry = f"{close_p:.1f} - {close_p + 0.4:.1f}"
+                sl = f"{close_p - 2.0:.1f} (Cắt lỗ 2.0 điểm)"
+                tp = f"TP1: {close_p + 4.0:.1f} | TP2: {close_p + 6.0:.1f} (R:R tối thiểu 1:2)"
+                arg_pa = f"Hành động giá ủng hộ phe mua: {item.price_action or 'Nến đóng cửa ở nửa trên biên độ'} với vol đạt {volume:.0f} hợp đồng."
+                arg_basis = f"Basis đạt {basis:+.1f} điểm, chênh lệch ở mức an toàn ủng hộ nhịp kéo phái sinh."
+                arg_sr = f"Hỗ trợ cứng M5 quanh {low_p:.1f}. Kháng cự mục tiêu cần vượt qua là {close_p + 5.0:.1f}."
+            elif (close_p < mid_p or has_short_kw) and not has_long_kw and basis <= 2.0:
+                trend = "GIẢM (SHORT)"
+                action = "Mở Short"
+                entry = f"{close_p - 0.4:.1f} - {close_p:.1f}"
+                sl = f"{close_p + 2.0:.1f} (Cắt lỗ 2.0 điểm)"
+                tp = f"TP1: {close_p - 4.0:.1f} | TP2: {close_p - 6.0:.1f} (R:R tối thiểu 1:2)"
+                arg_pa = f"Hành động giá phe bán chiếm ưu thế: {item.price_action or 'Nến đóng cửa ở nửa dưới biên độ'} với vol đạt {volume:.0f} hợp đồng."
+                arg_basis = f"Basis đạt {basis:+.1f} điểm, cho thấy tâm lý phòng thủ gia tăng của dòng tiền phái sinh."
+                arg_sr = f"Kháng cự cứng M5 tại {high_p:.1f}. Hỗ trợ mục tiêu hướng tới là {close_p - 5.0:.1f}."
+            else:
+                trend = "ĐI NGANG (QUAN SÁT)"
+                action = "Đứng ngoài"
+                entry = "Không khuyến nghị"
+                sl = "Không có"
+                tp = "Không có"
+                arg_pa = "Nến M5 giao động hẹp, lực cung cầu cân bằng chưa xác lập xu thế rõ rệt."
+                arg_basis = f"Basis duy trì quanh {basis:+.1f} điểm chưa kích hoạt dòng tiền bứt phá."
+                arg_sr = f"Hỗ trợ: {low_p:.1f} | Kháng cự: {high_p:.1f}."
+
+        return {
+            "success": True,
+            "trend_verdict": trend,
+            "action_signal": action,
+            "entry_range": entry,
+            "stop_loss": sl,
+            "take_profit": tp,
+            "arguments": {
+                "price_action_vol": arg_pa,
+                "basis_impact": arg_basis,
+                "support_resistance": arg_sr
+            },
+            "disclaimer": "Tín hiệu chỉ mang tính chất tham khảo, hãy tuân thủ kỷ luật Stop Loss."
+        }
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
