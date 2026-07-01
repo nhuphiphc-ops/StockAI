@@ -3701,30 +3701,28 @@
             { key: 'real',    label: 'Bất động sản',         icon: 'fa-city',            color: '#ff6b35' }
         ];
 
-        // Simulated AI CIO uptrend stock data (refreshed with market context)
         function generateUptrendData() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'});
             const timeStr = now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
 
-            // Base stocks per sector (CIO-grade Vietnamese market picks for uptrend)
             return [
                 {
                     sector: 'bank',
                     stocks: [
                         {
                             ticker: 'VCB', name: 'Vietcombank',
-                            entry: '88.500', target: '97.000', sl: '84.000',
-                            upside: '+9.6%',
+                            entry: '90.000', target: '100.000', sl: '86.000',
+                            upside: '+11.1%',
                             kythuat: 'Giữ vững trên EMA50, MACD bullish crossover khung tuần, RSI(14)=54 — dư địa tăng tốt.',
                             cocban: 'NIM mở rộng Q2/2026, tỉ lệ NPL < 1.2%, ROE đứng đầu ngành ~22%.',
                             catalyst: 'Kỳ vọng Fed cắt lãi suất tháng 9, room ngoại còn trống, MSCI EM rebalancing tháng 8.'
                         },
                         {
                             ticker: 'BID', name: 'BIDV',
-                            entry: '51.200', target: '58.500', sl: '48.000',
-                            upside: '+14.3%',
-                            kythuat: 'Phá vỡ kháng cự 50.000 với khối lượng tăng 180%, Ichimoku Cloud xanh trên tuần.',
+                            entry: '47.500', target: '54.000', sl: '45.000',
+                            upside: '+13.7%',
+                            kythuat: 'Phá vỡ kháng cự 46.500 với khối lượng tăng 180%, Ichimoku Cloud xanh trên tuần.',
                             cocban: 'Tăng trưởng tín dụng Q2 ước +7.8%, thu ngoài lãi tăng mạnh từ bancassurance.',
                             catalyst: 'Gói đầu tư công 800K tỷ VNĐ thúc đẩy cho vay hạ tầng, dividend yield ~4.5%.'
                         }
@@ -3735,16 +3733,16 @@
                     stocks: [
                         {
                             ticker: 'SSI', name: 'SSI Securities',
-                            entry: '31.500', target: '37.000', sl: '29.000',
-                            upside: '+17.5%',
-                            kythuat: 'Golden cross MA20/MA50 vừa hình thành, Volume profile tích lũy vùng 30-32.',
+                            entry: '27.000', target: '31.500', sl: '25.000',
+                            upside: '+16.7%',
+                            kythuat: 'Golden cross MA20/MA50 vừa hình thành, Volume profile tích lũy vùng 26-27.',
                             cocban: 'Doanh thu margin tăng 35% YoY, thị phần môi giới #1, thêm dịch vụ fintech.',
                             catalyst: 'TTCK Việt Nam tiếp tục hút dòng tiền mới từ nhà đầu tư F0, kỳ vọng nâng hạng 2026.'
                         },
                         {
                             ticker: 'VND', name: 'VNDirect',
-                            entry: '18.800', target: '23.500', sl: '17.000',
-                            upside: '+25%',
+                            entry: '14.800', target: '17.500', sl: '13.500',
+                            upside: '+18.2%',
                             kythuat: 'Đáy nền tích lũy 4 tháng, RSI đang hướng qua 50 từ dưới lên, OBV tăng liên tục.',
                             cocban: 'Mảng IB phục hồi mạnh từ IPO sóng mới, margin lending tăng nhờ thị trường.',
                             catalyst: 'Kế hoạch phát hành trái phiếu mở rộng vốn, hưởng lợi trực tiếp từ thị trường sôi động.'
@@ -3756,17 +3754,16 @@
                     stocks: [
                         {
                             ticker: 'FPT', name: 'FPT Corporation',
-
-                            entry: '138.000', target: '158.000', sl: '128.000',
-                            upside: '+14.5%',
+                            entry: '72.000', target: '82.000', sl: '68.000',
+                            upside: '+13.9%',
                             kythuat: 'Uptrend kênh tăng rõ ràng, hỗ trợ mạnh EMA21, Stochastic %K > %D và trên 50.',
                             cocban: 'Doanh thu IT services tăng 28% YoY, mảng AI/Cloud tăng tốc, EBITDA margin 22%.',
                             catalyst: 'Ký thêm hợp đồng AI với đối tác Nhật Bản & Mỹ, FPT Edu tăng trưởng mạnh.'
                         },
                         {
                             ticker: 'CMG', name: 'CMC Technology',
-                            entry: '48.500', target: '58.000', sl: '44.000',
-                            upside: '+19.6%',
+                            entry: '33.500', target: '39.000', sl: '31.000',
+                            upside: '+16.4%',
                             kythuat: 'Thoát ra khỏi vùng tích lũy hẹp, bollinger band nở rộng hướng tăng, RSI=58.',
                             cocban: 'Cloud & data center tăng trưởng 40%, cổ đông chiến lược Samsung SDI hỗ trợ.',
                             catalyst: 'Thúc đẩy chuyển đổi số quốc gia, dự án hạ tầng viễn thông 5G Việt Nam.'
@@ -3778,16 +3775,16 @@
                     stocks: [
                         {
                             ticker: 'HHV', name: 'Đèo Cả BOT',
-                            entry: '16.200', target: '20.500', sl: '14.500',
-                            upside: '+26.5%',
+                            entry: '11.800', target: '14.000', sl: '10.800',
+                            upside: '+18.6%',
                             kythuat: 'Mô hình Cup & Handle hoàn thành, breakout với volume gấp 2.5x trung bình.',
                             cocban: 'Lưu lượng xe tăng 15%, phí BOT điều chỉnh theo lộ trình, FCF dương ổn định.',
                             catalyst: 'Đầu tư công 800K tỷ VNĐ, cao tốc Bắc-Nam Phase 2, tăng thu phí lộ trình 2026.'
                         },
                         {
                             ticker: 'PC1', name: 'PCC1',
-                            entry: '22.500', target: '28.000', sl: '20.000',
-                            upside: '+24.4%',
+                            entry: '25.500', target: '30.000', sl: '23.500',
+                            upside: '+17.6%',
                             kythuat: 'Hồi phục từ đáy chu kỳ, EMA34 cắt lên EMA89, divergence dương trên MACD.',
                             cocban: 'Backlog xây lắp điện cao, mảng năng lượng tái tạo phát triển, P/E hấp dẫn ~9x.',
                             catalyst: 'Quy hoạch điện VIII, các dự án điện gió ngoài khơi, nhu cầu hạ tầng điện tăng vọt.'
@@ -3799,16 +3796,16 @@
                     stocks: [
                         {
                             ticker: 'NLG', name: 'Nam Long Group',
-                            entry: '28.500', target: '35.500', sl: '25.500',
-                            upside: '+24.6%',
+                            entry: '32.500', target: '38.000', sl: '30.000',
+                            upside: '+16.9%',
                             kythuat: 'Hình thành higher low – higher high rõ ràng, giá trên tất cả EMA, RSI tăng lên 57.',
                             cocban: 'Bàn giao mạnh Akari Phase 2, quỹ đất Đồng Nai/Cần Thơ lớn, tỉ lệ nợ thấp.',
                             catalyst: 'Luật Đất đai 2024 hiệu lực, thị trường BĐS phục hồi chu kỳ, lãi suất hạ nhiệt.'
                         },
                         {
                             ticker: 'DXG', name: 'Đất Xanh Group',
-                            entry: '14.200', target: '18.500', sl: '12.500',
-                            upside: '+30.3%',
+                            entry: '13.200', target: '15.500', sl: '12.000',
+                            upside: '+17.4%',
                             kythuat: 'Triple bottom hoàn thành ở vùng 12-13K, sóng 3 Elliott Wave có khối lượng xác nhận.',
                             cocban: 'Pháp lý dự án được tháo gỡ, dịch vụ BĐS phục hồi, cơ cấu nợ được tái cơ cấu.',
                             catalyst: 'Tín dụng BĐS được nới, gói 120K tỷ nhà ở xã hội, thị trường căn hộ mid-end bứt phá.'
