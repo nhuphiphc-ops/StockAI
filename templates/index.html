@@ -238,11 +238,11 @@
             overflow: hidden;
         }
         .view-content.active {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: calc(100vh - 100px);
-            min-height: 0;
+            display: flex !important;
+            flex-direction: column !important;
+            width: 100% !important;
+            height: calc(100vh - 100px) !important;
+            min-height: 0 !important;
         }
 
         /* -------------------------------------------------------------------------
@@ -2201,6 +2201,12 @@
             loadSymbols().then(() => {
                 loadWatchlist();
                 updateAllData();
+                try {
+                    loadPredictorTab();
+                    loadSurfTradeTab();
+                } catch(e) {
+                    console.error("Preload tabs failed:", e);
+                }
             });
 
             // Initialize gauges on view load
