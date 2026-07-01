@@ -239,6 +239,8 @@
         }
         .view-content.active {
             display: flex;
+            flex-direction: column;
+            width: 100%;
         }
 
         /* -------------------------------------------------------------------------
@@ -1325,13 +1327,13 @@
 
             <!-- TABS CONTROLS -->
             <nav class="header-nav">
-                <button class="nav-btn active" onclick="switchView('live-board')"><i class="fa-solid fa-chart-line"></i> Bảng Giá Live</button>
-                <button class="nav-btn" onclick="switchView('overview')"><i class="fa-solid fa-gauge"></i> AI Overview</button>
-                <button class="nav-btn" onclick="switchView('intraday-derivatives')"><i class="fa-solid fa-bolt"></i> Phái Sinh Trong Phiên</button>
-                <button class="nav-btn" onclick="switchView('builders')"><i class="fa-solid fa-arrow-trend-up"></i> Cổ Phiếu Xu Hướng Tăng</button>
-                <button class="nav-btn" onclick="switchView('macro')"><i class="fa-solid fa-globe"></i> Vĩ Mô & Địa Trị</button>
-                <button class="nav-btn" onclick="switchView('predictor')"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Predictor</button>
-                <button class="nav-btn" onclick="switchView('surftrade')"><i class="fa-solid fa-fish-fins"></i> Cổ Phiếu Luớt</button>
+                <button class="nav-btn active" onclick="switchView(this,'live-board')"><i class="fa-solid fa-chart-line"></i> Bảng Giá Live</button>
+                <button class="nav-btn" onclick="switchView(this,'overview')"><i class="fa-solid fa-gauge"></i> AI Overview</button>
+                <button class="nav-btn" onclick="switchView(this,'intraday-derivatives')"><i class="fa-solid fa-bolt"></i> Phái Sinh Trong Phiên</button>
+                <button class="nav-btn" onclick="switchView(this,'builders')"><i class="fa-solid fa-arrow-trend-up"></i> Cổ Phiếu Xu Hướng Tăng</button>
+                <button class="nav-btn" onclick="switchView(this,'macro')"><i class="fa-solid fa-globe"></i> Vĩ Mô & Địa Trị</button>
+                <button class="nav-btn" onclick="switchView(this,'predictor')"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Predictor</button>
+                <button class="nav-btn" onclick="switchView(this,'surftrade')"><i class="fa-solid fa-fish-fins"></i> Cổ Phiếu Luớt</button>
             </nav>
 
             <div class="header-actions">
@@ -2246,22 +2248,15 @@
         // -------------------------------------------------------------------------
         // Core View Switcher
         // -------------------------------------------------------------------------
-        function switchView(viewId) {
+        function switchView(btn, viewId) {
             // Update active buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
 
             // Hide all views, show target
-            document.querySelectorAll('.view-content').forEach(view => {
-                view.classList.remove('active');
-            });
-            
-            const targetView = document.getElementById(`view-${viewId}`);
-            if (targetView) {
-                targetView.classList.add('active');
-            }
+            document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
+            const targetView = document.getElementById('view-' + viewId);
+            if (targetView) targetView.classList.add('active');
 
             // Specific tab initializations
             if (viewId === 'overview') {
