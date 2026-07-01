@@ -4005,9 +4005,89 @@
                 }
             ];
 
+        function generateSurfData() {
+            const now = new Date();
+            const h = now.getHours();
+            // Pool of high-liquidity VN swing candidates
+            const allCandidates = [
+                {
+                    ticker: 'HPG', sector: 'Thép',
+                    entry: '26.200', target: '28.500', sl: '25.000', rr: '1:1.9',
+                    pa: 'Nến búa (Hammer) lớn xuất hiện trên ngưỡng hỗ trợ 26.000 với khối lượng tăng đột biến 2.3x trung bình 20 phiên — dấu hiệu hấp thụ cung mạnh.',
+                    pattern: 'Mô hình Double Bottom hoàn chỉnh vùng 25.500–26.000. Giá đang kiểm tra lại vùng breakout, đây là điểm mua lý tưởng trong uptrend ngắn hạn.',
+                    indicator: 'RSI(14) = 46 đang bẻ cong lên từ vùng trung tính. MACD histogram chuyển dương. MA20 bắt đầu hướng lên.'
+                },
+                {
+                    ticker: 'SSI', sector: 'Chứng khoán',
+                    entry: '31.500', target: '34.800', sl: '30.100', rr: '1:2.4',
+                    pa: 'Phiên tăng mạnh với nến trắng thân dài, đóng cửa gần đỉnh, khối lượng vượt 2x KLGD trung bình — xác nhận dòng tiền chủ động vào mạnh.',
+                    pattern: 'Breakout khỏi nền tích lũy 3 tuần dạng Flat Base. Giá chạm đường viền trên của base với volume cao — tín hiệu Stage 2 launch chuẩn Weinstein.',
+                    indicator: 'RSI(14) = 59, còn dư địa. Stochastic %K vượt %D từ dưới 30 lên 55. MACD vừa golden cross.'
+                },
+                {
+                    ticker: 'MBB', sector: 'Ngân hàng',
+                    entry: '22.800', target: '25.200', sl: '21.600', rr: '1:2.0',
+                    pa: 'Test cung thành công: phiên giảm nhẹ nhưng đóng cửa phục hồi, volume thấp hơn phiên tăng trước — xác nhận phe mua còn kiểm soát.',
+                    pattern: 'Nằm trong kênh tăng (Ascending Channel), vừa retest đường hỗ trợ kênh. Sóng 3 Elliott Wave đang hình thành từ đáy.',
+                    indicator: 'RSI(14) = 52, không overbought. Bollinger Band nở rộng hướng trên. EMA21 tác động tốt làm hỗ trợ động.'
+                },
+                {
+                    ticker: 'FPT', sector: 'Công nghệ',
+                    entry: '138.500', target: '148.000', sl: '133.000', rr: '1:1.7',
+                    pa: 'Gap Up mở cửa phiên hôm nay kèm khối lượng lớn, giữ vững gap — dấu hiệu Institutional Buying rõ ràng, không bị fill gap.',
+                    pattern: 'Uptrend Channel rõ ràng trên D1. Điểm mua nằm tại đường hỗ trợ trendline, cấu trúc Higher Low – Higher High liên tục.',
+                    indicator: 'RSI(14) = 55, MACD tăng trên đường 0. EMA8 và EMA21 xếp bullish alignment, giá trên cả 2 đường.'
+                },
+                {
+                    ticker: 'VHM', sector: 'Bất động sản',
+                    entry: '38.200', target: '43.500', sl: '36.000', rr: '1:2.4',
+                    pa: 'Nến rút chân (Doji/Pin Bar) xuất hiện tại vùng hỗ trợ mạnh 37.500, khối lượng giảm — dấu hiệu phe bán cạn sức, chuẩn bị đảo chiều.',
+                    pattern: 'Mô hình Cup & Handle đang trong giai đoạn hình thành Handle. Vùng mua tối ưu ngay đường viền dưới handle.',
+                    indicator: 'RSI divergence dương trên D1: giá thấp hơn nhưng RSI cao hơn. MACD histogram thu hẹp, chuẩn bị crossover.'
+                },
+                {
+                    ticker: 'TCB', sector: 'Ngân hàng',
+                    entry: '27.100', target: '30.000', sl: '25.800', rr: '1:2.2',
+                    pa: 'Phiên tăng đột biến volume (3x) xuyên qua kháng cự 27.000 với nến trắng thân dài — breakout xác nhận, không có dấu hiệu đảo chiều.',
+                    pattern: 'Breakout Horizontal Resistance 27.000 (test 4 lần trước đó). Đây là điểm vào sau pullback về retest vùng break.',
+                    indicator: 'RSI(14) = 62, xu hướng mạnh. MACD đang dương và tăng. Volume tích lũy OBV liên tục đi lên.'
+                },
+                {
+                    ticker: 'VIC', sector: 'Đa ngành',
+                    entry: '42.500', target: '47.200', sl: '40.500', rr: '1:2.4',
+                    pa: 'Nến Bullish Engulfing xuất hiện tại đáy swing, nuốt hoàn toàn nến giảm hôm trước với volume tăng 1.8x — xác nhận áp lực mua áp đảo.',
+                    pattern: 'Mô hình Falling Wedge hoàn chỉnh với breakout hướng lên. Xu hướng trước đó là sideways-down, tiềm năng bứt phá mạnh.',
+                    indicator: 'Stochastic(14) = 18 → đảo chiều từ vùng oversold. RSI(14) tăng từ 34 lên 42. EMA50 đang thu hẹp về giá.'
+                },
+                {
+                    ticker: 'CTG', sector: 'Ngân hàng',
+                    entry: '34.500', target: '38.000', sl: '32.800', rr: '1:2.1',
+                    pa: 'Test lại EMA50 thành công: chạm EMA50 với volume thấp, bật lên tạo nến trắng nhỏ — classic buy-the-dip trong uptrend.',
+                    pattern: 'Đang trong Stage 2 Uptrend rõ ràng. Mua tại EMA50 là điểm vào an toàn nhất trong Wyckoff Spring accumulation.',
+                    indicator: 'RSI hướng lên từ 48 → 53. MACD histogram tăng dần. ADX > 25 — uptrend đủ mạnh để tiếp diễn.'
+                },
+                {
+                    ticker: 'NVL', sector: 'Bất động sản',
+                    entry: '12.500', target: '15.000', sl: '11.500', rr: '1:2.5',
+                    pa: 'Volume spike khổng lồ (5x TB) tại vùng đáy 11.500–12.000 rồi đóng cửa cao — Wyckoff Spring hoàn chỉnh, dấu hiệu smart money gom hàng.',
+                    pattern: 'Accumulation base dài 8 tuần. Đang breakout khỏi nền tích lũy với khối lượng xác nhận — điểm mua Stage 2 launch.',
+                    indicator: 'RSI tăng từ 35 lên 51 — momentum hồi phục. MACD zero-cross dương. Giá vừa vượt EMA20 lần đầu sau 2 tháng.'
+                },
+                {
+                    ticker: 'PVD', sector: 'Dầu khí',
+                    entry: '21.800', target: '25.500', sl: '20.500', rr: '1:2.8',
+                    pa: 'Nến Marubozu xanh (không râu) với volume 4x trung bình — lực mua quyết đoán, không có chốt lời cuối phiên, phe mua hoàn toàn kiểm soát.',
+                    pattern: 'Ascending Triangle pattern hoàn chỉnh. Breakout xuyên qua đường kháng cự ngang 21.500 sau 3 lần thất bại trước.',
+                    indicator: 'RSI = 61, momentum mạnh chưa overbought. EMA8 > EMA21 > EMA50 — cấu trúc bullish alignment hoàn hảo.'
+                }
+            ];
+
             // Filter out previous tickers
             let pool = allCandidates.filter(c => !surfPreviousTickers.includes(c.ticker));
-            if (pool.length < 5) pool = allCandidates; // reset if too few
+            if (pool.length < 5) {
+                console.log("Pool had too few elements. Resetting filter pool.");
+                pool = allCandidates;
+            }
 
             // Shuffle and pick 5
             for (let i = pool.length - 1; i > 0; i--) {
@@ -4016,12 +4096,17 @@
             }
             const selected = pool.slice(0, 5);
             surfPreviousTickers = selected.map(s => s.ticker);
+            console.log("Generated surf data selected tickers:", surfPreviousTickers);
             return selected;
         }
 
         function renderSurfStocks(stocks) {
+            console.log("renderSurfStocks executing with:", stocks);
             const grid = document.getElementById('surf-stocks-grid');
-            if (!grid) return;
+            if (!grid) {
+                console.error("surf-stocks-grid element not found!");
+                return;
+            }
             grid.innerHTML = '';
 
             stocks.forEach(st => {
@@ -4070,9 +4155,11 @@
                     </div>`;
                 grid.appendChild(card);
             });
+            console.log("renderSurfStocks finished drawing cards into grid.");
         }
 
         async function loadSurfTradeTab(forceRefresh = false) {
+            console.log("loadSurfTradeTab called with forceRefresh:", forceRefresh);
             try {
                 const updateEl = document.getElementById('surf-last-update');
                 if (updateEl) updateEl.textContent = 'Đang quét dữ liệu...';
