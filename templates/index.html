@@ -2248,27 +2248,65 @@
         // -------------------------------------------------------------------------
         // Core View Switcher
         // -------------------------------------------------------------------------
-        function switchView(btn, viewId) {
+        function switchView(arg1, arg2) {
+            let btn = null;
+            let viewId = '';
+
+            // Tương thích cả switchView(this, 'viewId') và switchView('viewId')
+            if (typeof arg1 === 'string') {
+                viewId = arg1;
+                // Tự động tìm nút nav-btn tương ứng với viewId nếu không truyền btn
+                const allBtns = document.querySelectorAll('.nav-btn');
+                allBtns.forEach(b => {
+                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(viewId)) {
+                        btn = b;
+                    }
+                });
+            } else {
+                btn = arg1;
+                viewId = arg2;
+            }
+
+            console.log("Switching view to:", viewId, "Button:", btn);
+
             // Update active buttons
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
+            if (btn) {
+                btn.classList.add('active');
+            } else {
+                // Fallback active button by attribute
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(viewId)) {
+                        b.classList.add('active');
+                    }
+                });
+            }
 
             // Hide all views, show target
             document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
             const targetView = document.getElementById('view-' + viewId);
-            if (targetView) targetView.classList.add('active');
+            if (targetView) {
+                targetView.classList.add('active');
+                console.log("Target view element shown:", targetView);
+            } else {
+                console.error("View element not found: view-" + viewId);
+            }
 
             // Specific tab initializations
-            if (viewId === 'overview') {
-                loadOverviewTab();
-            } else if (viewId === 'builders') {
-                loadBuildersTab();
-            } else if (viewId === 'macro') {
-                loadMacroTab();
-            } else if (viewId === 'predictor') {
-                loadPredictorTab();
-            } else if (viewId === 'surftrade') {
-                loadSurfTradeTab();
+            try {
+                if (viewId === 'overview') {
+                    loadOverviewTab();
+                } else if (viewId === 'builders') {
+                    loadBuildersTab();
+                } else if (viewId === 'macro') {
+                    loadMacroTab();
+                } else if (viewId === 'predictor') {
+                    loadPredictorTab();
+                } else if (viewId === 'surftrade') {
+                    loadSurfTradeTab();
+                }
+            } catch (err) {
+                console.error("Error loading tab data for " + viewId + ":", err);
             }
         }
 
