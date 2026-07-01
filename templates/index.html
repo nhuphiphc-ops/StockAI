@@ -1334,7 +1334,6 @@
                 <button class="nav-btn" onclick="switchView(this,'intraday-derivatives')"><i class="fa-solid fa-bolt"></i> Phái Sinh Trong Phiên</button>
                 <button class="nav-btn" onclick="switchView(this,'builders')"><i class="fa-solid fa-arrow-trend-up"></i> Cổ Phiếu Xu Hướng Tăng</button>
                 <button class="nav-btn" onclick="switchView(this,'macro')"><i class="fa-solid fa-globe"></i> Vĩ Mô & Địa Trị</button>
-                <button class="nav-btn" onclick="switchView(this,'predictor')"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Predictor</button>
                 <button class="nav-btn" onclick="switchView(this,'surftrade')"><i class="fa-solid fa-fish-fins"></i> Cổ Phiếu Lướt</button>
             </nav>
 
@@ -2034,95 +2033,7 @@
              ========================================================================= -->
 
 
-        <!-- =========================================================================
-             VIEW 7: AI Predictor & Flows
-             ========================================================================= -->
-        <div class="view-content" id="view-predictor">
-            <div class="predictor-layout">
-                <!-- Table A: Flow of funds -->
-                <div class="glass-card" style="padding: 16px; display: flex; flex-direction: column; overflow: hidden; height: 320px;">
-                    <div class="panel-header" style="border: none; padding: 0 0 10px 0;">
-                        <h2><i class="fa-solid fa-arrows-spin"></i> DÒNG TIỀN THỊ TRƯỜNG HÀNG NGÀY (Tỷ VND)</h2>
-                    </div>
-                    
-                    <div style="overflow-y: auto; flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px;">
-                        <table class="pred-table">
-                            <thead>
-                                <tr>
-                                    <th style="text-align: center;">Ngày GD</th>
-                                    <th>Khối Ngoại</th>
-                                    <th>Tự Doanh</th>
-                                    <th>Cá Nhân</th>
-                                    <th style="text-align: left;">Dòng Tiền Lớn (Smart Money)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="flows-rows-container">
-                                <!-- loaded here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
 
-                <!-- Table B: Tomorrow Forecast Log -->
-                <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; overflow: hidden; height: 320px;">
-                    <div class="panel-header" style="border: none; padding: 0 0 14px 0;">
-                        <h2 style="font-size: 14px;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI DỰ BÁO XU HƯỚNG VNINDEX NGÀY MAI</h2>
-                    </div>
-                    
-                    <div style="overflow-y: auto; flex-grow: 1; border: 1px solid var(--border-color); border-radius: 10px;">
-                        <table class="pred-table">
-                            <thead>
-                                <tr>
-                                    <th style="text-align: center; min-width: 100px;">Ngày Dự Báo</th>
-                                    <th style="min-width: 110px;">Xu Hướng</th>
-                                    <th style="min-width: 90px;">Xác Suất</th>
-                                    <th style="min-width: 160px;">Biên Độ Điểm Số</th>
-                                    <th style="text-align: left;">Phân Tích & Cảnh Báo Rủi Ro</th>
-                                </tr>
-                            </thead>
-                            <tbody id="forecasts-rows-container">
-                                <!-- loaded here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Line Chart: Historical AI Scores -->
-                <div class="glass-card history-chart-card">
-                    <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <h2 style="margin: 0;"><i class="fa-solid fa-chart-line"></i> BIỂU ĐỒ LỊCH SỬ CHỈ SỐ AI SCORES</h2>
-                        <div class="scores-legend" style="display: flex; gap: 14px; font-size: 11px; font-weight: 500;">
-                            <span class="legend-item tooltip-container" style="color: #00e676;">
-                                <span style="font-size: 12px;">●</span> Market Score
-                                <span class="tooltip-text" style="color: #eceff1;">
-                                    <strong style="color: #00e676; display: block; margin-bottom: 4px; font-size: 12px;">Market Score (Xu hướng thị trường)</strong>
-                                    Điểm đánh giá xu thế chung của VNINDEX dựa trên các đường MA, xung lực RSI và thanh khoản. Điểm càng cao xu thế tăng (Uptrend) càng mạnh mẽ.
-                                </span>
-                            </span>
-                            <span class="legend-item tooltip-container" style="color: #ff1744;">
-                                <span style="font-size: 12px;">●</span> Risk Score
-                                <span class="tooltip-text" style="color: #eceff1;">
-                                    <strong style="color: #ff1744; display: block; margin-bottom: 4px; font-size: 12px;">Risk Score (Chỉ số rủi ro)</strong>
-                                    Đo lường rủi ro hệ thống tổng hợp từ biến động tỷ giá USD/VND và điểm rủi ro địa chính trị toàn cầu. Điểm cao cảnh báo rủi ro điều chỉnh/giảm giá lớn.
-                                </span>
-                            </span>
-                            <span class="legend-item tooltip-container" style="color: #00e5ff;">
-                                <span style="font-size: 12px;">●</span> Opportunity Score
-                                <span class="tooltip-text" style="color: #eceff1;">
-                                    <strong style="color: #00e5ff; display: block; margin-bottom: 4px; font-size: 12px;">Opportunity Score (Cơ hội đầu tư)</strong>
-                                    Đo lường cơ hội mua tích lũy dựa trên mức độ chiết khấu giá cổ phiếu và tín hiệu quá bán kỹ thuật. Điểm cao thể hiện vùng gom hàng an toàn, giá tốt.
-                                </span>
-                            </span>
-                        </div>
-                    </div>
-                    <div style="flex-grow: 1; position: relative;">
-                        <canvas id="scores-history-canvas" style="width: 100%; height: 100%;"></canvas>
-                        <!-- Floating Interactive Tooltip for Canvas Chart -->
-                        <div id="history-chart-tooltip" class="chart-tooltip"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- =========================================================================
              VIEW 8: Cổ Phiếu Lướt Sóng (Swing/Day Trade)
@@ -2202,7 +2113,6 @@
                 loadWatchlist();
                 updateAllData();
                 try {
-                    loadPredictorTab();
                     loadSurfTradeTab();
                 } catch(e) {
                     console.error("Preload tabs failed:", e);
