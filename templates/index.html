@@ -3818,6 +3818,24 @@
             ];
         }
 
+        function formatVNStockPrice(priceStr) {
+            if (!priceStr) return '—';
+            // Chuyển đổi chuỗi giá trị dạng "88.500" hoặc "88,500" thành float
+            let val = parseFloat(priceStr.replace(/\./g, '').replace(/,/g, ''));
+            if (isNaN(val)) return priceStr;
+            
+            // Chia cho 1.000 để chuyển về đơn vị điểm giá chuẩn trên bảng điện VN
+            if (val >= 1000) {
+                val = val / 1000;
+            }
+            
+            // Trả về định dạng 1 hoặc 2 chữ số thập phân (ví dụ: 88.5 hoặc 31.5)
+            return val.toLocaleString('vi-VN', { 
+                minimumFractionDigits: 1, 
+                maximumFractionDigits: 2 
+            });
+        }
+
         function renderUptrendSectors(data) {
             const grid = document.getElementById('uptrend-sectors-grid');
             if (!grid) return;
@@ -3845,15 +3863,15 @@
                             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-bottom:8px;">
                                 <div style="background:rgba(0,229,255,.08); border-radius:6px; padding:5px 6px; text-align:center;">
                                     <div style="font-size:10px; color:var(--color-text-muted); margin-bottom:2px; font-weight:600;">ENTRY</div>
-                                    <div style="font-size:12.5px; font-weight:700; color:#00e5ff; font-family:'JetBrains Mono',monospace;">${st.entry}</div>
+                                    <div style="font-size:12.5px; font-weight:700; color:#00e5ff; font-family:'JetBrains Mono',monospace;">${formatVNStockPrice(st.entry)}</div>
                                 </div>
                                 <div style="background:rgba(0,255,136,.08); border-radius:6px; padding:5px 6px; text-align:center;">
                                     <div style="font-size:10px; color:var(--color-text-muted); margin-bottom:2px; font-weight:600;">TARGET</div>
-                                    <div style="font-size:12.5px; font-weight:700; color:#00ff88; font-family:'JetBrains Mono',monospace;">${st.target}</div>
+                                    <div style="font-size:12.5px; font-weight:700; color:#00ff88; font-family:'JetBrains Mono',monospace;">${formatVNStockPrice(st.target)}</div>
                                 </div>
                                 <div style="background:rgba(239,83,80,.08); border-radius:6px; padding:5px 6px; text-align:center;">
                                     <div style="font-size:10px; color:var(--color-text-muted); margin-bottom:2px; font-weight:600;">STOP</div>
-                                    <div style="font-size:12.5px; font-weight:700; color:#ef5350; font-family:'JetBrains Mono',monospace;">${st.sl}</div>
+                                    <div style="font-size:12.5px; font-weight:700; color:#ef5350; font-family:'JetBrains Mono',monospace;">${formatVNStockPrice(st.sl)}</div>
                                 </div>
                             </div>
                             <div style="display:flex; flex-direction:column; gap:5px;">
@@ -4047,15 +4065,15 @@
                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;">
                             <div style="background:rgba(0,229,255,.08); border-radius:6px; padding:5px 6px; text-align:center;">
                                 <div style="font-size:10px; color:var(--color-text-muted); font-weight:600; margin-bottom:1px;">MUA VÀO</div>
-                                <div style="font-size:12.5px; font-weight:700; color:#00e5ff; font-family:'JetBrains Mono',monospace;">${st.entry}</div>
+                                <div style="font-size:12.5px; font-weight:700; color:#00e5ff; font-family:'JetBrains Mono',monospace;">${formatVNStockPrice(st.entry)}</div>
                             </div>
                             <div style="background:rgba(0,255,136,.08); border-radius:6px; padding:5px 6px; text-align:center;">
                                 <div style="font-size:10px; color:var(--color-text-muted); font-weight:600; margin-bottom:1px;">CHỐT LỜI</div>
-                                <div style="font-size:12.5px; font-weight:700; color:#00ff88; font-family:'JetBrains Mono',monospace;">${st.target}</div>
+                                <div style="font-size:12.5px; font-weight:700; color:#00ff88; font-family:'JetBrains Mono',monospace;">${formatVNStockPrice(st.target)}</div>
                             </div>
                             <div style="background:rgba(239,83,80,.08); border-radius:6px; padding:5px 6px; text-align:center;">
                                 <div style="font-size:10px; color:var(--color-text-muted); font-weight:600; margin-bottom:1px;">CẮT LỖ</div>
-                                <div style="font-size:12.5px; font-weight:700; color:#ef5350; font-family:'JetBrains Mono',monospace;">${st.sl}</div>
+                                <div style="font-size:12.5px; font-weight:700; color:#ef5350; font-family:'JetBrains Mono',monospace;">${formatVNStockPrice(st.sl)}</div>
                             </div>
                         </div>
                         <!-- 3 TA reasons -->
