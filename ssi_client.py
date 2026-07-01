@@ -20,7 +20,7 @@ class SsiClient:
             "VCG": 22.0, "STB": 29.0, "VPB": 18.0, "CTG": 32.0, "BID": 45.0, "VHM": 38.0,
             "VRE": 20.0, "DIG": 24.0, "DXG": 16.0, "NLG": 38.0, "VCI": 45.0, "HCM": 28.0,
             "VND": 20.0, "DGC": 115.0, "GVR": 33.0, "GAS": 78.0, "PVD": 28.0, "PVS": 38.0,
-            "VN30F1M": 1964.00, "VNINDEX": 1824.53, "VN30": 1963.57, "HNXINDEX": 324.83, "UPCOMINDEX": 127.52
+            "VN30F1M": 2001.20, "VNINDEX": 1867.22, "VN30": 2002.50, "HNXINDEX": 321.0, "UPCOMINDEX": 129.0
         }
         self.cache = {}
 
