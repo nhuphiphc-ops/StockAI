@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hệ Thống Phân Tích & Giao Dịch Chứng Khoán Việt Nam - AI CORE</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- ── PWA / Home Screen Icon ─────────────────────────────── -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512x512.png">
     <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
@@ -1308,9 +1308,141 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes pulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
 
+        /* ── RESPONSIVE DESIGN (MOBILE-FIRST) ────────────────── */
+        /* Giới hạn kích thước tối đa trên Desktop và căn giữa */
+        .app-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Ẩn Bottom Navigation mặc định trên Desktop */
+        .bottom-nav {
+            display: none;
+        }
+
+        /* Responsive cho Mobile/Tablet (dưới 768px) */
+        @media (max-width: 768px) {
+            .app-container {
+                height: auto;
+                min-height: 100vh;
+                padding: 8px 8px 75px 8px; /* Dành khoảng trống dưới đáy cho Bottom Nav */
+                gap: 8px;
+            }
+
+            .app-header {
+                height: auto;
+                padding: 10px 8px;
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+            
+            .header-logo h1 {
+                font-size: 16px;
+            }
+
+            /* Ẩn menu chữ ở header trên di động */
+            .header-nav {
+                display: none !important;
+            }
+
+            /* Hiện Bottom Navigation dưới đáy */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 60px;
+                background: rgba(13, 19, 36, 0.95);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                z-index: 999;
+                justify-content: space-around;
+                align-items: center;
+                padding: 4px 10px;
+            }
+
+            .bottom-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: transparent;
+                border: none;
+                color: var(--color-text-secondary);
+                font-size: 10px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 50px;
+                min-height: 48px; /* Kích thước click tối thiểu 44px của Apple/Google */
+                gap: 4px;
+            }
+
+            .bottom-nav-item i {
+                font-size: 18px;
+            }
+
+            .bottom-nav-item.active {
+                color: #00e5ff;
+                text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+            }
+
+            /* Ép các Grid chuyển sang bố cục 1 cột cuộn dọc trên Mobile */
+            .grid-container, 
+            .uptrend-grid, 
+            #surf-stocks-grid, 
+            #uptrend-sectors-grid,
+            .dashboard-layout,
+            .market-flows-grid {
+                grid-template-columns: 1fr !important;
+                gap: 8px !important;
+            }
+
+            .view-content.active {
+                height: auto !important;
+                min-height: calc(100vh - 150px) !important;
+            }
+
+            .glass-card {
+                padding: 10px !important;
+            }
+            
+            /* Tăng kích thước nút bấm trên mobile cho ngón tay dễ chạm */
+            button, select, input {
+                min-height: 44px !important;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Bottom Navigation Bar for Mobile Devices -->
+    <div class="bottom-nav">
+        <button class="bottom-nav-item active" onclick="switchView(this,'live-board')">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Bảng Giá</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView(this,'intraday-derivatives')">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Phái Sinh</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView(this,'builders')">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+            <span>Xu Hướng</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView(this,'surftrade')">
+            <i class="fa-solid fa-fish-fins"></i>
+            <span>Lướt Sóng</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView(this,'macro')">
+            <i class="fa-solid fa-globe"></i>
+            <span>Vĩ Mô</span>
+        </button>
+    </div>
 
     <div class="loading-overlay" id="loading-overlay">
         <div class="spinner"></div>
@@ -2173,13 +2305,6 @@
             // Tương thích cả switchView(this, 'viewId') và switchView('viewId')
             if (typeof arg1 === 'string') {
                 viewId = arg1;
-                // Tự động tìm nút nav-btn tương ứng với viewId nếu không truyền btn
-                const allBtns = document.querySelectorAll('.nav-btn');
-                allBtns.forEach(b => {
-                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(viewId)) {
-                        btn = b;
-                    }
-                });
             } else {
                 btn = arg1;
                 viewId = arg2;
@@ -2187,18 +2312,13 @@
 
             console.log("Switching view to:", viewId, "Button:", btn);
 
-            // Update active buttons
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if (btn) {
-                btn.classList.add('active');
-            } else {
-                // Fallback active button by attribute
-                document.querySelectorAll('.nav-btn').forEach(b => {
-                    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(viewId)) {
-                        b.classList.add('active');
-                    }
-                });
-            }
+            // Update active buttons cho cả Top Nav (nav-btn) và Bottom Nav (bottom-nav-item)
+            document.querySelectorAll('.nav-btn, .bottom-nav-item').forEach(b => {
+                b.classList.remove('active');
+                if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(`'${viewId}'`)) {
+                    b.classList.add('active');
+                }
+            });
 
             // Hide all views, show target
             document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
@@ -4695,6 +4815,15 @@
             // Save references
             canvas._onMouseMove = handleMouseMove;
             canvas._onMouseLeave = handleMouseLeave;
+        }
+
+        // ── PWA SERVICE WORKER REGISTRATION ─────────────────
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then((reg) => console.log('Service Worker registered successfully with scope:', reg.scope))
+                    .catch((err) => console.error('Service Worker registration failed:', err));
+            });
         }
 
     </script>

@@ -1,32 +1,22 @@
 {
-  "name": "AI Stock Dashboard",
-  "short_name": "AI Stock",
-  "description": "Hệ thống phân tích & giao dịch chứng khoán Việt Nam - AI CORE",
+  "name": "AI Terminal Stock (Nguyễn Như Phi)",
+  "short_name": "AI Terminal",
+  "description": "Hệ thống AI phân tích và khuyến nghị đầu tư chứng khoán, phái sinh chuyên nghiệp.",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "background_color": "#060913",
-  "theme_color": "#00e5ff",
-  "lang": "vi",
-  "scope": "/",
+  "theme_color": "#060913",
+  "orientation": "portrait-primary",
   "icons": [
-    { "src": "/static/icon-72x72.png",   "sizes": "72x72",   "type": "image/png", "purpose": "any maskable" },
-    { "src": "/static/icon-96x96.png",   "sizes": "96x96",   "type": "image/png", "purpose": "any maskable" },
-    { "src": "/static/icon-128x128.png", "sizes": "128x128", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/static/icon-144x144.png", "sizes": "144x144", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/static/icon-152x152.png", "sizes": "152x152", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/static/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/static/icon-384x384.png", "sizes": "384x384", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/static/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ],
-  "categories": ["finance", "business"],
-  "shortcuts": [
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Mở trang tổng quan",
-      "url": "/?tab=overview",
-      "icons": [{ "src": "/static/icon-192x192.png", "sizes": "192x192" }]
+      "src": "https://img.icons8.com/nolan/192/chart.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/nolan/512/chart.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }
