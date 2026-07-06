@@ -6,7 +6,7 @@
   "display": "standalone",
   "background_color": "#060913",
   "theme_color": "#060913",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "icons": [
     {
       "src": "https://img.icons8.com/nolan/192/chart.png",
