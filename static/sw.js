@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ai-terminal-cache-v1';
+const CACHE_NAME = 'ai-terminal-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/static/manifest.json',
@@ -32,39 +32,42 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch Event (Cache-first with Network Fallback)
+// Fetch Event (Network-First for documents, Cache-First for static assets)
 self.addEventListener('fetch', (e) => {
-  // Only cache GET requests
   if (e.request.method !== 'GET') return;
   
-  e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Return cached asset, fetch fresh in background to update cache
-        fetch(e.request).then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, networkResponse));
-          }
-        }).catch(() => {/* Ignore network error on update */});
-        return cachedResponse;
-      }
-      
-      return fetch(e.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
+  const isNavigation = e.request.mode === 'navigate';
+  
+  if (isNavigation) {
+    // Network-First for navigation page to ensure fresh HTML
+    e.respondWith(
+      fetch(e.request).then((networkResponse) => {
+        if (networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
         }
-        // Cache newly fetched assets
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(e.request, responseToCache);
-        });
         return networkResponse;
       }).catch(() => {
-        // Fallback for offline Mode
-        if (e.request.mode === 'navigate') {
-          return caches.match('/');
+        return caches.match(e.request).then((cachedResponse) => {
+          return cachedResponse || caches.match('/');
+        });
+      })
+    );
+  } else {
+    // Cache-First for static assets (fonts, icons)
+    e.respondWith(
+      caches.match(e.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
-      });
-    })
-  );
+        return fetch(e.request).then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
+          }
+          return networkResponse;
+        });
+      })
+    );
+  }
 });
