@@ -15,11 +15,12 @@ class SsiClient:
         self.token_expiry = 0
         self.base_url = "https://fc-data.ssi.com.vn/api/v2/Market"
         self.base_prices = {
-            "FPT": 71.5, "SSI": 27.15, "VIC": 205.1, "VNM": 59.0, "HPG": 23.6, "PHC": 4.62,
-            "MBB": 22.0, "TCB": 24.5, "VCB": 92.0, "ACB": 22.2, "CTD": 65.0, "HBC": 6.0,
-            "VCG": 22.0, "STB": 29.0, "VPB": 18.0, "CTG": 32.0, "BID": 45.0, "VHM": 38.0,
-            "VRE": 20.0, "DIG": 24.0, "DXG": 16.0, "NLG": 38.0, "VCI": 45.0, "HCM": 28.0,
-            "VND": 20.0, "DGC": 115.0, "GVR": 33.0, "GAS": 78.0, "PVD": 28.0, "PVS": 38.0,
+            "FPT": 73.2, "SSI": 27.15, "VIC": 205.1, "VNM": 59.0, "HPG": 23.6, "PHC": 4.59,
+            "MBB": 25.75, "TCB": 24.5, "VCB": 61.2, "ACB": 22.2, "CTD": 65.0, "HBC": 6.0,
+            "VCG": 22.0, "STB": 29.0, "VPB": 18.0, "CTG": 32.0, "BID": 41.65, "VHM": 38.0,
+            "VRE": 20.0, "DIG": 24.0, "DXG": 11.9, "NLG": 25.65, "VCI": 45.0, "HCM": 28.0,
+            "VND": 18.75, "DGC": 115.0, "GVR": 33.0, "GAS": 78.0, "PVD": 28.0, "PVS": 38.0,
+            "MBS": 22.3, "CMG": 27.1, "PC1": 21.6, "HHV": 11.2,
             "VN30F1M": 2001.20, "VNINDEX": 1867.22, "VN30": 2002.50, "HNXINDEX": 321.0, "UPCOMINDEX": 129.0
         }
         self.cache = {}
