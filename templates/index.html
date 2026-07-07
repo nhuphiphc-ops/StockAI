@@ -2259,7 +2259,7 @@
             };
         }
 
-        const HOST = window.location.origin;
+        const HOST = window.location.origin.includes('vercel.app') ? 'https://stock-ai-six-iota.vercel.app' : 'http://127.0.0.1:8000';
 
         window.addEventListener('load', () => {
             // Init default views
@@ -2593,21 +2593,31 @@
                     const r = await fetch(`${HOST}/api/price-depth?symbol=${s}&source=${currentSource}`);
                     if (r.ok) {
                         const d = await r.json();
-                        const pEl = document.getElementById(`watch-price-${s}`);
-                        const cEl = document.getElementById(`watch-chg-${s}`);
-                        
-                        if(pEl && cEl && d.last_price) {
-                            pEl.innerText = Number(d.last_price).toFixed(2);
-                            const change = Number(d.change);
-                            const percent = Number(d.change_pct);
-                            const cls = change > 0 ? 'txt-up' : (change < 0 ? 'txt-down' : 'txt-ref');
-                            
-                            pEl.className = `item-price ${cls}`;
-                            cEl.className = `item-change ${cls}`;
-                            cEl.innerText = `${change > 0 ? '+' : ''}${change.toFixed(2)} (${percent.toFixed(2)}%)`;
-                        }
+                        updateWatchItem(s, d.last_price, d.change, d.change_pct);
+                        continue;
                     }
-                } catch(e) {}
+                } catch(e) {
+                    console.error("Watchlist fetch error for " + s + ", using fallback");
+                }
+                // Fallback watch item
+                const mock = getMockWatchlistData(s);
+                const mock_change = mock.last_price * (mock.change_pct / 100);
+                updateWatchItem(s, mock.last_price, mock_change, mock.change_pct);
+            }
+        }
+        
+        function updateWatchItem(s, last_price, change, change_pct) {
+            const pEl = document.getElementById(`watch-price-${s}`);
+            const cEl = document.getElementById(`watch-chg-${s}`);
+            if(pEl && cEl && last_price) {
+                pEl.innerText = Number(last_price).toFixed(2);
+                const valChange = Number(change || 0);
+                const percent = Number(change_pct || 0);
+                const cls = valChange > 0 ? 'txt-up' : (valChange < 0 ? 'txt-down' : 'txt-ref');
+                
+                pEl.className = `item-price ${cls}`;
+                cEl.className = `item-change ${cls}`;
+                cEl.innerText = `${valChange > 0 ? '+' : ''}${valChange.toFixed(2)} (${percent.toFixed(2)}%)`;
             }
         }
 
