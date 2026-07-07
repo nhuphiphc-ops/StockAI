@@ -2238,6 +2238,27 @@
         let activeReportTab = "income_statement";
         let activePeriod = "quarter";
         
+
+        // Fallback generator for watchlists and live prices to prevent freezing when API is offline
+        function getMockWatchlistData(symbol) {
+            const basePrices = {
+                "FPT": 73.2, "SSI": 27.15, "VIC": 42.5, "VNM": 59.0, "HPG": 23.6, "PHC": 4.59,
+                "MBB": 25.75, "TCB": 24.5, "VCB": 61.2, "ACB": 22.2, "CTD": 65.0, "HBC": 6.0,
+                "VCG": 22.0, "STB": 29.0, "VPB": 18.0, "CTG": 32.0, "BID": 41.65, "VHM": 38.0,
+                "VND": 18.75, "MBS": 22.3, "CMG": 27.1, "PC1": 21.6, "HHV": 11.2
+            };
+            const base = basePrices[symbol] || 30.0;
+            const change = (Math.random() * 2 - 1) * 0.5;
+            const last = parseFloat((base + change).toFixed(2));
+            const changePct = parseFloat((change / base * 100).toFixed(2));
+            return {
+                symbol: symbol,
+                last_price: last,
+                change_pct: changePct,
+                total_volume: Math.floor(Math.random() * 2000000) + 500000
+            };
+        }
+
         const HOST = window.location.origin;
 
         window.addEventListener('load', () => {
@@ -2251,11 +2272,6 @@
             loadSymbols().then(() => {
                 loadWatchlist();
                 updateAllData();
-                try {
-                    loadSurfTradeTab();
-                } catch(e) {
-                    console.error("Preload tabs failed:", e);
-                }
             });
 
             // Initialize gauges on view load
@@ -4106,16 +4122,19 @@
 
         function formatVNStockPrice(priceStr) {
             if (!priceStr) return '—';
-            // Chuyển đổi chuỗi giá trị dạng "88.500" hoặc "88,500" thành float
-            let val = parseFloat(priceStr.replace(/\./g, '').replace(/,/g, ''));
+            // If already a standard decimal format (e.g. 61.2), return directly or formatted
+            let val = parseFloat(priceStr);
             if (isNaN(val)) return priceStr;
             
-            // Chia cho 1.000 để chuyển về đơn vị điểm giá chuẩn trên bảng điện VN
+            // If it is in old thousand format like "90.000" or "88.500" or "90000"
+            if (priceStr.includes('.') && priceStr.split('.')[1].length >= 3) {
+                val = parseFloat(priceStr.replace(/\./g, ''));
+            }
+            
             if (val >= 1000) {
                 val = val / 1000;
             }
             
-            // Trả về định dạng 1 hoặc 2 chữ số thập phân (ví dụ: 88.5 hoặc 31.5)
             return val.toLocaleString('vi-VN', { 
                 minimumFractionDigits: 1, 
                 maximumFractionDigits: 2 
