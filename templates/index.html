@@ -1883,107 +1883,143 @@
              VIEW 3: Portfolio Management
              ========================================================================= -->
         <div class="view-content" id="view-intraday-derivatives">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 100%; overflow: hidden; padding-bottom: 10px;">
-                <!-- Column 1: M5 Candle Input Form -->
-                <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;">
-                    <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <h2><i class="fa-solid fa-bolt" style="color: #00e5ff;"></i> NHẬP THÔNG TIN NẾN 5 PHÚT (M5)</h2>
-                        <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #00e5ff; font-weight: bold; cursor: pointer; background: rgba(0, 229, 255, 0.05); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(0, 229, 255, 0.2);">
-                            <input type="checkbox" id="m5-auto-update" onchange="toggleM5AutoUpdate()" style="cursor: pointer; accent-color: #00e5ff;">
-                            <span>TỰ ĐỘNG LIVE (15S)</span>
-                        </label>
-                    </div>
-                    
-                    <div class="form-group" style="margin-bottom: 10px;">
-                        <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Giá Đóng Cửa Nến M5 (Close)</label>
-                        <input type="number" step="0.1" id="m5-close" placeholder="Ví dụ: 2001.2" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                        <div class="form-group">
-                            <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Giá Cao Nhất (High)</label>
-                            <input type="number" step="0.1" id="m5-high" placeholder="Ví dụ: 2003.5" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
+            <div style="display: flex; flex-direction: column; gap: 12px; height: 100%; overflow-y: auto; padding-bottom: 10px; flex: 1;">
+                
+                <!-- Grid layout of Form & Results -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-shrink: 0;">
+                    <!-- Column 1: M5 Candle Input Form -->
+                    <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;">
+                        <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <h2><i class="fa-solid fa-bolt" style="color: #00e5ff;"></i> NHẬP THÔNG TIN NẾN 5 PHÚT (M5)</h2>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #00e5ff; font-weight: bold; cursor: pointer; background: rgba(0, 229, 255, 0.05); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(0, 229, 255, 0.2);">
+                                <input type="checkbox" id="m5-auto-update" onchange="toggleM5AutoUpdate()" style="cursor: pointer; accent-color: #00e5ff;">
+                                <span>TỰ ĐỘNG LIVE (15S)</span>
+                            </label>
                         </div>
-                        <div class="form-group">
-                            <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Giá Thấp Nhất (Low)</label>
-                            <input type="number" step="0.1" id="m5-low" placeholder="Ví dụ: 1999.8" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
+                        
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Giá Đóng Cửa Nến M5 (Close)</label>
+                            <input type="number" step="0.1" id="m5-close" placeholder="Ví dụ: 2001.2" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="form-group">
+                                <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Giá Cao Nhất (High)</label>
+                                <input type="number" step="0.1" id="m5-high" placeholder="Ví dụ: 2003.5" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Giá Thấp Nhất (Low)</label>
+                                <input type="number" step="0.1" id="m5-low" placeholder="Ví dụ: 1999.8" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="form-group">
+                                <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Khối Lượng Khớp (Volume)</label>
+                                <input type="number" id="m5-volume" placeholder="Ví dụ: 1200" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Độ Lệch Basis vs VN30</label>
+                                <input type="number" step="0.1" id="m5-basis" placeholder="Ví dụ: -1.5" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Hành Động Giá & Khối Lượng (Price Action - Tùy chọn)</label>
+                            <input type="text" id="m5-price-action" placeholder="Ví dụ: nến rút chân, cạn cung, pinbar..." style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff;">
+                        </div>
+                        
+                        <button onclick="getM5DerivativesForecast()" style="width:100%; padding: 12px; font-weight: 700; border-radius: 8px; border: none; background: linear-gradient(135deg, #00e5ff, #a855f7); color: #fff; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2);" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+                            <i class="fa-solid fa-brain"></i> PHÂN TÍCH &amp; DỰ BÁO NGAY (M5)
+                        </button>
+                    </div>
+
+                    <!-- Column 2: Result Panel -->
+                    <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; background: linear-gradient(135deg, rgba(2, 8, 16, 0.4), rgba(6, 12, 24, 0.25)); border: 1px solid rgba(0, 229, 255, 0.15);">
+                        <div class="panel-header" style="border: none; padding: 0 0 10px 0;">
+                            <h2><i class="fa-solid fa-circle-nodes" style="color: #a855f7;"></i> KẾT QUẢ PHÂN TÍCH CHUYÊN GIA (AI M5)</h2>
+                        </div>
+                        
+                        <div id="m5-result-empty" style="text-align: center; margin: auto; color: var(--color-text-muted); font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-keyboard" style="font-size: 40px; color: rgba(255,255,255,0.05);"></i>
+                            Vui lòng nhập đầy đủ thông số nến M5 ở cột bên trái và bấm nút phân tích.
+                        </div>
+                        
+                        <div id="m5-result-content" style="display: none; flex-direction: column; gap: 16px;">
+                            <!-- Trend Verdict -->
+                            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px;">
+                                <div style="font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 6px;">1. Nhận định xu hướng M5</div>
+                                <div id="m5-trend-verdict" style="font-size: 18px; font-weight: 800; letter-spacing: 0.5px;">TĂNG (LONG)</div>
+                            </div>
+                            
+                            <!-- Action Signal -->
+                            <div style="background: rgba(0, 229, 255, 0.03); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+                                <div style="font-size: 11px; color: #00e5ff; text-transform: uppercase; font-weight: bold;">2. Tín hiệu hành động</div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12.5px;">
+                                    <div><strong style="color: var(--color-text-secondary);">Lệnh khuyến nghị:</strong> <span id="m5-action-signal" style="font-weight: 700;">Mở Long</span></div>
+                                    <div><strong style="color: var(--color-text-secondary);">Vùng Entry (Vào lệnh):</strong> <span id="m5-entry-range" style="font-weight: 700; color: #fff;">2001.2 - 2001.6</span></div>
+                                    <div><strong style="color: var(--color-text-secondary);">Stop Loss (Cắt lỗ):</strong> <span id="m5-stop-loss" style="font-weight: 700; color: var(--color-down);">1999.2</span></div>
+                                    <div><strong style="color: var(--color-text-secondary);">Take Profit (Chốt lời):</strong> <span id="m5-take-profit" style="font-weight: 700; color: var(--color-up);">TP1: 2005.2 | TP2: 2007.2</span></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tech arguments -->
+                            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; line-height: 1.5;">
+                                <div style="font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">3. Luận điểm kỹ thuật</div>
+                                <div style="display: flex; gap: 6px; align-items: flex-start;">
+                                    <span style="color: #a855f7;"><i class="fa-solid fa-chevron-right"></i></span>
+                                    <div><strong style="color: var(--color-text-secondary);">Price Action &amp; Volume:</strong> <span id="m5-arg-pa">Nến rút chân khối lượng lớn...</span></div>
+                                </div>
+                                <div style="display: flex; gap: 6px; align-items: flex-start;">
+                                    <span style="color: #a855f7;"><i class="fa-solid fa-chevron-right"></i></span>
+                                    <div><strong style="color: var(--color-text-secondary);">Độ lệch (Basis):</strong> <span id="m5-arg-basis">Đang âm/dương...</span></div>
+                                </div>
+                                <div style="display: flex; gap: 6px; align-items: flex-start;">
+                                    <span style="color: #a855f7;"><i class="fa-solid fa-chevron-right"></i></span>
+                                    <div><strong style="color: var(--color-text-secondary);">Hỗ trợ/Kháng cự gần nhất:</strong> <span id="m5-arg-sr">Các vùng cản quan trọng...</span></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Warning/Disclaimer -->
+                            <div id="m5-disclaimer" style="font-size: 11px; color: var(--color-text-muted); font-style: italic; display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.05);">
+                                <i class="fa-solid fa-circle-info" style="color: var(--color-text-muted);"></i>
+                                <span>Tín hiệu chỉ mang tính chất tham khảo, hãy tuân thủ kỷ luật Stop Loss.</span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                        <div class="form-group">
-                            <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Khối Lượng Khớp (Volume)</label>
-                            <input type="number" id="m5-volume" placeholder="Ví dụ: 1200" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
-                        </div>
-                        <div class="form-group">
-                            <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Độ Lệch Basis vs VN30</label>
-                            <input type="number" step="0.1" id="m5-basis" placeholder="Ví dụ: -1.5" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-family: 'JetBrains Mono', monospace;">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group" style="margin-bottom: 14px;">
-                        <label style="display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 600;">Hành Động Giá & Khối Lượng (Price Action - Tùy chọn)</label>
-                        <input type="text" id="m5-price-action" placeholder="Ví dụ: nến rút chân, cạn cung, pinbar..." style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-color); border-radius: 6px; color: #fff;">
-                    </div>
-                    
-                    <button onclick="getM5DerivativesForecast()" style="width:100%; padding: 12px; font-weight: 700; border-radius: 8px; border: none; background: linear-gradient(135deg, #00e5ff, #a855f7); color: #fff; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2);" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
-                        <i class="fa-solid fa-brain"></i> PHÂN TÍCH &amp; DỰ BÁO NGAY (M5)
-                    </button>
                 </div>
 
-                <!-- Column 2: Result Panel -->
-                <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; background: linear-gradient(135deg, rgba(2, 8, 16, 0.4), rgba(6, 12, 24, 0.25)); border: 1px solid rgba(0, 229, 255, 0.15);">
-                    <div class="panel-header" style="border: none; padding: 0 0 10px 0;">
-                        <h2><i class="fa-solid fa-circle-nodes" style="color: #a855f7;"></i> KẾT QUẢ PHÂN TÍCH CHUYÊN GIA (AI M5)</h2>
+                <!-- Trading Log: Lịch sử tín hiệu phái sinh trong ngày -->
+                <div class="glass-card" style="padding: 16px; margin-top: 5px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; border: 1px solid rgba(0, 229, 255, 0.15); flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <h3 style="font-size: 14px; font-weight: 700; color: #00e5ff; display: flex; align-items: center; gap: 8px; margin: 0;">
+                            <i class="fa-solid fa-clock-rotate-left"></i> THỐNG KÊ LỊCH SỬ KHUYẾN NGHỊ TRONG NGÀY (M5 LOG)
+                        </h3>
+                        <span style="font-size: 11px; color: var(--color-text-muted);">Khởi tạo tự động · Lưu 10 lệnh gần nhất</span>
                     </div>
-                    
-                    <div id="m5-result-empty" style="text-align: center; margin: auto; color: var(--color-text-muted); font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                        <i class="fa-solid fa-keyboard" style="font-size: 40px; color: rgba(255,255,255,0.05);"></i>
-                        Vui lòng nhập đầy đủ thông số nến M5 ở cột bên trái và bấm nút phân tích.
-                    </div>
-                    
-                    <div id="m5-result-content" style="display: none; flex-direction: column; gap: 16px;">
-                        <!-- Trend Verdict -->
-                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px;">
-                            <div style="font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 6px;">1. Nhận định xu hướng M5</div>
-                            <div id="m5-trend-verdict" style="font-size: 18px; font-weight: 800; letter-spacing: 0.5px;">TĂNG (LONG)</div>
-                        </div>
-                        
-                        <!-- Action Signal -->
-                        <div style="background: rgba(0, 229, 255, 0.03); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
-                            <div style="font-size: 11px; color: #00e5ff; text-transform: uppercase; font-weight: bold;">2. Tín hiệu hành động</div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12.5px;">
-                                <div><strong style="color: var(--color-text-secondary);">Lệnh khuyến nghị:</strong> <span id="m5-action-signal" style="font-weight: 700;">Mở Long</span></div>
-                                <div><strong style="color: var(--color-text-secondary);">Vùng Entry (Vào lệnh):</strong> <span id="m5-entry-range" style="font-weight: 700; color: #fff;">2001.2 - 2001.6</span></div>
-                                <div><strong style="color: var(--color-text-secondary);">Stop Loss (Cắt lỗ):</strong> <span id="m5-stop-loss" style="font-weight: 700; color: var(--color-down);">1999.2</span></div>
-                                <div><strong style="color: var(--color-text-secondary);">Take Profit (Chốt lời):</strong> <span id="m5-take-profit" style="font-weight: 700; color: var(--color-up);">TP1: 2005.2 | TP2: 2007.2</span></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Tech arguments -->
-                        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; line-height: 1.5;">
-                            <div style="font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">3. Luận điểm kỹ thuật</div>
-                            <div style="display: flex; gap: 6px; align-items: flex-start;">
-                                <span style="color: #a855f7;"><i class="fa-solid fa-chevron-right"></i></span>
-                                <div><strong style="color: var(--color-text-secondary);">Price Action &amp; Volume:</strong> <span id="m5-arg-pa">Nến rút chân khối lượng lớn...</span></div>
-                            </div>
-                            <div style="display: flex; gap: 6px; align-items: flex-start;">
-                                <span style="color: #a855f7;"><i class="fa-solid fa-chevron-right"></i></span>
-                                <div><strong style="color: var(--color-text-secondary);">Độ lệch (Basis):</strong> <span id="m5-arg-basis">Đang âm/dương...</span></div>
-                            </div>
-                            <div style="display: flex; gap: 6px; align-items: flex-start;">
-                                <span style="color: #a855f7;"><i class="fa-solid fa-chevron-right"></i></span>
-                                <div><strong style="color: var(--color-text-secondary);">Hỗ trợ/Kháng cự gần nhất:</strong> <span id="m5-arg-sr">Các vùng cản quan trọng...</span></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Warning/Disclaimer -->
-                        <div id="m5-disclaimer" style="font-size: 11px; color: var(--color-text-muted); font-style: italic; display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.05);">
-                            <i class="fa-solid fa-circle-info" style="color: var(--color-text-muted);"></i>
-                            <span>Tín hiệu chỉ mang tính chất tham khảo, hãy tuân thủ kỷ luật Stop Loss.</span>
-                        </div>
+                    <div style="overflow-x: auto; width: 100%;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12.5px;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.08); color: var(--color-text-secondary); font-weight: 600; background: rgba(255,255,255,0.02);">
+                                    <th style="padding: 10px 8px;">Thời gian</th>
+                                    <th style="padding: 10px 8px;">Vị thế</th>
+                                    <th style="padding: 10px 8px;">Vùng Mua/Bán</th>
+                                    <th style="padding: 10px 8px;">Cắt lỗ (SL)</th>
+                                    <th style="padding: 10px 8px;">Chốt lời (TP)</th>
+                                    <th style="padding: 10px 8px; text-align: right;">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="derivatives-history-tbody">
+                                <tr>
+                                    <td colspan="6" style="padding: 20px; text-align: center; color: var(--color-text-muted);">
+                                        Chưa có lệnh khuyến nghị nào được phát ra trong ngày hôm nay.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+                
             </div>
         </div>
 
@@ -3602,6 +3638,74 @@
             }
         }
 
+        // ── DERIVATIVES HISTORY TRADING LOG ─────────────────
+        let derivativesHistoryLog = [];
+
+        function addDerivativesLog(action, entry, sl, tp) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            // Tránh lưu trùng lắp nến giống nhau liên tiếp
+            if (derivativesHistoryLog.length > 0) {
+                const last = derivativesHistoryLog[0];
+                if (last.action === action && last.entry === entry) {
+                    return;
+                }
+            }
+
+            derivativesHistoryLog.unshift({
+                time: timeStr,
+                action: action,
+                entry: entry,
+                sl: sl,
+                tp: tp,
+                status: (action.includes("Đứng ngoài") || action.includes("Không")) ? "Theo dõi" : "Khớp lệnh"
+            });
+
+            if (derivativesHistoryLog.length > 10) {
+                derivativesHistoryLog.pop();
+            }
+
+            renderDerivativesHistory();
+        }
+
+        function renderDerivativesHistory() {
+            const tbody = document.getElementById('derivatives-history-tbody');
+            if (!tbody) return;
+
+            if (derivativesHistoryLog.length === 0) {
+                tbody.innerHTML = `<tr>
+                    <td colspan="6" style="padding: 20px; text-align: center; color: var(--color-text-muted);">
+                        Chưa có lệnh khuyến nghị nào được phát ra trong ngày hôm nay.
+                    </td>
+                </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            derivativesHistoryLog.forEach(log => {
+                let actionColor = 'var(--color-text-muted)';
+                if (log.action.includes("Long") || log.action.includes("LONG")) actionColor = 'var(--color-up)';
+                else if (log.action.includes("Short") || log.action.includes("SHORT")) actionColor = 'var(--color-down)';
+
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                        <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; color:var(--color-text-secondary);">${log.time}</td>
+                        <td style="padding: 10px 8px; font-weight:700; color:${actionColor};">${log.action}</td>
+                        <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; font-weight:600;">${log.entry}</td>
+                        <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; color:var(--color-down);">${log.sl}</td>
+                        <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; color:var(--color-up);">${log.tp}</td>
+                        <td style="padding: 10px 8px; text-align:right;">
+                            <span style="font-size:11px; padding:2px 6px; border-radius:4px; font-weight:600; 
+                                ${log.status === 'Theo dõi' ? 'background:rgba(255,255,255,0.05); color:var(--color-text-muted);' : 'background:rgba(0,229,255,0.12); color:#00e5ff;'}">
+                                ${log.status}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
         async function getM5DerivativesForecast() {
             const closeVal = parseFloat(document.getElementById('m5-close').value);
             const highVal = parseFloat(document.getElementById('m5-high').value);
@@ -3668,6 +3772,9 @@
                     document.getElementById('m5-arg-pa').innerText = data.arguments.price_action_vol;
                     document.getElementById('m5-arg-basis').innerText = data.arguments.basis_impact;
                     document.getElementById('m5-arg-sr').innerText = data.arguments.support_resistance;
+
+                    // Log to derivatives trading history
+                    addDerivativesLog(data.action_signal, data.entry_range, data.stop_loss, data.take_profit);
 
                     contentEl.style.display = 'flex';
                 } else {
