@@ -2348,7 +2348,7 @@
                 } else if (viewId === 'predictor') {
                     loadPredictorTab();
                 } else if (viewId === 'intraday-derivatives') {
-                    loadDerivativesHistoryFromServer();
+                    loadDerivativesHistoryFromLocalStorage();
                 }
             } catch (err) {
                 console.error("Error loading tab data for " + viewId + ":", err);
@@ -2387,7 +2387,7 @@
                         else if (viewText.includes("Vĩ Mô")) loadMacroTab();
                         else if (viewText.includes("AI Predictor")) loadPredictorTab();
                 } else if (viewId === 'intraday-derivatives') {
-                    loadDerivativesHistoryFromServer();
+                    loadDerivativesHistoryFromLocalStorage();
                     }
                     updateAllData();
                 } else {
@@ -3663,19 +3663,61 @@
             }
         }
 
-        // ── DERIVATIVES HISTORY TRADING LOG ─────────────────
+        // ── DERIVATIVES HISTORY TRADING LOG (SAVED VĨNH VIỄN TRONG TRÌNH DUYỆT) ─────────────────
         let derivativesHistoryLog = [];
 
-        async function loadDerivativesHistoryFromServer() {
+        function loadDerivativesHistoryFromLocalStorage() {
             try {
-                const response = await fetch(`${HOST}/api/derivatives/history-log`);
-                if (response.ok) {
-                    derivativesHistoryLog = await response.json();
-                    renderDerivativesHistory();
+                const saved = localStorage.getItem('derivativesHistoryLog');
+                if (saved) {
+                    derivativesHistoryLog = JSON.parse(saved);
+                } else {
+                    derivativesHistoryLog = [];
                 }
+                renderDerivativesHistory();
             } catch (err) {
-                console.error("Error fetching derivatives history:", err);
+                console.error("Error reading derivatives history from localStorage:", err);
             }
+        }
+
+        function saveDerivativesHistoryToLocalStorage() {
+            try {
+                localStorage.setItem('derivativesHistoryLog', JSON.stringify(derivativesHistoryLog));
+            } catch (err) {
+                console.error("Error saving derivatives history to localStorage:", err);
+            }
+        }
+
+        function addDerivativesLog(action, entry, sl, tp) {
+            const now = new Date();
+            const dateStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            // Tránh lưu trùng lắp nến giống nhau liên tiếp
+            if (derivativesHistoryLog.length > 0) {
+                const last = derivativesHistoryLog[0];
+                if (last.action === action && last.entry === entry) {
+                    return;
+                }
+            }
+
+            derivativesHistoryLog.unshift({
+                date: dateStr,
+                time: timeStr,
+                action: action,
+                entry: entry,
+                sl: sl,
+                tp: tp,
+                status: (action.includes("Đứng ngoài") || action.includes("Không")) ? "Theo dõi" : "Khớp lệnh"
+            });
+
+            // Giới hạn 20 lệnh gần nhất trong lịch sử
+            if (derivativesHistoryLog.length > 20) {
+                derivativesHistoryLog.pop();
+            }
+
+            saveDerivativesHistoryToLocalStorage();
+            renderDerivativesHistory();
         }
 
         function renderDerivativesHistory() {
@@ -3846,7 +3888,7 @@
                     document.getElementById('m5-arg-sr').innerText = data.arguments.support_resistance;
 
                     // Log to derivatives trading history
-                    await loadDerivativesHistoryFromServer();
+                    addDerivativesLog(data.action_signal, data.entry_range, data.stop_loss, data.take_profit);
 
                     contentEl.style.display = 'flex';
                 } else {
