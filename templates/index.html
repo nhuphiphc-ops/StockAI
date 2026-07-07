@@ -1990,12 +1990,32 @@
                 </div>
 
                 <!-- Trading Log: Lịch sử tín hiệu phái sinh trong ngày -->
-                <div class="glass-card" style="padding: 16px; margin-top: 5px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; border: 1px solid rgba(0, 229, 255, 0.15); flex-shrink: 0;">
+                <div class="glass-card" style="padding: 16px; margin-top: 5px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; border: 1px solid rgba(0, 229, 255, 0.15); flex-shrink: 0;">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                         <h3 style="font-size: 14px; font-weight: 700; color: #00e5ff; display: flex; align-items: center; gap: 8px; margin: 0;">
                             <i class="fa-solid fa-clock-rotate-left"></i> THỐNG KÊ LỊCH SỬ KHUYẾN NGHỊ TRONG NGÀY (M5 LOG)
                         </h3>
                         <span style="font-size: 11px; color: var(--color-text-muted);">Khởi tạo tự động · Lưu 10 lệnh gần nhất</span>
+                    </div>
+
+                    <!-- ROI Calculator Row -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 14px; background: rgba(0, 229, 255, 0.04); border: 1px dashed rgba(0, 229, 255, 0.25); border-radius: 6px; font-size: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: var(--color-text-secondary); font-weight: 600;">Số lượng hợp đồng giao dịch:</span>
+                            <input type="number" id="roi-contracts" value="1" min="1" oninput="renderDerivativesHistory()" style="width: 55px; padding: 4px 6px; border-radius: 4px; border: 1px solid rgba(0, 229, 255, 0.3); background: rgba(0,0,0,0.3); color: #fff; text-align: center; font-family: 'JetBrains Mono', monospace; font-weight: bold; outline: none;">
+                            <span style="color: var(--color-text-muted);">HĐ</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                            <div>
+                                <span style="color: var(--color-text-muted);">Tổng điểm tích lũy:</span>
+                                <span id="roi-total-points" style="font-family:'JetBrains Mono',monospace; font-weight: 700; color: #fff; margin-left: 4px;">0.0 điểm</span>
+                            </div>
+                            <div style="padding-left: 12px; border-left: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: var(--color-text-muted);">Lợi nhuận ròng tạm tính:</span>
+                                <span id="roi-net-money" style="font-family:'JetBrains Mono',monospace; font-weight: 800; color: #00ff88; font-size: 13.5px; margin-left: 4px;">0 VND</span>
+                            </div>
+                            <span style="font-size: 10.5px; color: var(--color-text-muted); font-style: italic;">(Đã trừ phí giao dịch 20.000đ/HĐ/vòng)</span>
+                        </div>
                     </div>
                     <div style="overflow-x: auto; width: 100%;">
                         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12.5px;">
@@ -3661,6 +3681,59 @@
         function renderDerivativesHistory() {
             const tbody = document.getElementById('derivatives-history-tbody');
             if (!tbody) return;
+
+            // Compute ROI (Lợi nhuận ròng tạm tính)
+            let totalPoints = 0;
+            let tradeCount = 0;
+            
+            derivativesHistoryLog.forEach(log => {
+                const act = log.action || "";
+                if (act.includes("Long") || act.includes("LONG") || act.includes("Short") || act.includes("SHORT")) {
+                    let entryPrice = 0;
+                    let tp1Price = 0;
+                    
+                    // Parse Entry (e.g. "2006.5 - 2006.9")
+                    const entryMatch = log.entry.match(/([0-9.]+)/);
+                    if (entryMatch) entryPrice = parseFloat(entryMatch[1]);
+                    
+                    // Parse TP1 (e.g. "TP1: 2012.5")
+                    const tpMatch = log.tp.match(/TP1:\s*([0-9.]+)/);
+                    if (tpMatch) tp1Price = parseFloat(tpMatch[1]);
+                    
+                    if (entryPrice > 0 && tp1Price > 0) {
+                        tradeCount++;
+                        let profitPoints = 0;
+                        if (act.includes("Long") || act.includes("LONG")) {
+                            profitPoints = tp1Price - entryPrice;
+                        } else {
+                            profitPoints = entryPrice - tp1Price;
+                        }
+                        totalPoints += profitPoints;
+                    }
+                }
+            });
+
+            const contractsEl = document.getElementById('roi-contracts');
+            const contractsCount = contractsEl ? (parseInt(contractsEl.value) || 1) : 1;
+            
+            // Lợi nhuận gộp: 1 điểm = 100,000 VND
+            const grossProfit = totalPoints * 100000 * contractsCount;
+            // Chi phí giao dịch: 20,000 VND/hợp đồng cho cả 2 lượt mua và bán (vòng quay)
+            const totalFees = tradeCount * 20000 * contractsCount;
+            const netProfit = grossProfit - totalFees;
+
+            // Render ROI values to UI
+            const pointsEl = document.getElementById('roi-total-points');
+            const moneyEl = document.getElementById('roi-net-money');
+            
+            if (pointsEl) {
+                pointsEl.innerText = (totalPoints >= 0 ? "+" : "") + totalPoints.toFixed(1) + " điểm";
+                pointsEl.style.color = totalPoints >= 0 ? "var(--color-up)" : "var(--color-down)";
+            }
+            if (moneyEl) {
+                moneyEl.innerText = (netProfit >= 0 ? "+" : "") + netProfit.toLocaleString('vi-VN') + " VND";
+                moneyEl.style.color = netProfit >= 0 ? "var(--color-up)" : "var(--color-down)";
+            }
 
             if (derivativesHistoryLog.length === 0) {
                 tbody.innerHTML = `<tr>
