@@ -1,6 +1,57 @@
 import os
 import sys
 import json
+
+import json
+from datetime import datetime
+
+# Helper to log derivatives recommendation
+def save_derivatives_log(trend, action, entry, sl, tp):
+    if action not in ["Mở Long", "Mở Short"]:
+        return # Only record actual trades, skip neutral "Đứng ngoài"
+        
+    log_file = "static/derivatives_history.json"
+    data = []
+    if os.path.exists(log_file):
+        try:
+            with open(log_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = []
+            
+    now = datetime.now()
+    date_str = now.strftime("%Y-%m-%d")
+    time_str = now.strftime("%H:%M:%S")
+    
+    # Avoid duplicate entry within short period
+    if len(data) > 0:
+        last = data[0]
+        if last.get("date") == date_str and last.get("action") == action and last.get("entry") == entry:
+            return
+
+    new_log = {
+        "date": date_str,
+        "time": time_str,
+        "trend": trend,
+        "action": action,
+        "entry": entry,
+        "sl": sl,
+        "tp": tp,
+        "status": "Khớp lệnh"
+    }
+    data.insert(0, new_log)
+    
+    # Keep last 100 entries
+    if len(data) > 100:
+        data = data[:100]
+        
+    try:
+        os.makedirs("static", exist_ok=True)
+        with open(log_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except Exception as e:
+        print("Error saving derivatives log:", e)
+
 import traceback
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -704,7 +755,58 @@ def get_excel_portfolio():
         
         return port
     except Exception as e:
-        import traceback
+        
+import json
+from datetime import datetime
+
+# Helper to log derivatives recommendation
+def save_derivatives_log(trend, action, entry, sl, tp):
+    if action not in ["Mở Long", "Mở Short"]:
+        return # Only record actual trades, skip neutral "Đứng ngoài"
+        
+    log_file = "static/derivatives_history.json"
+    data = []
+    if os.path.exists(log_file):
+        try:
+            with open(log_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = []
+            
+    now = datetime.now()
+    date_str = now.strftime("%Y-%m-%d")
+    time_str = now.strftime("%H:%M:%S")
+    
+    # Avoid duplicate entry within short period
+    if len(data) > 0:
+        last = data[0]
+        if last.get("date") == date_str and last.get("action") == action and last.get("entry") == entry:
+            return
+
+    new_log = {
+        "date": date_str,
+        "time": time_str,
+        "trend": trend,
+        "action": action,
+        "entry": entry,
+        "sl": sl,
+        "tp": tp,
+        "status": "Khớp lệnh"
+    }
+    data.insert(0, new_log)
+    
+    # Keep last 100 entries
+    if len(data) > 100:
+        data = data[:100]
+        
+    try:
+        os.makedirs("static", exist_ok=True)
+        with open(log_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except Exception as e:
+        print("Error saving derivatives log:", e)
+
+import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1568,6 +1670,12 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
                 arg_basis = f"Basis duy trì quanh {basis:+.1f} điểm chưa kích hoạt dòng tiền bứt phá."
                 arg_sr = f"Hỗ trợ: {low_p:.1f} | Kháng cự: {high_p:.1f}."
 
+        # Save recommendation to file log
+        try:
+            save_derivatives_log(trend, action, entry, sl, tp)
+        except Exception as log_ex:
+            print("Error saving log:", log_ex)
+
         return {
             "success": True,
             "trend_verdict": trend,
@@ -1585,6 +1693,19 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.get("/api/derivatives/history-log")
+def get_derivatives_history_log():
+    log_file = "static/derivatives_history.json"
+    if not os.path.exists(log_file):
+        return []
+    try:
+        with open(log_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
 
 
 if __name__ == "__main__":

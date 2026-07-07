@@ -2001,9 +2001,10 @@
                         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12.5px;">
                             <thead>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.08); color: var(--color-text-secondary); font-weight: 600; background: rgba(255,255,255,0.02);">
-                                    <th style="padding: 10px 8px;">Thời gian</th>
+                                    <th style="padding: 10px 8px;">Ngày</th>
+                                    <th style="padding: 10px 8px;">Giờ</th>
                                     <th style="padding: 10px 8px;">Vị thế</th>
-                                    <th style="padding: 10px 8px;">Vùng Mua/Bán</th>
+                                    <th style="padding: 10px 8px;">Vùng Entry</th>
                                     <th style="padding: 10px 8px;">Cắt lỗ (SL)</th>
                                     <th style="padding: 10px 8px;">Chốt lời (TP)</th>
                                     <th style="padding: 10px 8px; text-align: right;">Trạng thái</th>
@@ -2011,7 +2012,7 @@
                             </thead>
                             <tbody id="derivatives-history-tbody">
                                 <tr>
-                                    <td colspan="6" style="padding: 20px; text-align: center; color: var(--color-text-muted);">
+                                    <td colspan="7" style="padding: 20px; text-align: center; color: var(--color-text-muted);">
                                         Chưa có lệnh khuyến nghị nào được phát ra trong ngày hôm nay.
                                     </td>
                                 </tr>
@@ -2326,6 +2327,8 @@
                     loadMacroTab();
                 } else if (viewId === 'predictor') {
                     loadPredictorTab();
+                } else if (viewId === 'intraday-derivatives') {
+                    loadDerivativesHistoryFromServer();
                 }
             } catch (err) {
                 console.error("Error loading tab data for " + viewId + ":", err);
@@ -2363,6 +2366,8 @@
                         if (viewText.includes("AI Overview")) loadOverviewTab();
                         else if (viewText.includes("Vĩ Mô")) loadMacroTab();
                         else if (viewText.includes("AI Predictor")) loadPredictorTab();
+                } else if (viewId === 'intraday-derivatives') {
+                    loadDerivativesHistoryFromServer();
                     }
                     updateAllData();
                 } else {
@@ -3641,32 +3646,16 @@
         // ── DERIVATIVES HISTORY TRADING LOG ─────────────────
         let derivativesHistoryLog = [];
 
-        function addDerivativesLog(action, entry, sl, tp) {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            
-            // Tránh lưu trùng lắp nến giống nhau liên tiếp
-            if (derivativesHistoryLog.length > 0) {
-                const last = derivativesHistoryLog[0];
-                if (last.action === action && last.entry === entry) {
-                    return;
+        async function loadDerivativesHistoryFromServer() {
+            try {
+                const response = await fetch(`${HOST}/api/derivatives/history-log`);
+                if (response.ok) {
+                    derivativesHistoryLog = await response.json();
+                    renderDerivativesHistory();
                 }
+            } catch (err) {
+                console.error("Error fetching derivatives history:", err);
             }
-
-            derivativesHistoryLog.unshift({
-                time: timeStr,
-                action: action,
-                entry: entry,
-                sl: sl,
-                tp: tp,
-                status: (action.includes("Đứng ngoài") || action.includes("Không")) ? "Theo dõi" : "Khớp lệnh"
-            });
-
-            if (derivativesHistoryLog.length > 10) {
-                derivativesHistoryLog.pop();
-            }
-
-            renderDerivativesHistory();
         }
 
         function renderDerivativesHistory() {
@@ -3675,8 +3664,8 @@
 
             if (derivativesHistoryLog.length === 0) {
                 tbody.innerHTML = `<tr>
-                    <td colspan="6" style="padding: 20px; text-align: center; color: var(--color-text-muted);">
-                        Chưa có lệnh khuyến nghị nào được phát ra trong ngày hôm nay.
+                    <td colspan="7" style="padding: 20px; text-align: center; color: var(--color-text-muted);">
+                        Chưa có lệnh giao dịch phái sinh nào được lưu trên Server.
                     </td>
                 </tr>`;
                 return;
@@ -3688,11 +3677,21 @@
                 if (log.action.includes("Long") || log.action.includes("LONG")) actionColor = 'var(--color-up)';
                 else if (log.action.includes("Short") || log.action.includes("SHORT")) actionColor = 'var(--color-down)';
 
+                // Format Date display simply e.g., "07-07" from "2026-07-07"
+                let cleanDate = log.date || "";
+                if (cleanDate.includes("-")) {
+                    const parts = cleanDate.split("-");
+                    if (parts.length === 3) {
+                        cleanDate = `${parts[2]}-${parts[1]}`;
+                    }
+                }
+
                 tbody.innerHTML += `
                     <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                        <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; color:#00e5ff; font-weight:600;">${cleanDate}</td>
                         <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; color:var(--color-text-secondary);">${log.time}</td>
                         <td style="padding: 10px 8px; font-weight:700; color:${actionColor};">${log.action}</td>
-                        <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; font-weight:600;">${log.entry}</td>
+                        <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; font-weight:600; color:#fff;">${log.entry}</td>
                         <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; color:var(--color-down);">${log.sl}</td>
                         <td style="padding: 10px 8px; font-family:'JetBrains Mono',monospace; color:var(--color-up);">${log.tp}</td>
                         <td style="padding: 10px 8px; text-align:right;">
@@ -3774,7 +3773,7 @@
                     document.getElementById('m5-arg-sr').innerText = data.arguments.support_resistance;
 
                     // Log to derivatives trading history
-                    addDerivativesLog(data.action_signal, data.entry_range, data.stop_loss, data.take_profit);
+                    await loadDerivativesHistoryFromServer();
 
                     contentEl.style.display = 'flex';
                 } else {
