@@ -2651,6 +2651,20 @@
                 pEl.className = `item-price ${cls}`;
                 cEl.className = `item-change ${cls}`;
                 cEl.innerText = `${valChange > 0 ? '+' : ''}${valChange.toFixed(2)} (${percent.toFixed(2)}%)`;
+                
+                // If this is the active symbol, sync it to the main banner immediately
+                if (s.toUpperCase() === activeSymbol.toUpperCase()) {
+                    const bPrice = document.getElementById('banner-last-price');
+                    const bChg = document.getElementById('banner-change');
+                    if (bPrice) {
+                        bPrice.innerText = Number(last_price).toFixed(2);
+                        bPrice.className = `banner-price-val ${cls}`;
+                    }
+                    if (bChg) {
+                        bChg.innerText = `${valChange > 0 ? '+' : ''}${valChange.toFixed(2)} (${percent.toFixed(2)}%)`;
+                        bChg.className = `banner-change-val ${cls}`;
+                    }
+                }
             }
         }
 
