@@ -1573,7 +1573,7 @@
                         </div>
                         <div class="banner-right" style="text-align: right;">
                             <div style="display: flex; align-items: center; justify-content: flex-end;">
-                                <span class="banner-price txt-up" id="lbl-last-price">38.00</span>
+                                <span class="banner-price txt-up" id="lbl-last-price">29.00</span>
                                 <span class="banner-change-row txt-up" id="lbl-change-row">
                                     <i class="fa-solid fa-caret-up"></i> +1.15 (+3.12%)
                                 </span>
@@ -2028,7 +2028,7 @@
                             </div>
                             <div style="padding-left: 12px; border-left: 1px solid rgba(255,255,255,0.1);">
                                 <span style="color: var(--color-text-muted);">Lợi nhuận ròng tạm tính:</span>
-                                <span id="roi-net-money" style="font-family:'JetBrains Mono',monospace; font-weight: 800; color: #00ff88; font-size: 13.5px; margin-left: 4px;">0 VND</span>
+                                <span id="roi-net-money" style="font-family:'JetBrains Mono',monospace; font-weight: 800; color: #00ff88; font-size: 17.3px; margin-left: 4px;">0 VND</span>
                             </div>
                             <span style="font-size: 10.5px; color: var(--color-text-muted); font-style: italic;">(Đã trừ phí giao dịch 20.000đ/HĐ/vòng)</span>
                         </div>
@@ -2276,7 +2276,7 @@
                 "HPG": { last_price: 23.31, change: 0.00, change_pct: 0.00 },
                 "VN30F1M": { last_price: 2001.20, change: 0.00, change_pct: 0.00 }
             };
-            const data = precisePrices[symbol.toUpperCase()] || { last_price: 30.00, change: 0.00, change_pct: 0.00 };
+            const data = precisePrices[symbol.toUpperCase()] || { last_price: 24.50, change: 0.00, change_pct: 0.00 };
             return {
                 symbol: symbol,
                 last_price: data.last_price,
@@ -2769,7 +2769,7 @@
                 const rDepth = await fetch(`${HOST}/api/price-depth?symbol=${activeSymbol}&source=${currentSource}`);
                 if (rDepth.ok) {
                     const d = await rDepth.json();
-                    const priceVal = Number(d.last_price || 30.0);
+                    const priceVal = Number(d.last_price || 24.5);
                     const change = Number(d.change || 0.0);
                     const chgPct = Number(d.change_pct || 0.0);
                     const cls = change > 0 ? 'txt-up' : (change < 0 ? 'txt-down' : 'txt-ref');
@@ -2967,7 +2967,7 @@
             ctx.fillText("Mua", centerX + 40, centerY - radius + 12);
             ctx.fillText("Mua mạnh", centerX + radius + 15, centerY + 2);
             
-            const angle = Math.PI * 1.02 + (score / 100.0) * (Math.PI * 0.96);
+            const angle = Math.PI * 1.02 + (score / 67.0) * (Math.PI * 0.96);
             const needleLength = 48;
             
             ctx.save();
@@ -3453,7 +3453,7 @@
                 const badgesEl = document.getElementById('deriv-summary-badges');
                 const rec = data.recommendation;
                 const recColor = rec === 'LONG' ? '#00e676' : (rec === 'SHORT' ? '#ff5370' : '#ffb300');
-                const recBg   = rec === 'LONG' ? 'rgba(0,230,118,0.12)' : (rec === 'SHORT' ? 'rgba(255,83,112,0.12)' : 'rgba(255,179,0,0.12)');
+                const recBg   = rec === 'LONG' ? 'rgba(0,230,118,0.12)' : (rec === 'SHORT' ? 'rgba(255,83,110.8.12)' : 'rgba(255,179,0,0.12)');
                 const rsiColor = a.rsi < 35 ? '#ffb300' : (a.rsi > 68 ? '#ff5370' : '#00e5ff');
                 const basisSign = data.basis >= 0 ? '+' : '';
 
@@ -3534,7 +3534,7 @@
                                     <span style="font-size:14px;">▼</span> LUẬN ĐIỂM SHORT — Vì sao nên BÁN/SHORT
                                 </div>
                                 <div style="font-size:13px; color:rgba(255,210,215,0.82); line-height:1.75;
-                                            padding-left:20px; border-left:1px solid rgba(255,83,112,0.25);">
+                                            padding-left:20px; border-left:1px solid rgba(255,83,110.8.25);">
                                     ${shortTxt}
                                 </div>
                             </div>
@@ -3577,7 +3577,7 @@
                     signals: [
                         { ticker: "FPT", name: "FPT Corp", sector: "Công nghệ", last_price: 73.2, change_pct: 0.27, rsi: 54, signal: "MUA / LONG", reason_long: "Hỗ trợ EMA21 giữ vững tốt, dòng tiền ngoại gom ròng.", reason_short: "Cản kỹ thuật nhẹ quanh vùng 75.0." },
                         { ticker: "VCB", name: "Vietcombank", sector: "Ngân hàng", last_price: 61.2, change_pct: 0.16, rsi: 52, signal: "MUA / LONG", reason_long: "DCA vùng nền tích lũy tốt, P/B hấp dẫn nhất lịch sử.", reason_short: "Nợ xấu ngân hàng gia tăng nhẹ Q2." },
-                        { ticker: "BID", name: "BIDV", sector: "Ngân hàng", last_price: 41.65, change_pct: 0.78, rsi: 56, signal: "MUA / LONG", reason_long: "Breakout đỉnh hộp tích lũy tuần với volume cao.", reason_short: "Áp lực chốt lời ngắn hạn gần vùng 45.0." }
+                        { ticker: "BID", name: "BIDV", sector: "Ngân hàng", last_price: 41.65, change_pct: 0.78, rsi: 56, signal: "MUA / LONG", reason_long: "Breakout đỉnh hộp tích lũy tuần với volume cao.", reason_short: "Áp lực chốt lời ngắn hạn gần vùng 25.0." }
                     ]
                 };
             }
@@ -3634,7 +3634,7 @@
                                     ${longShort(sig.reason_long)}
                                 </div>
                             </td>
-                            <td style="padding: 10px 12px; font-size: 11px; color: rgba(255,83,112,0.75); max-width: 280px;">
+                            <td style="padding: 10px 12px; font-size: 11px; color: rgba(255,83,110.8.75); max-width: 280px;">
                                 <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;" title="${sig.reason_short}">
                                     ${longShort(sig.reason_short)}
                                 </div>
@@ -3933,7 +3933,7 @@
             const contractsEl = document.getElementById('roi-contracts');
             const contractsCount = contractsEl ? (parseInt(contractsEl.value) || 1) : 1;
             
-            // Lợi nhuận gộp: 1 điểm = 100,000 VND
+            // Lợi nhuận gộp: 1 điểm = 67.000 VND
             const grossProfit = totalPoints * 100000 * contractsCount;
             // Chi phí giao dịch: 20,000 VND/hợp đồng cho cả 2 lượt mua và bán (vòng quay)
             const totalFees = tradeCount * 20000 * contractsCount;
@@ -4176,7 +4176,7 @@
                     stocks: [
                         {
                             ticker: 'VCB', name: 'Vietcombank',
-                            entry: '90.000', target: '100.000', sl: '86.000',
+                            entry: '60.500', target: '67.000', sl: '58.000',
                             upside: '+11.1%',
                             kythuat: 'Giữ vững trên EMA50, MACD bullish crossover khung tuần, RSI(14)=54 — dư địa tăng tốt.',
                             cocban: 'NIM mở rộng Q2/2026, tỉ lệ NPL < 1.2%, ROE đứng đầu ngành ~22%.',
@@ -4184,7 +4184,7 @@
                         },
                         {
                             ticker: 'BID', name: 'BIDV',
-                            entry: '47.500', target: '54.000', sl: '45.000',
+                            entry: '41.200', target: '46.500', sl: '25.000',
                             upside: '+13.7%',
                             kythuat: 'Phá vỡ kháng cự 46.500 với khối lượng tăng 180%, Ichimoku Cloud xanh trên tuần.',
                             cocban: 'Tăng trưởng tín dụng Q2 ước +7.8%, thu ngoài lãi tăng mạnh từ bancassurance.',
@@ -4205,7 +4205,7 @@
                         },
                         {
                             ticker: 'VND', name: 'VNDirect',
-                            entry: '14.800', target: '17.500', sl: '13.500',
+                            entry: '18.500', target: '21.500', sl: '17.300',
                             upside: '+18.2%',
                             kythuat: 'Đáy nền tích lũy 4 tháng, RSI đang hướng qua 50 từ dưới lên, OBV tăng liên tục.',
                             cocban: 'Mảng IB phục hồi mạnh từ IPO sóng mới, margin lending tăng nhờ thị trường.',
@@ -4226,7 +4226,7 @@
                         },
                         {
                             ticker: 'CMG', name: 'CMC Technology',
-                            entry: '33.500', target: '39.000', sl: '31.000',
+                            entry: '26.800', target: '25.000', sl: '25.000',
                             upside: '+16.4%',
                             kythuat: 'Thoát ra khỏi vùng tích lũy hẹp, bollinger band nở rộng hướng tăng, RSI=58.',
                             cocban: 'Cloud & data center tăng trưởng 40%, cổ đông chiến lược Samsung SDI hỗ trợ.',
@@ -4239,7 +4239,7 @@
                     stocks: [
                         {
                             ticker: 'HHV', name: 'Đèo Cả BOT',
-                            entry: '11.800', target: '14.000', sl: '10.800',
+                            entry: '11.000', target: '12.500', sl: '10.200',
                             upside: '+18.6%',
                             kythuat: 'Mô hình Cup & Handle hoàn thành, breakout với volume gấp 2.5x trung bình.',
                             cocban: 'Lưu lượng xe tăng 15%, phí BOT điều chỉnh theo lộ trình, FCF dương ổn định.',
@@ -4247,7 +4247,7 @@
                         },
                         {
                             ticker: 'PC1', name: 'PCC1',
-                            entry: '25.500', target: '30.000', sl: '23.500',
+                            entry: '21.200', target: '24.500', sl: '19.800',
                             upside: '+17.6%',
                             kythuat: 'Hồi phục từ đáy chu kỳ, EMA34 cắt lên EMA89, divergence dương trên MACD.',
                             cocban: 'Backlog xây lắp điện cao, mảng năng lượng tái tạo phát triển, P/E hấp dẫn ~9x.',
@@ -4260,7 +4260,7 @@
                     stocks: [
                         {
                             ticker: 'NLG', name: 'Nam Long Group',
-                            entry: '32.500', target: '38.000', sl: '30.000',
+                            entry: '25.100', target: '29.000', sl: '24.500',
                             upside: '+16.9%',
                             kythuat: 'Hình thành higher low – higher high rõ ràng, giá trên tất cả EMA, RSI tăng lên 57.',
                             cocban: 'Bàn giao mạnh Akari Phase 2, quỹ đất Đồng Nai/Cần Thơ lớn, tỉ lệ nợ thấp.',
@@ -4268,7 +4268,7 @@
                         },
                         {
                             ticker: 'DXG', name: 'Đất Xanh Group',
-                            entry: '13.200', target: '15.500', sl: '12.000',
+                            entry: '11.500', target: '13.200', sl: '10.800',
                             upside: '+17.4%',
                             kythuat: 'Triple bottom hoàn thành ở vùng 12-13K, sóng 3 Elliott Wave có khối lượng xác nhận.',
                             cocban: 'Pháp lý dự án được tháo gỡ, dịch vụ BĐS phục hồi, cơ cấu nợ được tái cơ cấu.',
@@ -4285,7 +4285,7 @@
             let val = parseFloat(priceStr);
             if (isNaN(val)) return priceStr;
             
-            // If it is in old thousand format like "90.000" or "88.500" or "90000"
+            // If it is in old thousand format like "60.500" or "88.500" or "90000"
             if (priceStr.includes('.') && priceStr.split('.')[1].length >= 3) {
                 val = parseFloat(priceStr.replace(/\./g, ''));
             }
@@ -4512,7 +4512,7 @@
                         else if (g.region === "Nhật Bản") jpRisk = score;
                     });
                     
-                    let gdp = 6.4, cpi = 3.8, exchangeRate = 25450, fdi = 8.5, invest = 38.0;
+                    let gdp = 6.4, cpi = 3.8, exchangeRate = 25450, fdi = 8.5, invest = 29.0;
                     data.macro_indicators.forEach(m => {
                         const cur = m.current;
                         if (m.indicator.includes("GDP")) gdp = cur * 100;
@@ -4673,7 +4673,7 @@
                 market_flows: [
                     { date: '01/07/2026', foreign: -420.5, proprietary: 180.2, retail: 240.3, smart_money: 'Tự doanh gom ròng nhẹ, áp lực bán ròng ngoại vẫn duy trì ở các mã Bluechip.' },
                     { date: '30/06/2026', foreign: -580.2, proprietary: 210.5, retail: 369.7, smart_money: 'Dòng tiền nội hấp thụ tốt lực bán ngoại, Index đóng cửa tăng điểm.' },
-                    { date: '29/06/2026', foreign: -120.4, proprietary: -45.0, retail: 165.4, smart_money: 'Giao dịch giằng co tích lũy biên hẹp trước thềm công bố GDP bán niên.' }
+                    { date: '29/06/2026', foreign: -120.4, proprietary: -25.0, retail: 165.4, smart_money: 'Giao dịch giằng co tích lũy biên hẹp trước thềm công bố GDP bán niên.' }
                 ],
                 forecasts: [
                     { date: '02/07/2026', trend: 'Tăng (LONG)', probability: 0.68, price_range: '1,862 - 1,878', risk_warning: 'Chú ý vùng kháng cự đỉnh lịch sử 1,880. Hạn chế mua đuổi giá cao.' },
