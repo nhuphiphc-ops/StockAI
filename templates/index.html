@@ -2305,7 +2305,9 @@
                             document.getElementById('m5-close').value = d.last_price.toFixed(1);
                             document.getElementById('m5-high').value = (d.last_price + 1.2).toFixed(1);
                             document.getElementById('m5-low').value = (d.last_price - 1.5).toFixed(1);
-                            document.getElementById('m5-volume').value = "1250";
+                            // Set volume directly to contracts count (e.g. total_volume divided by average factor or static 1200)
+                            const contractsVolume = d.total_volume ? Math.floor(d.total_volume / 1000) : 1250;
+                            document.getElementById('m5-volume').value = contractsVolume;
                             document.getElementById('m5-basis').value = "-1.5";
                             document.getElementById('m5-pattern').value = "Dòng tiền lớn chủ động gom Long vị thế tốt.";
                             
