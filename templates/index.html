@@ -2241,21 +2241,32 @@
 
         // Fallback generator for watchlists and live prices to prevent freezing when API is offline
         function getMockWatchlistData(symbol) {
-            const basePrices = {
-                "FPT": 73.2, "SSI": 27.15, "VIC": 42.5, "VNM": 59.0, "HPG": 23.6, "PHC": 4.59,
-                "MBB": 25.75, "TCB": 24.5, "VCB": 61.2, "ACB": 22.2, "CTD": 65.0, "HBC": 6.0,
-                "VCG": 22.0, "STB": 29.0, "VPB": 18.0, "CTG": 32.0, "BID": 41.65, "VHM": 38.0,
-                "VND": 18.75, "MBS": 22.3, "CMG": 27.1, "PC1": 21.6, "HHV": 11.2
+            const precisePrices = {
+                "PHC": { last_price: 4.59, change: 0.00, change_pct: 0.00 },
+                "MBB": { last_price: 25.75, change: 0.00, change_pct: 0.00 },
+                "FPT": { last_price: 73.20, change: 0.00, change_pct: 0.00 },
+                "MBS": { last_price: 22.30, change: 0.00, change_pct: 0.00 },
+                "CMG": { last_price: 27.10, change: 0.00, change_pct: 0.00 },
+                "HHV": { last_price: 11.20, change: 0.00, change_pct: 0.00 },
+                "PC1": { last_price: 21.60, change: 0.00, change_pct: 0.00 },
+                "NLG": { last_price: 25.65, change: 0.00, change_pct: 0.00 },
+                "DXG": { last_price: 11.90, change: 0.00, change_pct: 0.00 },
+                "VCB": { last_price: 61.20, change: 0.00, change_pct: 0.00 },
+                "BID": { last_price: 41.65, change: 0.00, change_pct: 0.00 },
+                "SSI": { last_price: 27.15, change: 0.00, change_pct: 0.00 },
+                "VND": { last_price: 18.75, change: 0.00, change_pct: 0.00 },
+                "VIC": { last_price: 42.11, change: 0.00, change_pct: 0.00 },
+                "VNM": { last_price: 58.82, change: 0.00, change_pct: 0.00 },
+                "HPG": { last_price: 23.31, change: 0.00, change_pct: 0.00 },
+                "VN30F1M": { last_price: 2001.20, change: 0.00, change_pct: 0.00 }
             };
-            const base = basePrices[symbol] || 30.0;
-            const change = (Math.random() * 2 - 1) * 0.5;
-            const last = parseFloat((base + change).toFixed(2));
-            const changePct = parseFloat((change / base * 100).toFixed(2));
+            const data = precisePrices[symbol.toUpperCase()] || { last_price: 30.00, change: 0.00, change_pct: 0.00 };
             return {
                 symbol: symbol,
-                last_price: last,
-                change_pct: changePct,
-                total_volume: Math.floor(Math.random() * 2000000) + 500000
+                last_price: data.last_price,
+                change: data.change,
+                change_pct: data.change_pct,
+                total_volume: 1250000
             };
         }
 
@@ -2601,8 +2612,7 @@
                 }
                 // Fallback watch item
                 const mock = getMockWatchlistData(s);
-                const mock_change = mock.last_price * (mock.change_pct / 100);
-                updateWatchItem(s, mock.last_price, mock_change, mock.change_pct);
+                updateWatchItem(s, mock.last_price, mock.change, mock.change_pct);
             }
         }
         
