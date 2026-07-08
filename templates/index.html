@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <script>
+        // Force unregister all active Service Workers to clear stale caches immediately
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister().then(function(boolean) {
+                        if (boolean) {
+                            console.log("Stale Service Worker unregistered successfully.");
+                            // Force reload the page from network to get the fresh HTML
+                            window.location.reload(true);
+                        }
+                    });
+                }
+            });
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hệ Thống Phân Tích & Giao Dịch Chứng Khoán Việt Nam - AI CORE</title>
