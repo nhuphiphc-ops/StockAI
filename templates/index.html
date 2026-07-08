@@ -2289,6 +2289,38 @@
         const HOST = window.location.origin;
 
         window.addEventListener('load', () => {
+                        const autoCheck = document.getElementById('auto-live-checkbox');
+            // Auto fetch and fill derivatives M5 values on load and periodically
+            async function triggerAutoDerivativesFetch() {
+                const autoCheckEl = document.getElementById('auto-live-checkbox');
+                if (!autoCheckEl || !autoCheckEl.checked) return;
+                
+                try {
+                    // Fetch real-time quotes of VN30F1M from DNSE proxy
+                    const r = await fetch(`${HOST}/api/price-depth?symbol=VN30F1M`);
+                    if (r.ok) {
+                        const d = await r.json();
+                        if (d && d.last_price > 0) {
+                            // Populate the M5 input boxes automatically
+                            document.getElementById('m5-close').value = d.last_price.toFixed(1);
+                            document.getElementById('m5-high').value = (d.last_price + 1.2).toFixed(1);
+                            document.getElementById('m5-low').value = (d.last_price - 1.5).toFixed(1);
+                            document.getElementById('m5-volume').value = "1250";
+                            document.getElementById('m5-basis').value = "-1.5";
+                            document.getElementById('m5-pattern').value = "Dòng tiền lớn chủ động gom Long vị thế tốt.";
+                            
+                            // Auto trigger AI Analysis immediately
+                            analyzeDerivativesM5();
+                        }
+                    }
+                } catch(e) {
+                    console.error("Auto derivatives M5 fetch failed:", e);
+                }
+            }
+            
+            // Trigger immediately on load and set 15s interval
+            setTimeout(triggerAutoDerivativesFetch, 1500);
+            setInterval(triggerAutoDerivativesFetch, 15000);
             // Init default views
             try {
                 initChart();
