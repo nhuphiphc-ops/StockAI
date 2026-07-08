@@ -755,6 +755,9 @@ def get_excel_portfolio():
         
         return port
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {}
         
 import json
 from datetime import datetime
@@ -805,10 +808,6 @@ def save_derivatives_log(trend, action, entry, sl, tp):
             json.dump(data, f, ensure_ascii=False, indent=4)
     except Exception as e:
         print("Error saving derivatives log:", e)
-
-import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/excel/portfolio")
 def add_excel_portfolio(item: PortfolioItem):
