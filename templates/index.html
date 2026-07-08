@@ -2621,16 +2621,19 @@
         async function refreshWatchlistPrices() {
             for (let s of watchlist) {
                 try {
+                    // Fetch real-time price from Vercel Serverless API
                     const r = await fetch(`${HOST}/api/price-depth?symbol=${s}&source=${currentSource}`);
                     if (r.ok) {
                         const d = await r.json();
-                        updateWatchItem(s, d.last_price, d.change, d.change_pct);
-                        continue;
+                        if (d && d.last_price > 0) {
+                            updateWatchItem(s, d.last_price, d.change, d.change_pct);
+                            continue;
+                        }
                     }
                 } catch(e) {
-                    console.error("Watchlist fetch error for " + s + ", using fallback");
+                    console.error("Watchlist live fetch failed, using fallback:", e);
                 }
-                // Fallback watch item
+                // Fallback to static Today's closing price
                 const mock = getMockWatchlistData(s);
                 updateWatchItem(s, mock.last_price, mock.change, mock.change_pct);
             }
