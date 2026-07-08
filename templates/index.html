@@ -2283,6 +2283,10 @@
             loadSymbols().then(() => {
                 loadWatchlist();
                 updateAllData();
+                // Force sync banner price on load immediately
+                setTimeout(() => {
+                    refreshLivePrices();
+                }, 100);
             });
 
             // Initialize gauges on view load
