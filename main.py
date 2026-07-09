@@ -1719,3 +1719,17 @@ if __name__ == "__main__":
     print(f"{'='*60}\n")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
 
+
+
+# ==========================================
+# MODULE MỞ RỘNG: TOP 10 TECHNICAL TRADING
+# ==========================================
+from top10_trading import get_top10_trading_signals
+
+@app.get("/api/top10-technical-trading")
+def api_top10_trading():
+    try:
+        data = get_top10_trading_signals()
+        return {"status": "success", "data": data}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
