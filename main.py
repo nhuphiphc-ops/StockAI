@@ -894,6 +894,21 @@ def get_excel_macro_geopolitics():
     try:
         data = excel_manager.get_macro_geopolitics()
         
+        # Mapping detailed Vietnam market impact reasons for each geopolitical region
+        geopolitical_mappers = {
+            "Mỹ": "Lãi suất Fed & Thuế quan. [Ảnh hưởng]: Lãi suất cao đẩy tỷ giá USD/VND lên, kích hoạt khối ngoại bán ròng. Chính sách thuế quan của Mỹ ảnh hưởng trực tiếp tới các đơn hàng xuất khẩu Dệt may, Thủy sản và Gỗ của VN.",
+            "Trung Quốc": "Chiến tranh thương mại Mỹ - Trung. [Ảnh hưởng]: VN phụ thuộc lớn vào nguyên liệu đầu vào từ TQ. Căng thẳng Mỹ-Trung thúc đẩy dòng vốn FDI dịch chuyển sang VN (xu hướng China+1) nhưng cũng làm gia tăng áp lực hàng giá rẻ TQ cạnh tranh nội địa.",
+            "Nga / Ukraine": "Giá năng lượng & Chuỗi cung ứng. [Ảnh hưởng]: Đẩy giá dầu thô và phân bón thế giới tăng cao, trực tiếp làm gia tăng chi phí logistics và giá xăng dầu trong nước, tạo áp lực lên chỉ số lạm phát CPI của Việt Nam.",
+            "EU": "Lạm phát & Tăng trưởng EU chậm. [Ảnh hưởng]: EU là thị trường xuất khẩu lớn thứ 2 của VN. Kinh tế EU tăng trưởng chậm làm suy giảm sức mua tiêu dùng, làm sụt giảm mạnh các đơn hàng gia công công nghiệp da giày và dệt may xuất khẩu.",
+            "Nhật Bản": "Tỷ giá Yên & Lãi suất BOJ. [Ảnh hưởng]: Nhật là đối tác FDI và ODA hàng đầu của VN. Đồng Yên mất giá làm giảm lợi nhuận của doanh nghiệp xuất khẩu lao động, song lại giúp giảm bớt gánh nặng trả nợ gốc/lãi cho các doanh nghiệp VN đang vay nợ bằng Yên Nhật."
+        }
+        
+        if "geopolitics" in data:
+            for item in data["geopolitics"]:
+                region_name = item.get("region") or ""
+                if region_name in geopolitical_mappers:
+                    item["description"] = geopolitical_mappers[region_name]
+        
         # Try to fetch live USD/VND exchange rate
         try:
             import requests
