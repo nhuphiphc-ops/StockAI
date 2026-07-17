@@ -4498,7 +4498,13 @@
                             div.className = "slider-item";
                             div.innerHTML = `
                                 <div class="slider-info">
-                                    <span onclick="showGeoDetails('${g.region}', '${g.risk_score}')" class="slider-region text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1" style="cursor: pointer !important; pointer-events: auto !important; display: inline-flex !important; position: relative !important; z-index: 999 !important;">
+                                    <span title="${
+                                        g.region.includes('Mỹ') ? 'Mỹ: Lãi suất Fed cao làm neo giữ chênh lệch tỷ giá USD/VND gây áp lực rút ròng dòng vốn ngoại (FII). Đồng thời Mỹ là thị trường xuất khẩu lớn nhất của VN, chính sách thuế quan tác động trực tiếp đến dệt may, thủy sản.' :
+                                        g.region.includes('Trung Quốc') ? 'Trung Quốc: Đối tác nhập khẩu nguyên vật liệu đầu vào lớn nhất của VN. Khi Mỹ áp thuế quan lên TQ, VN vừa có cơ hội nhận dịch chuyển dòng vốn FDI (China+1) vừa đối mặt rủi ro hàng TQ tràn ngập cạnh tranh.' :
+                                        g.region.includes('Nga') ? 'Nga / Ukraine: Xung đột leo thang làm giá dầu thô và khí đốt thế giới neo cao, gây áp lực trực tiếp lên giá xăng dầu nội địa của VN, đẩy chi phí vận tải logistics tăng mạnh và làm gia tăng lạm phát nhập khẩu.' :
+                                        g.region.includes('EU') ? 'EU: Sức mua của người tiêu dùng EU suy giảm do lạm phát cao sẽ trực tiếp làm sụt giảm đơn hàng gia công giày da, dệt may và đồ gỗ xuất khẩu của VN.' :
+                                        g.region.includes('Nhật') ? 'Nhật Bản: Đồng Yên mất giá quá sâu làm giảm biên lợi nhuận của các doanh nghiệp xuất khẩu lao động và doanh nghiệp VN vay nợ bằng đồng Yên (như xây dựng, nhiệt điện).' : g.description
+                                    }" class="slider-region text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1" style="cursor: help !important; display: inline-flex !important; position: relative !important;">
                                         ${g.region}
                                         <svg style="display:inline-block; width:12px; height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-19 0 9 9 0 0119 0z" /></svg>
                                     </span>
