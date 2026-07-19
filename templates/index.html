@@ -4498,15 +4498,9 @@
                             div.className = "slider-item";
                             div.innerHTML = `
                                 <div class="slider-info">
-                                    <span title="${
-                                        g.region.includes('Mỹ') ? 'Mỹ: Lãi suất Fed cao làm neo giữ chênh lệch tỷ giá USD/VND gây áp lực rút ròng dòng vốn ngoại (FII). Đồng thời Mỹ là thị trường xuất khẩu lớn nhất của VN, chính sách thuế quan tác động trực tiếp đến dệt may, thủy sản.' :
-                                        g.region.includes('Trung Quốc') ? 'Trung Quốc: Đối tác nhập khẩu nguyên vật liệu đầu vào lớn nhất của VN. Khi Mỹ áp thuế quan lên TQ, VN vừa có cơ hội nhận dịch chuyển dòng vốn FDI (China+1) vừa đối mặt rủi ro hàng TQ tràn ngập cạnh tranh.' :
-                                        g.region.includes('Nga') ? 'Nga / Ukraine: Xung đột leo thang làm giá dầu thô và khí đốt thế giới neo cao, gây áp lực trực tiếp lên giá xăng dầu nội địa của VN, đẩy chi phí vận tải logistics tăng mạnh và làm gia tăng lạm phát nhập khẩu.' :
-                                        g.region.includes('EU') ? 'EU: Sức mua của người tiêu dùng EU suy giảm do lạm phát cao sẽ trực tiếp làm sụt giảm đơn hàng gia công giày da, dệt may và đồ gỗ xuất khẩu của VN.' :
-                                        g.region.includes('Nhật') ? 'Nhật Bản: Đồng Yên mất giá quá sâu làm giảm biên lợi nhuận của các doanh nghiệp xuất khẩu lao động và doanh nghiệp VN vay nợ bằng đồng Yên (như xây dựng, nhiệt điện).' : g.description
-                                    }" class="slider-region text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1" style="cursor: help !important; display: inline-flex !important; position: relative !important;">
+                                    <span class="slider-region geo-clickable" data-region="${g.region}" style="color:#22d3ee;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
                                         ${g.region}
-                                        <svg style="display:inline-block; width:12px; height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-19 0 9 9 0 0119 0z" /></svg>
+                                        <svg style="display:inline-block;width:13px;height:13px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-19 0 9 9 0 0119 0z" /></svg>
                                     </span>
                                     <span class="slider-score" id="lbl-score-${g.region}">${g.risk_score} / 100</span>
                                 </div>
@@ -4517,6 +4511,13 @@
                                 <div class="slider-issues">Điểm nóng: ${g.key_issues}</div>
                             `;
                             sContainer.appendChild(div);
+                            // Attach click event for both PC and mobile touch
+                            const clickSpan = div.querySelector('.geo-clickable');
+                            if (clickSpan) {
+                                clickSpan.addEventListener('click', function() {
+                                    openGeoModal(g.region, g.risk_score);
+                                });
+                            }
                         });
                     }
 
@@ -5022,5 +5023,73 @@
         </div>
     </div>
 
+
+    <!-- Geopolitical Detail Modal - works on PC & mobile -->
+    <div id="geo-detail-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:99999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">
+        <div style="background:#0f172a;border:1px solid #334155;border-radius:12px;max-width:480px;width:100%;padding:24px;position:relative;box-shadow:0 25px 50px rgba(0,0,0,0.8);">
+            <button onclick="closeGeoModal()" style="position:absolute;top:12px;right:12px;background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;line-height:1;padding:4px 8px;">&times;</button>
+            <div id="geo-modal-body"></div>
+            <div style="margin-top:20px;text-align:right;">
+                <button onclick="closeGeoModal()" style="background:#1e293b;border:1px solid #475569;color:#e2e8f0;padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    var GEO_INFO = {
+        'Mỹ': {
+            title: 'Mỹ (46/100 - Lãi suất Fed & Thuế quan)',
+            impact: 'Lãi suất Fed cao làm neo giữ chênh lệch tỷ giá USD/VND gây áp lực rút ròng dòng vốn ngoại (FII). Đồng thời Mỹ là thị trường xuất khẩu lớn nhất của VN, chính sách thuế quan tác động trực tiếp đến dệt may, thủy sản.'
+        },
+        'Trung Quốc': {
+            title: 'Trung Quốc (50/100 - Chiến tranh thương mại)',
+            impact: 'Trung Quốc là đối tác nhập khẩu nguyên vật liệu đầu vào lớn nhất của VN (điện tử, sắt thép, hóa chất). Khi Mỹ áp thuế quan lên TQ, VN vừa có cơ hội nhận dịch chuyển dòng vốn FDI (China+1) vừa đối mặt rủi ro hàng TQ tràn ngập cạnh tranh.'
+        },
+        'Nga / Ukraine': {
+            title: 'Nga / Ukraine (85/100 - Giá năng lượng & Đứt gãy chuỗi cung ứng)',
+            impact: 'Xung đột leo thang làm giá dầu thô và khí đốt thế giới neo cao, gây áp lực trực tiếp lên giá xăng dầu nội địa của VN, đẩy chi phí vận tải logistics tăng mạnh và làm gia tăng lạm phát nhập khẩu.'
+        },
+        'EU': {
+            title: 'EU (35/100 - Lạm phát & Tăng trưởng kinh tế chậm)',
+            impact: 'EU là thị trường xuất khẩu lớn thứ 2 của VN. Sức mua của người tiêu dùng EU suy giảm do lạm phát cao sẽ trực tiếp làm sụt giảm đơn hàng gia công giày da, dệt may và đồ gỗ xuất khẩu của VN.'
+        },
+        'Nhật Bản': {
+            title: 'Nhật Bản (25/100 - Tỷ giá Yên & Lãi suất BOJ)',
+            impact: 'Nhật Bản là nhà tài trợ ODA và FDI hàng đầu của VN. Đồng Yên mất giá quá sâu làm giảm biên lợi nhuận của các doanh nghiệp xuất khẩu lao động và doanh nghiệp VN vay nợ bằng đồng Yên (như xây dựng, nhiệt điện).'
+        }
+    };
+
+    function openGeoModal(region, score) {
+        var modal = document.getElementById('geo-detail-modal');
+        var body = document.getElementById('geo-modal-body');
+        if (!modal || !body) return;
+        var info = GEO_INFO[region];
+        if (!info) {
+            // fallback: fuzzy match
+            for (var k in GEO_INFO) {
+                if (region.indexOf(k) >= 0 || k.indexOf(region) >= 0) { info = GEO_INFO[k]; break; }
+            }
+        }
+        var titleText = info ? info.title : (region + ' (' + score + '/100)');
+        var impactText = info ? info.impact : 'Chưa có thông tin phân tích chi tiết.';
+        body.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
+            '<svg style="width:20px;height:20px;color:#22d3ee;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="#22d3ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-19 0 9 9 0 0119 0z" /></svg>' +
+            '<span style="color:#f1f5f9;font-size:14px;font-weight:700;">' + titleText + '</span></div>' +
+            '<div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:14px;">' +
+            '<div style="color:#fbbf24;font-weight:700;font-size:12px;margin-bottom:8px;">💡 LÝ DO ẢNH HƯỞNG TỚI VIỆT NAM:</div>' +
+            '<div style="color:#cbd5e1;font-size:13px;line-height:1.6;">' + impactText + '</div></div>';
+        modal.style.display = 'flex';
+    }
+
+    function closeGeoModal() {
+        var modal = document.getElementById('geo-detail-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    // Close modal when clicking outside content
+    document.getElementById('geo-detail-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeGeoModal();
+    });
+    </script>
 </body>
 </html>
