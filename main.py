@@ -1656,24 +1656,28 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
             has_long_kw = any(kw in pa for kw in long_signals)
             has_short_kw = any(kw in pa for kw in short_signals)
             
-            if (close_p > mid_p or has_long_kw) and not has_short_kw and basis >= -2.0:
-                trend = "TĂNG (LONG)"
-                action = "Mở Long"
-                entry = f"{close_p:.1f} - {close_p + 0.4:.1f}"
-                sl = f"{close_p - 2.0:.1f} (Cắt lỗ 2.0 điểm)"
-                tp = f"TP1: {close_p + 4.0:.1f} | TP2: {close_p + 6.0:.1f} (R:R tối thiểu 1:2)"
-                arg_pa = f"Hành động giá ủng hộ phe mua: {item.price_action or 'Nến đóng cửa ở nửa trên biên độ'} với vol đạt {volume:.0f} hợp đồng."
-                arg_basis = f"Basis đạt {basis:+.1f} điểm, chênh lệch ở mức an toàn ủng hộ nhịp kéo phái sinh."
-                arg_sr = f"Hỗ trợ cứng M5 quanh {low_p:.1f}. Kháng cự mục tiêu cần vượt qua là {close_p + 5.0:.1f}."
-            elif (close_p < mid_p or has_short_kw) and not has_long_kw and basis <= 2.0:
+            # Calculate price position ratio within candle range (0.0 = low, 1.0 = high)
+            pos_ratio = (close_p - low_p) / (candle_range) if candle_range > 0 else 0.5
+            
+            # Decision Tree for Long vs Short signals:
+            if (has_short_kw or pos_ratio < 0.45 or close_p < mid_p) and not (has_long_kw and pos_ratio > 0.75):
                 trend = "GIẢM (SHORT)"
                 action = "Mở Short"
-                entry = f"{close_p - 0.4:.1f} - {close_p:.1f}"
+                entry = f"{close_p - 0.2:.1f} - {close_p + 0.2:.1f}"
                 sl = f"{close_p + 2.0:.1f} (Cắt lỗ 2.0 điểm)"
                 tp = f"TP1: {close_p - 4.0:.1f} | TP2: {close_p - 6.0:.1f} (R:R tối thiểu 1:2)"
-                arg_pa = f"Hành động giá phe bán chiếm ưu thế: {item.price_action or 'Nến đóng cửa ở nửa dưới biên độ'} với vol đạt {volume:.0f} hợp đồng."
-                arg_basis = f"Basis đạt {basis:+.1f} điểm, cho thấy tâm lý phòng thủ gia tăng của dòng tiền phái sinh."
-                arg_sr = f"Kháng cự cứng M5 tại {high_p:.1f}. Hỗ trợ mục tiêu hướng tới là {close_p - 5.0:.1f}."
+                arg_pa = f"Hành động giá phe bán chiếm ưu thế: {item.price_action or 'Nến M5 đóng cửa ở vùng giá thấp'} với vol đạt {volume:.0f} hợp đồng."
+                arg_basis = f"Basis đạt {basis:+.1f} điểm, áp lực phòng thủ và xả Short tăng mạnh."
+                arg_sr = f"Kháng cự ngắn hạn M5 tại {high_p:.1f}. Hỗ trợ mục tiêu phía dưới là {close_p - 5.0:.1f}."
+            elif (has_long_kw or pos_ratio > 0.55 or close_p > mid_p) and not (has_short_kw and pos_ratio < 0.25):
+                trend = "TĂNG (LONG)"
+                action = "Mở Long"
+                entry = f"{close_p - 0.2:.1f} - {close_p + 0.2:.1f}"
+                sl = f"{close_p - 2.0:.1f} (Cắt lỗ 2.0 điểm)"
+                tp = f"TP1: {close_p + 4.0:.1f} | TP2: {close_p + 6.0:.1f} (R:R tối thiểu 1:2)"
+                arg_pa = f"Hành động giá ủng hộ phe mua: {item.price_action or 'Nến M5 đóng cửa ở vùng giá cao'} với vol đạt {volume:.0f} hợp đồng."
+                arg_basis = f"Basis đạt {basis:+.1f} điểm, ủng hộ xu hướng kéo Long tiếp diễn."
+                arg_sr = f"Hỗ trợ ngắn hạn M5 quanh {low_p:.1f}. Kháng cự mục tiêu phía trên là {close_p + 5.0:.1f}."
             else:
                 trend = "ĐI NGANG (QUAN SÁT)"
                 action = "Đứng ngoài"

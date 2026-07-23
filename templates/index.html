@@ -2319,15 +2319,30 @@
                     if (r.ok) {
                         const d = await r.json();
                         if (d && d.last_price > 0) {
-                            // Populate the M5 input boxes automatically
-                            document.getElementById('m5-close').value = d.last_price.toFixed(1);
-                            document.getElementById('m5-high').value = (d.last_price + 1.2).toFixed(1);
-                            document.getElementById('m5-low').value = (d.last_price - 1.5).toFixed(1);
-                            // Set volume directly to contracts count (e.g. total_volume divided by average factor or static 1200)
+                            const lastP = d.last_price;
+                            const changeP = d.change || 0;
+                            const isDown = changeP < 0;
+                            
+                            // Dynamically adjust High/Low bounds to reflect actual candle sentiment
+                            let highP, lowP, paPattern;
+                            if (isDown) {
+                                highP = lastP + 1.8;
+                                lowP = lastP - 0.4; // Close price is at lower half -> Short signal!
+                                paPattern = "Nến M5 giảm mạnh, lực bán chốt lời xả Short chiếm ưu thế tuyệt đối.";
+                            } else {
+                                highP = lastP + 0.4; // Close price is at upper half -> Long signal!
+                                lowP = lastP - 1.8;
+                                paPattern = "Dòng tiền chủ động mua kéo nến M5 bứt phá vùng giá cao.";
+                            }
+                            
+                            document.getElementById('m5-close').value = lastP.toFixed(1);
+                            document.getElementById('m5-high').value = highP.toFixed(1);
+                            document.getElementById('m5-low').value = lowP.toFixed(1);
+                            
                             const contractsVolume = d.total_volume ? Math.floor(d.total_volume / 1000) : 1250;
                             document.getElementById('m5-volume').value = contractsVolume;
-                            document.getElementById('m5-basis').value = "-1.5";
-                            document.getElementById('m5-pattern').value = "Dòng tiền lớn chủ động gom Long vị thế tốt.";
+                            document.getElementById('m5-basis').value = (d.basis !== undefined ? d.basis : (isDown ? "-2.5" : "+1.5"));
+                            document.getElementById('m5-pattern').value = paPattern;
                             
                             // Auto trigger AI Analysis immediately
                             analyzeDerivativesM5();
