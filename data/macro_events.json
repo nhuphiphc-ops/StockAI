@@ -6,15 +6,37 @@
     "(2) phan binh luan tac dong toi Viet Nam - FRED chi cho ngay cong bo, khong cho phan tich.",
     "Neu 'date' va 'category' trung voi mot su kien FRED thi noi dung o day se duoc gop de len.",
     "category hop le: us_data | fomc | geopolitics | commodity | vn_data",
-    "Chi 'date' va 'title' la bat buoc."
+    "Chi 'date' va 'title' la bat buoc.",
+    "KHONG go tay so lieu thuc te vao 'detail'. So lieu duoc keo truc tiep tu FRED moi lan",
+    "hien thi (xem RELEASE_SERIES trong core/macro_calendar.py). So go tay se cu the sai.",
+    "'binh_luan_mac_dinh' ap dung cho MOI ky cua cung mot loai bao cao, khong gan voi ngay.",
+    "Bang cach do thang 9, 10, 11... tu co phan tich ma khong phai viet lai tung thang.",
+    "Ban ghi theo ngay trong 'events' luon duoc uu tien de len phan mac dinh."
   ],
+  "binh_luan_mac_dinh": {
+    "Báo cáo Việc làm Mỹ": {
+      "detail": "Ba con số thị trường theo dõi: Non-farm Payrolls (việc làm mới ngoài nông nghiệp), tỷ lệ thất nghiệp, và tốc độ tăng thu nhập bình quân giờ. Thu nhập giờ là cầu nối sang lạm phát dịch vụ — phần lạm phát cứng đầu nhất mà Fed quan tâm.",
+      "vn_impact": "Lao động Mỹ hạ nhiệt → thị trường tăng đặt cược Fed cắt lãi suất → lợi suất trái phiếu 10 năm và chỉ số USD giảm → thu hẹp chênh lệch lãi suất USD–VND, giảm áp lực tỷ giá và giảm bán ròng của khối ngoại trên HOSE. Chiều ngược lại, việc làm mạnh bất ngờ đẩy USD lên, NHNN phải hút thanh khoản để giữ tỷ giá, lãi suất liên ngân hàng tăng và nhóm chứng khoán, bất động sản chịu áp lực trước tiên. Lưu ý hai mặt: lao động Mỹ yếu quá mức lại báo hiệu cầu tiêu dùng suy giảm, bất lợi cho đơn hàng xuất khẩu dệt may, gỗ, thủy sản, điện tử."
+    },
+    "Chỉ số Lạm phát CPI Mỹ": {
+      "detail": "CPI toàn phần và CPI lõi (loại thực phẩm, năng lượng) của tháng liền trước. CPI lõi mới phản ánh xu hướng; phần toàn phần dao động theo giá xăng dầu nên dễ gây nhiễu tín hiệu.",
+      "vn_impact": "Đây là dữ liệu Mỹ tác động nhanh nhất tới tỷ giá USD/VND. Lạm phát cao hơn dự kiến → kỳ vọng Fed giữ lãi suất lâu hơn → USD mạnh lên → NHNN khó hạ lãi suất điều hành trong khi vẫn phải giữ ổn định tỷ giá, đồng thời dòng vốn ngoại rút khỏi thị trường mới nổi. Nhóm nhạy nhất với tỷ giá: doanh nghiệp vay nợ USD lớn (hàng không, điện, nhựa, thép) chịu lỗ chênh lệch tỷ giá; nhóm xuất khẩu thu USD (thủy sản, dệt may, cao su) hưởng lợi ở chiều doanh thu quy đổi. Lạm phát hạ nhiệt cho hiệu ứng ngược lại và thường kéo dòng tiền quay lại nhóm chứng khoán, ngân hàng."
+    },
+    "Chỉ số Giá sản xuất PPI Mỹ": {
+      "detail": "Giá đầu vào ở khâu sản xuất, thường đi trước CPI khoảng 1–2 tháng. Cấu phần dịch vụ vận tải và kho bãi là nơi cú sốc chi phí logistics lộ ra sớm nhất.",
+      "vn_impact": "PPI Mỹ là chỉ báo sớm cho chi phí của chính chuỗi cung ứng mà doanh nghiệp Việt Nam tham gia. PPI tăng kéo dài → biên lợi nhuận nhà nhập khẩu Mỹ bị ép → áp lực đàm phán hạ giá gia công dồn xuống nhà cung cấp Việt Nam ở dệt may, da giày, đồ gỗ. PPI hạ nhiệt bền vững thì củng cố lộ trình cắt lãi suất của Fed, có lợi cho định giá nhóm cổ phiếu tăng trưởng trên HOSE. Chênh lệch PPI cao hơn CPI kéo dài là dấu hiệu doanh nghiệp Mỹ chưa chuyển được chi phí sang người tiêu dùng — rủi ro cho đơn hàng ở các quý sau."
+    },
+    "Chỉ số Lạm phát PCE Mỹ": {
+      "detail": "Khác CPI ở quyền số và cách xử lý chi phí y tế, nhà ở, nên hai chỉ số có thể lệch hướng — khi đó Fed đi theo PCE. Phần lõi là con số Fed đưa vào dự báo lãi suất.",
+      "vn_impact": "PCE công bố sau CPI nên ít gây bất ngờ, nhưng là con số chốt lại kỳ vọng lãi suất trước mỗi kỳ họp FOMC. PCE lõi còn cách xa mục tiêu 2% đồng nghĩa mặt bằng lãi suất USD giữ cao, chi phí vốn quốc tế đắt, chênh lệch lãi suất tiếp tục gây sức ép lên tỷ giá USD/VND và thu hẹp dư địa nới lỏng của NHNN. Với thị trường Việt Nam, đây là biến số chi phối định giá dài hạn hơn là biến động một phiên."
+    }
+  },
   "events": [
     {
       "date": "2026-07-02",
       "category": "us_data",
       "title": "Báo cáo Việc làm Mỹ",
-      "summary": "Chỉ số Employment Situation đo sức khỏe lao động Mỹ.",
-      "detail": "[CHI TIẾT]: Non-farm Payrolls mới đạt 206K (dự báo 190K), tỷ lệ thất nghiệp nhích nhẹ lên 4.1%. Thị trường lao động hạ nhiệt đúng lộ trình giúp hạ nhiệt lợi suất trái phiếu Mỹ kỳ hạn 10 năm về 4.28%, củng cố kỳ vọng Fed cắt giảm lãi suất vào kỳ họp tháng 9 tới 72%."
+      "summary": "Chỉ số Employment Situation đo sức khỏe lao động Mỹ."
     },
     {
       "date": "2026-07-08",
@@ -28,15 +50,13 @@
       "date": "2026-07-14",
       "category": "us_data",
       "title": "Chỉ số Lạm phát CPI Mỹ",
-      "summary": "CPI tháng 6 của Mỹ.",
-      "detail": "[CHI TIẾT]: CPI tăng 3.0% YoY (dự báo 3.1%, trước đó 3.3%), CPI lõi giảm về 3.3% (dự báo 3.4%). Lạm phát Mỹ hạ nhiệt mạnh ở mảng năng lượng và nhà ở giúp xoa dịu áp lực tỷ giá USD/VND tại Việt Nam từ đỉnh 26.250 giảm về mốc 26.150."
+      "summary": "CPI tháng 6 của Mỹ."
     },
     {
       "date": "2026-07-15",
       "category": "us_data",
       "title": "Chỉ số Giá sản xuất PPI Mỹ",
-      "summary": "PPI đo lường lạm phát từ phía sản xuất.",
-      "detail": "[CHI TIẾT]: PPI tăng 0.2% MoM (khớp dự báo), tăng 2.6% YoY do chi phí dịch vụ kho bãi và logistics nhích nhẹ. Xu hướng giảm lạm phát đầu vào được duy trì, củng cố thêm niềm tin thị trường rằng Fed sẽ tiến hành 2 lần cắt giảm lãi suất trong năm 2026."
+      "summary": "PPI đo lường lạm phát từ phía sản xuất."
     },
     {
       "date": "2026-07-22",

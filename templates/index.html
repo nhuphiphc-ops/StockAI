@@ -2218,6 +2218,8 @@
                         </div>
                     </div>
                     <div id="macro-events-warning" style="display: none; font-size: 11px; line-height: 1.5; color: #fbbf24; background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 6px; padding: 8px 10px;"></div>
+                    <!-- Bối cảnh lãi suất - lợi suất - USD, lấy thẳng từ FRED, không gõ tay -->
+                    <div id="macro-events-context" style="display: none;"></div>
                     <div id="macro-events-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
                         <!-- Thẻ sự kiện do renderMacroEvents() sinh ra từ /api/macro-events -->
                     </div>
@@ -5170,6 +5172,29 @@
             if (!body) body = '<span style="opacity:0.6;">Chưa có phân tích tác động. '
                             + 'Bổ sung trong data/macro_events.json.</span>';
 
+            // Số liệu kỳ gần nhất, kéo thẳng từ FRED. Trước đây phần này là số gõ tay
+            // trong HTML và đã lệch so với số thật, nên tuyệt đối không hardcode lại.
+            var latestHtml = '';
+            if (ev.latest && ev.latest.length) {
+                latestHtml = '<div style="display:flex;flex-wrap:wrap;gap:4px;">'
+                    + ev.latest.map(function (m) {
+                        return '<span title="Nguồn: FRED, chuỗi ' + esc(m.series_id) + '" '
+                             + 'style="font-size:10px;background:rgba(255,255,255,0.04);'
+                             + 'border:1px solid rgba(255,255,255,0.07);border-radius:5px;'
+                             + 'padding:2px 6px;white-space:nowrap;">'
+                             + '<span style="opacity:0.65;">' + esc(m.label) + '</span> '
+                             + '<strong style="color:' + st.color + ';">' + esc(m.value) + '</strong>'
+                             + '<span style="opacity:0.5;"> · ' + esc(m.period) + '</span>'
+                             + '</span>';
+                      }).join('')
+                    + '</div>'
+                    + '<div style="font-size:9px;color:#64748b;">'
+                    + (ev.latest_kind === 'released'
+                        ? 'Số liệu của chính buổi công bố này, lấy theo bản dữ liệu FRED tại ngày đó.'
+                        : 'Kỳ gần nhất đã công bố — mốc tham chiếu, không phải dự báo cho kỳ này.')
+                    + '</div>';
+            }
+
             var fredTag = ev.source && ev.source.indexOf('fred') === 0
                 ? '<span title="Ngày công bố lấy tự động từ FRED - Fed St. Louis" '
                   + 'style="font-size:9px;color:#64748b;border:1px solid rgba(100,116,139,0.35);'
@@ -5191,9 +5216,35 @@
                 +     '</div>'
                 +   '</div>'
                 +   '<div style="font-size: 12px; font-weight: 600; color: #fff;">' + esc(ev.title) + '</div>'
+                +   latestHtml
                 +   '<div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.5;">'
                 +     body + '</div>'
                 + '</div>';
+        }
+
+        // Ba biến quyết định phần lớn đường truyền từ Mỹ sang thị trường Việt Nam:
+        // trần lãi suất Fed, lợi suất 10 năm, và sức mạnh đồng USD.
+        function setContext(items) {
+            var box = document.getElementById('macro-events-context');
+            if (!box) return;
+            if (!items || !items.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+            box.style.display = 'flex';
+            box.style.flexWrap = 'wrap';
+            box.style.gap = '8px';
+            box.style.alignItems = 'center';
+            box.style.padding = '8px 10px';
+            box.style.borderRadius = '6px';
+            box.style.border = '1px solid rgba(0,229,255,0.10)';
+            box.style.background = 'rgba(0,229,255,0.03)';
+            box.innerHTML = '<span style="font-size:10px;color:#64748b;font-weight:600;">'
+                + '<i class="fa-solid fa-satellite-dish"></i> BỐI CẢNH</span>'
+                + items.map(function (m) {
+                    return '<span title="Nguồn: FRED, chuỗi ' + esc(m.series_id)
+                         + '" style="font-size:11px;color:var(--color-text-muted);">'
+                         + esc(m.label) + ': <strong style="color:#00e5ff;">' + esc(m.value)
+                         + '</strong> <span style="opacity:0.5;font-size:9px;">'
+                         + esc(m.period) + '</span></span>';
+                  }).join('<span style="opacity:0.25;">|</span>');
         }
 
         function setWarning(messages) {
@@ -5225,6 +5276,7 @@
                 label.textContent = '(THÁNG ' + data.month + ')'
                                   + (data.is_current_month ? '' : ' — XEM LẠI');
                 setWarning(data.warnings);
+                setContext(data.market_context);
 
                 if (!data.events.length) {
                     grid.innerHTML = '<div style="grid-column: 1 / -1; padding: 18px; text-align: center; '
@@ -5240,6 +5292,7 @@
             } catch (e) {
                 console.error('Macro events load failed:', e);
                 label.textContent = '(KHÔNG TẢI ĐƯỢC)';
+                setContext([]);   // thà trống còn hơn để lại số liệu của lần tải trước
                 setWarning(['Không tải được lịch sự kiện vĩ mô: ' + e.message
                           + '. Dữ liệu hiển thị có thể không phải của tháng hiện tại.']);
                 grid.innerHTML = '<div style="grid-column: 1 / -1; padding: 18px; text-align: center; '

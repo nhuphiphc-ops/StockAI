@@ -55,6 +55,25 @@ sang tháng mới. Nay:
   hóa, họp FOMC, và **bình luận tác động tới Việt Nam**. FRED chỉ cho biết ngày
   nào công bố cái gì, không hề có phân tích. Bản ghi trùng `date` + `category`
   sẽ gộp đè lên thẻ FRED.
+- `binh_luan_mac_dinh` trong cùng file đó áp cho **mọi kỳ** của một loại báo cáo,
+  không gắn với ngày. Nhờ vậy tháng 9, 10, 11… tự có phân tích. Viết bình luận
+  cho riêng một ngày thì sang tháng sau thẻ lại trống — đúng kiểu bế tắc cũ.
+
+**Số liệu trong thẻ không được gõ tay.** `RELEASE_SERIES` khai chuỗi FRED cho từng
+báo cáo, số kéo về lúc hiển thị:
+
+- Thẻ **sắp diễn ra / hôm nay** → kỳ gần nhất đã công bố, làm mốc so sánh.
+- Thẻ **đã công bố** → tham số `realtime_start/end` của FRED cho đúng con số thị
+  trường nhìn thấy hôm đó, không phải số kỳ mới nhất tính tới hôm nay.
+- `market_context` (trần lãi suất Fed, lợi suất 10 năm, chỉ số USD) hiện thành
+  dải phía trên lịch.
+
+Lý do phải làm vậy: đám số gõ tay của tháng 7 đã sai so với FRED — thẻ CPI ghi
+3.0% YoY và lõi 3.3%, số thật kỳ T6/2026 là 3.46% và 2.57%; thất nghiệp ghi 4.1%,
+`UNRATE` là 4.2%. Không ai đối chiếu vì nó chỉ là chữ trong HTML.
+
+Mọi lượt gọi FRED đều chạy song song và cache 6 tiếng. Bỏ song song thì một tháng
+nhiều thẻ đã qua mất ~6,5s, quá lâu cho hàm serverless.
 
 Cần `FRED_API_KEY` (32 ký tự chữ thường + số, miễn phí tại
 `fredaccount.stlouisfed.org/apikey`). Thiếu key thì lịch vẫn hiện đúng tháng hiện

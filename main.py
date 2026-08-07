@@ -5,6 +5,15 @@ import json
 import json
 from datetime import datetime
 
+# Nạp .env khi chạy máy cá nhân. Trên Vercel biến môi trường được tiêm sẵn nên hàm này
+# không tìm thấy file và cũng không làm gì - vô hại. Thiếu bước này thì chạy local
+# FRED_API_KEY luôn rỗng và lịch vĩ mô báo thiếu key dù .env có sẵn giá trị.
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 # Helper to log derivatives recommendation
 def save_derivatives_log(trend, action, entry, sl, tp):
     if action not in ["Mở Long", "Mở Short"]:
