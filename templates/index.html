@@ -2206,21 +2206,24 @@
                 <!-- LỊCH SỰ KIỆN VĨ MÔ - dữ liệu động từ /api/macro-events, tự đổi theo tháng hiện tại -->
                 <div class="glass-card" style="padding: 16px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: linear-gradient(135deg, rgba(2, 8, 16, 0.4), rgba(6, 12, 24, 0.25)); border: 1px solid rgba(0, 229, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.05);">
                     <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-                        <h2 style="font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                        <!-- Cỡ chữ khối lịch đã phóng 1.7 lần cho dễ đọc. Phần dựng bằng JS
+                             dùng hàm fs() với cùng hệ số FONT_SCALE, sửa thì sửa cả hai chỗ. -->
+                        <h2 style="font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <i class="fa-solid fa-calendar-days" style="color: #00e5ff;"></i>
                             <span>LỊCH SỰ KIỆN VĨ MÔ ẢNH HƯỞNG ĐẾN THỊ TRƯỜNG VIỆT NAM</span>
                             <span id="macro-events-month" style="color: #00e5ff;">(ĐANG TẢI...)</span>
                         </h2>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <button id="macro-events-prev" title="Tháng trước" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 4px 9px; cursor: pointer; font-size: 11px;"><i class="fa-solid fa-chevron-left"></i></button>
-                            <button id="macro-events-today" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px;">Tháng này</button>
-                            <button id="macro-events-next" title="Tháng sau" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 4px 9px; cursor: pointer; font-size: 11px;"><i class="fa-solid fa-chevron-right"></i></button>
+                            <button id="macro-events-prev" title="Tháng trước" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 14px; cursor: pointer; font-size: 18.7px;"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button id="macro-events-today" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 16px; cursor: pointer; font-size: 18.7px;">Tháng này</button>
+                            <button id="macro-events-next" title="Tháng sau" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 14px; cursor: pointer; font-size: 18.7px;"><i class="fa-solid fa-chevron-right"></i></button>
                         </div>
                     </div>
-                    <div id="macro-events-warning" style="display: none; font-size: 11px; line-height: 1.5; color: #fbbf24; background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 6px; padding: 8px 10px;"></div>
+                    <div id="macro-events-warning" style="display: none; font-size: 18.7px; line-height: 1.55; color: #fbbf24; background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 6px; padding: 12px 14px;"></div>
                     <!-- Bối cảnh lãi suất - lợi suất - USD, lấy thẳng từ FRED, không gõ tay -->
                     <div id="macro-events-context" style="display: none;"></div>
-                    <div id="macro-events-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                    <!-- Cột rộng hơn hẳn: chữ to mà cột hẹp thì thẻ cao vống lên, phải cuộn mới đọc hết -->
+                    <div id="macro-events-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px;">
                         <!-- Thẻ sự kiện do renderMacroEvents() sinh ra từ /api/macro-events -->
                     </div>
             </div>
@@ -5121,6 +5124,13 @@
        trạng thái từng thẻ tính từ ngày hôm nay.
        ===================================================================== */
     (function () {
+        // Cỡ chữ gốc của khối lịch nhỏ (9-13px) nên khó đọc. Nhân toàn bộ theo một hệ số
+        // duy nhất, đổi số này là cả khối đổi theo - khỏi phải dò lại từng chỗ.
+        var FONT_SCALE = 1.7;
+        function fs(px) {
+            return 'font-size:' + Math.round(px * FONT_SCALE * 10) / 10 + 'px;';
+        }
+
         var CATEGORY_STYLE = {
             us_data:     { color: '#00e5ff', icon: 'fa-clock',              border: 'rgba(0, 229, 255, 0.1)',   bg: 'rgba(255, 255, 255, 0.02)' },
             fomc:        { color: '#a855f7', icon: 'fa-landmark',           border: 'rgba(168, 85, 247, 0.2)',  bg: 'rgba(168, 85, 247, 0.04)' },
@@ -5179,16 +5189,16 @@
                 latestHtml = '<div style="display:flex;flex-wrap:wrap;gap:4px;">'
                     + ev.latest.map(function (m) {
                         return '<span title="Nguồn: FRED, chuỗi ' + esc(m.series_id) + '" '
-                             + 'style="font-size:10px;background:rgba(255,255,255,0.04);'
+                             + 'style="' + fs(10) + 'background:rgba(255,255,255,0.04);'
                              + 'border:1px solid rgba(255,255,255,0.07);border-radius:5px;'
-                             + 'padding:2px 6px;white-space:nowrap;">'
+                             + 'padding:3px 8px;white-space:nowrap;">'
                              + '<span style="opacity:0.65;">' + esc(m.label) + '</span> '
                              + '<strong style="color:' + st.color + ';">' + esc(m.value) + '</strong>'
                              + '<span style="opacity:0.5;"> · ' + esc(m.period) + '</span>'
                              + '</span>';
                       }).join('')
                     + '</div>'
-                    + '<div style="font-size:9px;color:#64748b;">'
+                    + '<div style="' + fs(9) + 'color:#64748b;">'
                     + (ev.latest_kind === 'released'
                         ? 'Số liệu của chính buổi công bố này, lấy theo bản dữ liệu FRED tại ngày đó.'
                         : 'Kỳ gần nhất đã công bố — mốc tham chiếu, không phải dự báo cho kỳ này.')
@@ -5197,27 +5207,27 @@
 
             var fredTag = ev.source && ev.source.indexOf('fred') === 0
                 ? '<span title="Ngày công bố lấy tự động từ FRED - Fed St. Louis" '
-                  + 'style="font-size:9px;color:#64748b;border:1px solid rgba(100,116,139,0.35);'
-                  + 'border-radius:4px;padding:0 4px;">FRED</span>'
+                  + 'style="' + fs(9) + 'color:#64748b;border:1px solid rgba(100,116,139,0.35);'
+                  + 'border-radius:4px;padding:0 5px;">FRED</span>'
                 : '';
 
             return ''
                 + '<div style="background: ' + st.bg + '; border: 1px solid ' + st.border + '; '
-                +      'border-radius: 8px; padding: 12px; display: flex; flex-direction: column; '
-                +      'gap: 6px; ' + ring + faded + '">'
+                +      'border-radius: 8px; padding: 16px; display: flex; flex-direction: column; '
+                +      'gap: 8px; ' + ring + faded + '">'
                 +   '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">'
-                +     '<div style="font-size: 11px; color: ' + st.color + '; font-weight: 600; '
-                +          'display: flex; align-items: center; gap: 4px;">'
+                +     '<div style="' + fs(11) + ' color: ' + st.color + '; font-weight: 600; '
+                +          'display: flex; align-items: center; gap: 5px;">'
                 +       '<i class="fa-solid ' + st.icon + '"></i> ' + esc(ev.date_display)
                 +     '</div>'
-                +     '<div style="display:flex;align-items:center;gap:4px;">' + fredTag
-                +       '<span style="font-size:9px;font-weight:700;color:' + status.color + ';">'
+                +     '<div style="display:flex;align-items:center;gap:5px;">' + fredTag
+                +       '<span style="' + fs(9) + 'font-weight:700;color:' + status.color + ';">'
                 +         status.text + '</span>'
                 +     '</div>'
                 +   '</div>'
-                +   '<div style="font-size: 12px; font-weight: 600; color: #fff;">' + esc(ev.title) + '</div>'
+                +   '<div style="' + fs(12) + ' font-weight: 600; color: #fff;">' + esc(ev.title) + '</div>'
                 +   latestHtml
-                +   '<div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.5;">'
+                +   '<div style="' + fs(11) + ' color: var(--color-text-muted); line-height: 1.55;">'
                 +     body + '</div>'
                 + '</div>';
         }
@@ -5230,19 +5240,19 @@
             if (!items || !items.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
             box.style.display = 'flex';
             box.style.flexWrap = 'wrap';
-            box.style.gap = '8px';
+            box.style.gap = '10px';
             box.style.alignItems = 'center';
-            box.style.padding = '8px 10px';
+            box.style.padding = '10px 14px';
             box.style.borderRadius = '6px';
             box.style.border = '1px solid rgba(0,229,255,0.10)';
             box.style.background = 'rgba(0,229,255,0.03)';
-            box.innerHTML = '<span style="font-size:10px;color:#64748b;font-weight:600;">'
+            box.innerHTML = '<span style="' + fs(10) + 'color:#64748b;font-weight:600;">'
                 + '<i class="fa-solid fa-satellite-dish"></i> BỐI CẢNH</span>'
                 + items.map(function (m) {
                     return '<span title="Nguồn: FRED, chuỗi ' + esc(m.series_id)
-                         + '" style="font-size:11px;color:var(--color-text-muted);">'
+                         + '" style="' + fs(11) + 'color:var(--color-text-muted);">'
                          + esc(m.label) + ': <strong style="color:#00e5ff;">' + esc(m.value)
-                         + '</strong> <span style="opacity:0.5;font-size:9px;">'
+                         + '</strong> <span style="opacity:0.5;' + fs(9) + '">'
                          + esc(m.period) + '</span></span>';
                   }).join('<span style="opacity:0.25;">|</span>');
         }
@@ -5280,10 +5290,10 @@
 
                 if (!data.events.length) {
                     grid.innerHTML = '<div style="grid-column: 1 / -1; padding: 18px; text-align: center; '
-                        + 'font-size: 12px; color: var(--color-text-muted); border: 1px dashed '
+                        + fs(12) + ' color: var(--color-text-muted); border: 1px dashed '
                         + 'rgba(255,255,255,0.08); border-radius: 8px;">'
                         + 'Chưa có sự kiện nào cho tháng ' + esc(data.month) + '.'
-                        + '<br/><span style="font-size:11px;opacity:0.75;">Cấu hình FRED_API_KEY để tự lấy '
+                        + '<br/><span style="' + fs(11) + 'opacity:0.75;">Cấu hình FRED_API_KEY để tự lấy '
                         + 'lịch công bố CPI/PPI/PCE/Việc làm Mỹ, hoặc thêm sự kiện vào '
                         + 'data/macro_events.json.</span></div>';
                 } else {
@@ -5296,7 +5306,7 @@
                 setWarning(['Không tải được lịch sự kiện vĩ mô: ' + e.message
                           + '. Dữ liệu hiển thị có thể không phải của tháng hiện tại.']);
                 grid.innerHTML = '<div style="grid-column: 1 / -1; padding: 18px; text-align: center; '
-                    + 'font-size: 12px; color: #ef4444; border: 1px dashed rgba(239,68,68,0.25); '
+                    + fs(12) + ' color: #ef4444; border: 1px dashed rgba(239,68,68,0.25); '
                     + 'border-radius: 8px;">Lỗi kết nối máy chủ lịch sự kiện.</div>';
             } finally {
                 loading = false;
