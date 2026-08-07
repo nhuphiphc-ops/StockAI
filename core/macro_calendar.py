@@ -20,6 +20,7 @@ thiếu key, API vẫn trả về đúng tháng đang xem kèm cảnh báo rõ r
 """
 import json
 import os
+import re
 import threading
 import time
 import urllib.error
@@ -29,6 +30,22 @@ from calendar import monthrange
 from datetime import date, datetime
 
 FRED_BASE = "https://api.stlouisfed.org/fred/release/dates"
+
+# FRED chỉ chấp nhận key đúng 32 ký tự chữ thường + số
+FRED_KEY_RE = re.compile(r"^[a-z0-9]{32}$")
+
+
+def _clean_api_key(raw):
+    """
+    Gột sạch giá trị biến môi trường trước khi dùng.
+
+    Biến môi trường rất hay bị dính rác tùy cách thiết lập: xuống dòng CR/LF, BOM
+    (\\ufeff), dấu nháy bao quanh, khoảng trắng. str.strip() không xóa BOM nên phải
+    xử lý riêng, nếu không key trông đúng mà FRED vẫn từ chối.
+    """
+    if not raw:
+        return ""
+    return raw.strip().strip("﻿\r\n\t '\"").strip()
 
 # Release ID tra trực tiếp từ danh mục releases của FRED, không phải phỏng đoán.
 FRED_RELEASES = {
@@ -110,11 +127,18 @@ def fetch_fred_events(start, end):
     Lấy ngày công bố các báo cáo vĩ mô Mỹ trong khoảng [start, end] (chuỗi YYYY-MM-DD).
     Trả về (danh sách sự kiện, cảnh báo hoặc None). Không bao giờ ném lỗi ra ngoài.
     """
-    api_key = (os.getenv("FRED_API_KEY") or "").strip()
+    api_key = _clean_api_key(os.getenv("FRED_API_KEY"))
     if not api_key:
         return [], ("Chưa cấu hình FRED_API_KEY nên không tự lấy được lịch công bố "
                     "CPI/PPI/PCE/Việc làm Mỹ. Đăng ký key miễn phí tại "
                     "fredaccount.stlouisfed.org/apikey.")
+    if not FRED_KEY_RE.match(api_key):
+        # Bắt lỗi ngay thay vì để FRED trả về 4 lần HTTP 400 giống hệt nhau.
+        # Thường gặp khi biến môi trường bị dính ký tự xuống dòng, dấu nháy hoặc BOM
+        # do cách nạp giá trị (ví dụ pipe qua PowerShell trên Windows).
+        return [], (f"FRED_API_KEY không đúng định dạng: cần đúng 32 ký tự chữ thường và số, "
+                    f"đang nhận {len(api_key)} ký tự. Kiểm tra lại giá trị biến môi trường "
+                    f"(có thể bị dính ký tự thừa khi thiết lập).")
 
     cache_key = (start, end)
     with _cache_lock:
