@@ -1,0 +1,11 @@
+.vercel
+
+# Bi mat - KHONG duoc day len GitHub
+.env
+.env.*
+!.env.example
+config.json
+
+# Python
+__pycache__/
+*.pyc

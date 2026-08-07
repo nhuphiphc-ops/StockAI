@@ -2203,49 +2203,23 @@
                     </div>
                 </div>
 
-                <!-- LỊCH SỰ KIỆN VĨ MÔ THÁNG 7/2026 -->
+                <!-- LỊCH SỰ KIỆN VĨ MÔ - dữ liệu động từ /api/macro-events, tự đổi theo tháng hiện tại -->
                 <div class="glass-card" style="padding: 16px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; background: linear-gradient(135deg, rgba(2, 8, 16, 0.4), rgba(6, 12, 24, 0.25)); border: 1px solid rgba(0, 229, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.05);">
-                    <div class="panel-header" style="border: none; padding: 0 0 10px 0;">
+                    <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
                         <h2 style="font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-calendar-days" style="color: #00e5ff;"></i> LỊCH SỰ KIỆN VĨ MÔ ẢNH HƯỞNG ĐẾN THỊ TRƯỜNG VIỆT NAM (THÁNG 7/2026)
+                            <i class="fa-solid fa-calendar-days" style="color: #00e5ff;"></i>
+                            <span>LỊCH SỰ KIỆN VĨ MÔ ẢNH HƯỞNG ĐẾN THỊ TRƯỜNG VIỆT NAM</span>
+                            <span id="macro-events-month" style="color: #00e5ff;">(ĐANG TẢI...)</span>
                         </h2>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <button id="macro-events-prev" title="Tháng trước" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 4px 9px; cursor: pointer; font-size: 11px;"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button id="macro-events-today" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 11px;">Tháng này</button>
+                            <button id="macro-events-next" title="Tháng sau" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 4px 9px; cursor: pointer; font-size: 11px;"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(0, 229, 255, 0.1); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 0 10px rgba(0,229,255,0.02);">
-                            <div style="font-size: 11px; color: #00e5ff; font-weight: 600; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-clock"></i> 02/07/2026</div>
-                            <div style="font-size: 12px; font-weight: 600; color: #fff;">Báo cáo Việc làm Mỹ</div>
-                            <div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.4;">Chỉ số Employment Situation đo sức khỏe lao động Mỹ. <strong class='text-emerald-400'>[CHI TIẾT]: Non-farm Payrolls mới đạt 206K (dự báo 190K), tỷ lệ thất nghiệp nhích nhẹ lên 4.1%. Thị trường lao động hạ nhiệt đúng lộ trình giúp hạ nhiệt lợi suất trái phiếu Mỹ kỳ hạn 10 năm về 4.28%, củng cố kỳ vọng Fed cắt giảm lãi suất vào kỳ họp tháng 9 tới 72%.</strong></div>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(0, 229, 255, 0.1); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 0 10px rgba(0,229,255,0.02);">
-                            <div style="font-size: 11px; color: #00e5ff; font-weight: 600; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-clock"></i> 14/07/2026</div>
-                            <div style="font-size: 12px; font-weight: 600; color: #fff;">Chỉ số Lạm phát CPI Mỹ</div>
-                            <div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.4;">CPI tháng 6 của Mỹ. <strong class='text-emerald-400'>[CHI TIẾT]: CPI tăng 3.0% YoY (dự báo 3.1%, trước đó 3.3%), CPI lõi giảm về 3.3% (dự báo 3.4%). Lạm phát Mỹ hạ nhiệt mạnh ở mảng năng lượng và nhà ở giúp xoa dịu áp lực tỷ giá USD/VND tại Việt Nam từ đỉnh 26.250 giảm về mốc 26.150.</strong></div>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(0, 229, 255, 0.1); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 0 10px rgba(0,229,255,0.02);">
-                            <div style="font-size: 11px; color: #00e5ff; font-weight: 600; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-clock"></i> 15/07/2026</div>
-                            <div style="font-size: 12px; font-weight: 600; color: #fff;">Chỉ số Giá sản xuất PPI Mỹ</div>
-                            <div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.4;">PPI đo lường lạm phát từ phía sản xuất. <strong class='text-emerald-400'>[CHI TIẾT]: PPI tăng 0.2% MoM (khớp dự báo), tăng 2.6% YoY do chi phí dịch vụ kho bãi và logistics nhích nhẹ. Xu hướng giảm lạm phát đầu vào được duy trì, củng cố thêm niềm tin thị trường rằng Fed sẽ tiến hành 2 lần cắt giảm lãi suất trong năm 2026.</strong></div>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(0, 229, 255, 0.1); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 0 10px rgba(0,229,255,0.02);">
-                            <div style="font-size: 11px; color: #a855f7; font-weight: 600; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-landmark"></i> 29/07/2026</div>
-                            <div style="font-size: 12px; font-weight: 600; color: #fff;">Quyết định Lãi suất FOMC</div>
-                            <div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.4;">Dự kiến Fed giữ nguyên lãi suất nhưng hé lộ tín hiệu cắt giảm lãi suất cho kỳ họp tháng 9.</div>
-                        </div>
-                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(0, 229, 255, 0.1); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 0 10px rgba(0,229,255,0.02);">
-                            <div style="font-size: 11px; color: #00e5ff; font-weight: 600; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-clock"></i> 30/07/2026</div>
-                            <div style="font-size: 12px; font-weight: 600; color: #fff;">Chỉ số Lạm phát PCE Mỹ</div>
-                            <div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.4;">Thước đo lạm phát ưa thích của Fed dùng để đánh giá dài hạn và điều chỉnh lãi suất cơ bản.</div>
-                        </div>
-                        <div style="background: rgba(255, 80, 80, 0.05); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
-                            <div style="font-size: 11px; color: #ef4444; font-weight: 600; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-circle-exclamation"></i> 08/07/2026 - ĐANG DIỄN RA</div>
-                            <div style="font-size: 12px; font-weight: 600; color: #fff;">🔥 Xung đột Mỹ - Iran Leo thang (Trung Đông)</div>
-                            <div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.5;">Lệnh ngừng bắn sụp đổ ngày 08/07/2026. Mỹ không kích hạ tầng quân sự &amp; hạt nhân Iran liên tiếp. Iran đáp trả bằng tên lửa/drone nhắm căn cứ Mỹ tại Bahrain, Kuwait, Jordan. Eo biển Hormuz (20% dầu thế giới) bị đe dọa phong tỏa. <strong class="text-red-400">[TÁC ĐỘNG VN]: Giá dầu Brent vượt 92 USD/thùng → xăng nội địa tăng mạnh → lạm phát nhập khẩu → SBV khó hạ lãi suất. Dòng vốn ngoại (FII) rút sang tài sản trú ẩn (USD, Vàng) → áp lực bán ròng HOSE. Chi phí logistics tăng 15-20% bóp nghẹt biên lợi nhuận DN sản xuất, dệt may, thủy sản.</strong> <br/><span style="color:#fbbf24;font-weight:600;">📌 KHUYẾN NGHỊ: Giảm tỷ trọng 20-30%, tích lũy GAS/BSR/PLX hưởng lợi giá dầu. Tránh HVN, phân bón, hóa chất. VN-Index có thể điều chỉnh thêm 2-5% nếu căng thẳng leo thang.</span></div>
-                        </div>
-                        <div style="background: rgba(251, 146, 60, 0.05); border: 1px solid rgba(251, 146, 60, 0.2); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
-                            <div style="font-size: 11px; color: #fb923c; font-weight: 600; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-oil-well"></i> 22/07/2026 - CẬP NHẬT</div>
-                            <div style="font-size: 12px; font-weight: 600; color: #fff;">🛢️ Dầu Brent 92.4 USD - Houthi đe dọa Biển Đỏ</div>
-                            <div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.5;">Dầu Brent đạt 92.4 USD/thùng, WTI 85-86 USD — cao nhất 6 tuần. Houthi mở rộng đe dọa Biển Đỏ, tàu chở dầu Saudi phải đổi lộ trình, chi phí vận tải tăng 15-20%. <strong class="text-orange-400">[TÁC ĐỘNG VN]: Giá xăng nội địa dự báo tăng 500-1,000 VND/lít kỳ tới. GAS, BSR, PLX hưởng lợi biên lợi nhuận giãn rộng. HVN (hàng không), nhựa, phân bón chịu áp lực chi phí đầu vào tăng.</strong></div>
-                        </div>
+                    <div id="macro-events-warning" style="display: none; font-size: 11px; line-height: 1.5; color: #fbbf24; background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 6px; padding: 8px 10px;"></div>
+                    <div id="macro-events-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                        <!-- Thẻ sự kiện do renderMacroEvents() sinh ra từ /api/macro-events -->
                     </div>
             </div>
         </div>
@@ -2278,7 +2252,7 @@
             const precisePrices = {
                 "PHC": { last_price: 4.79, change: 0.20, change_pct: 4.36 },
                 "MBB": { last_price: 25.75, change: 0.00, change_pct: 0.00 },
-                "FPT": { last_price: 73.20, change: 0.00, change_pct: 0.00 },
+                "FPT": { last_price: 64.80, change: 0.20, change_pct: 0.31 },
                 "MBS": { last_price: 22.30, change: 0.00, change_pct: 0.00 },
                 "CMG": { last_price: 27.10, change: 0.00, change_pct: 0.00 },
                 "HHV": { last_price: 11.20, change: 0.00, change_pct: 0.00 },
@@ -4200,27 +4174,19 @@
             { key: 'real',    label: 'Bất động sản',         icon: 'fa-city',            color: '#ff6b35' }
         ];
 
-        function generateUptrendData() {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit', year:'numeric'});
-            const timeStr = now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
-
-            return [
+        async function generateUptrendData() {
+            const stockSpecs = [
                 {
                     sector: 'bank',
                     stocks: [
                         {
-                            ticker: 'VCB', name: 'Vietcombank',
-                            entry: '60.500', target: '67.000', sl: '58.000',
-                            upside: '+11.1%',
+                            ticker: 'VCB', name: 'Vietcombank', defaultPrice: 60.5, targetRatio: 1.107, slRatio: 0.959,
                             kythuat: 'Giữ vững trên EMA50, MACD bullish crossover khung tuần, RSI(14)=54 — dư địa tăng tốt.',
                             cocban: 'NIM mở rộng Q2/2026, tỉ lệ NPL < 1.2%, ROE đứng đầu ngành ~22%.',
                             catalyst: 'Kỳ vọng Fed cắt lãi suất tháng 9, room ngoại còn trống, MSCI EM rebalancing tháng 8.'
                         },
                         {
-                            ticker: 'BID', name: 'BIDV',
-                            entry: '41.200', target: '46.500', sl: '25.000',
-                            upside: '+13.7%',
+                            ticker: 'BID', name: 'BIDV', defaultPrice: 41.2, targetRatio: 1.129, slRatio: 0.952,
                             kythuat: 'Phá vỡ kháng cự 46.500 với khối lượng tăng 180%, Ichimoku Cloud xanh trên tuần.',
                             cocban: 'Tăng trưởng tín dụng Q2 ước +7.8%, thu ngoài lãi tăng mạnh từ bancassurance.',
                             catalyst: 'Gói đầu tư công 800K tỷ VNĐ thúc đẩy cho vay hạ tầng, dividend yield ~4.5%.'
@@ -4231,17 +4197,13 @@
                     sector: 'sec',
                     stocks: [
                         {
-                            ticker: 'SSI', name: 'SSI Securities',
-                            entry: '27.000', target: '31.500', sl: '25.000',
-                            upside: '+16.7%',
+                            ticker: 'SSI', name: 'SSI Securities', defaultPrice: 27.0, targetRatio: 1.167, slRatio: 0.926,
                             kythuat: 'Golden cross MA20/MA50 vừa hình thành, Volume profile tích lũy vùng 26-27.',
                             cocban: 'Doanh thu margin tăng 35% YoY, thị phần môi giới #1, thêm dịch vụ fintech.',
                             catalyst: 'TTCK Việt Nam tiếp tục hút dòng tiền mới từ nhà đầu tư F0, kỳ vọng nâng hạng 2026.'
                         },
                         {
-                            ticker: 'VND', name: 'VNDirect',
-                            entry: '18.500', target: '21.500', sl: '17.300',
-                            upside: '+18.2%',
+                            ticker: 'VND', name: 'VNDirect', defaultPrice: 18.5, targetRatio: 1.162, slRatio: 0.935,
                             kythuat: 'Đáy nền tích lũy 4 tháng, RSI đang hướng qua 50 từ dưới lên, OBV tăng liên tục.',
                             cocban: 'Mảng IB phục hồi mạnh từ IPO sóng mới, margin lending tăng nhờ thị trường.',
                             catalyst: 'Kế hoạch phát hành trái phiếu mở rộng vốn, hưởng lợi trực tiếp từ thị trường sôi động.'
@@ -4252,17 +4214,13 @@
                     sector: 'tech',
                     stocks: [
                         {
-                            ticker: 'FPT', name: 'FPT Corporation',
-                            entry: '72.000', target: '82.000', sl: '68.000',
-                            upside: '+13.9%',
+                            ticker: 'FPT', name: 'FPT Corporation', defaultPrice: 64.8, targetRatio: 1.139, slRatio: 0.944,
                             kythuat: 'Uptrend kênh tăng rõ ràng, hỗ trợ mạnh EMA21, Stochastic %K > %D và trên 50.',
                             cocban: 'Doanh thu IT services tăng 28% YoY, mảng AI/Cloud tăng tốc, EBITDA margin 22%.',
                             catalyst: 'Ký thêm hợp đồng AI với đối tác Nhật Bản & Mỹ, FPT Edu tăng trưởng mạnh.'
                         },
                         {
-                            ticker: 'CMG', name: 'CMC Technology',
-                            entry: '26.800', target: '25.000', sl: '25.000',
-                            upside: '+16.4%',
+                            ticker: 'CMG', name: 'CMC Technology', defaultPrice: 26.8, targetRatio: 1.157, slRatio: 0.933,
                             kythuat: 'Thoát ra khỏi vùng tích lũy hẹp, bollinger band nở rộng hướng tăng, RSI=58.',
                             cocban: 'Cloud & data center tăng trưởng 40%, cổ đông chiến lược Samsung SDI hỗ trợ.',
                             catalyst: 'Thúc đẩy chuyển đổi số quốc gia, dự án hạ tầng viễn thông 5G Việt Nam.'
@@ -4273,17 +4231,13 @@
                     sector: 'infra',
                     stocks: [
                         {
-                            ticker: 'HHV', name: 'Đèo Cả BOT',
-                            entry: '11.000', target: '12.500', sl: '10.200',
-                            upside: '+18.6%',
+                            ticker: 'HHV', name: 'Đèo Cả BOT', defaultPrice: 11.0, targetRatio: 1.136, slRatio: 0.927,
                             kythuat: 'Mô hình Cup & Handle hoàn thành, breakout với volume gấp 2.5x trung bình.',
                             cocban: 'Lưu lượng xe tăng 15%, phí BOT điều chỉnh theo lộ trình, FCF dương ổn định.',
                             catalyst: 'Đầu tư công 800K tỷ VNĐ, cao tốc Bắc-Nam Phase 2, tăng thu phí lộ trình 2026.'
                         },
                         {
-                            ticker: 'PC1', name: 'PCC1',
-                            entry: '21.200', target: '24.500', sl: '19.800',
-                            upside: '+17.6%',
+                            ticker: 'PC1', name: 'PCC1', defaultPrice: 21.2, targetRatio: 1.156, slRatio: 0.934,
                             kythuat: 'Hồi phục từ đáy chu kỳ, EMA34 cắt lên EMA89, divergence dương trên MACD.',
                             cocban: 'Backlog xây lắp điện cao, mảng năng lượng tái tạo phát triển, P/E hấp dẫn ~9x.',
                             catalyst: 'Quy hoạch điện VIII, các dự án điện gió ngoài khơi, nhu cầu hạ tầng điện tăng vọt.'
@@ -4294,17 +4248,13 @@
                     sector: 'real',
                     stocks: [
                         {
-                            ticker: 'NLG', name: 'Nam Long Group',
-                            entry: '25.100', target: '29.000', sl: '24.500',
-                            upside: '+16.9%',
+                            ticker: 'NLG', name: 'Nam Long Group', defaultPrice: 25.1, targetRatio: 1.155, slRatio: 0.944,
                             kythuat: 'Hình thành higher low – higher high rõ ràng, giá trên tất cả EMA, RSI tăng lên 57.',
                             cocban: 'Bàn giao mạnh Akari Phase 2, quỹ đất Đồng Nai/Cần Thơ lớn, tỉ lệ nợ thấp.',
                             catalyst: 'Luật Đất đai 2024 hiệu lực, thị trường BĐS phục hồi chu kỳ, lãi suất hạ nhiệt.'
                         },
                         {
-                            ticker: 'DXG', name: 'Đất Xanh Group',
-                            entry: '11.500', target: '13.200', sl: '10.800',
-                            upside: '+17.4%',
+                            ticker: 'DXG', name: 'Đất Xanh Group', defaultPrice: 11.5, targetRatio: 1.148, slRatio: 0.939,
                             kythuat: 'Triple bottom hoàn thành ở vùng 12-13K, sóng 3 Elliott Wave có khối lượng xác nhận.',
                             cocban: 'Pháp lý dự án được tháo gỡ, dịch vụ BĐS phục hồi, cơ cấu nợ được tái cơ cấu.',
                             catalyst: 'Tín dụng BĐS được nới, gói 120K tỷ nhà ở xã hội, thị trường căn hộ mid-end bứt phá.'
@@ -4312,15 +4262,58 @@
                     ]
                 }
             ];
+
+            const allTickers = ['VCB', 'BID', 'SSI', 'VND', 'FPT', 'CMG', 'HHV', 'PC1', 'NLG', 'DXG'];
+            const priceMap = {};
+            
+            try {
+                const requests = allTickers.map(async sym => {
+                    try {
+                        const r = await fetch(`${HOST}/api/price-depth?symbol=${sym}&source=${currentSource}`);
+                        if (r.ok) {
+                            const d = await r.json();
+                            if (d && d.last_price > 0) {
+                                priceMap[sym] = Number(d.last_price);
+                            }
+                        }
+                    } catch(err){}
+                });
+                await Promise.all(requests);
+            } catch(e) {
+                console.error("Error fetching live prices for uptrend recommendations:", e);
+            }
+
+            return stockSpecs.map(sec => {
+                return {
+                    sector: sec.sector,
+                    stocks: sec.stocks.map(st => {
+                        const livePrice = priceMap[st.ticker] || st.defaultPrice;
+                        const entryVal = livePrice;
+                        const targetVal = Number((livePrice * st.targetRatio).toFixed(1));
+                        const slVal = Number((livePrice * st.slRatio).toFixed(1));
+                        const upsidePct = '+' + (((targetVal - entryVal) / entryVal) * 100).toFixed(1) + '%';
+                        
+                        return {
+                            ticker: st.ticker,
+                            name: st.name,
+                            entry: entryVal.toFixed(1),
+                            target: targetVal.toFixed(1),
+                            sl: slVal.toFixed(1),
+                            upside: upsidePct,
+                            kythuat: st.kythuat,
+                            cocban: st.cocban,
+                            catalyst: st.catalyst
+                        };
+                    })
+                };
+            });
         }
 
         function formatVNStockPrice(priceStr) {
             if (!priceStr) return '—';
-            // If already a standard decimal format (e.g. 61.2), return directly or formatted
             let val = parseFloat(priceStr);
             if (isNaN(val)) return priceStr;
             
-            // If it is in old thousand format like "60.500" or "88.500" or "90000"
             if (priceStr.includes('.') && priceStr.split('.')[1].length >= 3) {
                 val = parseFloat(priceStr.replace(/\./g, ''));
             }
@@ -4401,22 +4394,20 @@
         async function loadBuildersTab(forceRefresh = false) {
             try {
                 const updateEl = document.getElementById('uptrend-last-update');
-                if (updateEl) updateEl.textContent = 'Đang phân tích...';
+                if (updateEl) updateEl.textContent = 'Đang kết nối sàn...';
 
-                // Simulate AI analysis delay for realism
                 if (forceRefresh) {
                     const grid = document.getElementById('uptrend-sectors-grid');
                     if (grid) {
                         grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px 0; color:var(--color-text-muted);">
                             <i class="fa-solid fa-spinner fa-spin" style="font-size:28px; margin-bottom:12px; display:block; color:#00e5ff;"></i>
-                            AI CIO đang phân tích thị trường... Vui lòng chờ trong giây lát
+                            AI CIO đang đối chiếu giá khớp lệnh thời gian thực &amp; tính toán lại Entry/Target/SL...
                         </div>`;
                     }
-                    await new Promise(resolve => setTimeout(resolve, 1200));
                 }
 
-                // Load fresh uptrend data (enriched with live market context)
-                const data = generateUptrendData();
+                // Load fresh uptrend data enriched with real-time market prices
+                const data = await generateUptrendData();
                 renderUptrendSectors(data);
 
                 const now = new Date();
@@ -4424,7 +4415,6 @@
                 const dateStr = now.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'});
                 if (updateEl) updateEl.textContent = `Cập nhật lúc ${timeStr} ngày ${dateStr}`;
 
-                // Set up auto-refresh every 30 minutes
                 if (uptrendAutoRefreshTimer) clearTimeout(uptrendAutoRefreshTimer);
                 uptrendAutoRefreshTimer = setTimeout(() => loadBuildersTab(true), 30 * 60 * 1000);
 
@@ -5119,6 +5109,159 @@
     document.getElementById('geo-detail-modal').addEventListener('click', function(e) {
         if (e.target === this) closeGeoModal();
     });
+
+    /* =====================================================================
+       LỊCH SỰ KIỆN VĨ MÔ
+       Trước đây khối này là HTML viết cứng: ngày gõ tay, tên tháng ghi thẳng
+       vào tiêu đề, nhãn trạng thái cũng là chữ cố định. Không có mã nào lật
+       sang tháng mới nên nó đứng yên mãi ở tháng đã viết.
+       Nay toàn bộ dựng từ /api/macro-events theo tháng thật của máy chủ,
+       trạng thái từng thẻ tính từ ngày hôm nay.
+       ===================================================================== */
+    (function () {
+        var CATEGORY_STYLE = {
+            us_data:     { color: '#00e5ff', icon: 'fa-clock',              border: 'rgba(0, 229, 255, 0.1)',   bg: 'rgba(255, 255, 255, 0.02)' },
+            fomc:        { color: '#a855f7', icon: 'fa-landmark',           border: 'rgba(168, 85, 247, 0.2)',  bg: 'rgba(168, 85, 247, 0.04)' },
+            geopolitics: { color: '#ef4444', icon: 'fa-circle-exclamation', border: 'rgba(239, 68, 68, 0.3)',   bg: 'rgba(255, 80, 80, 0.05)' },
+            commodity:   { color: '#fb923c', icon: 'fa-oil-well',           border: 'rgba(251, 146, 60, 0.2)',  bg: 'rgba(251, 146, 60, 0.05)' },
+            vn_data:     { color: '#34d399', icon: 'fa-chart-line',         border: 'rgba(52, 211, 153, 0.2)',  bg: 'rgba(52, 211, 153, 0.04)' }
+        };
+
+        // Nhãn trạng thái tính từ ngày thật, không còn là chữ viết cứng
+        var STATUS_LABEL = {
+            past:     { text: 'ĐÃ CÔNG BỐ', color: '#64748b' },
+            today:    { text: 'HÔM NAY',    color: '#fbbf24' },
+            upcoming: { text: 'SẮP DIỄN RA', color: '#38bdf8' }
+        };
+
+        var viewMonth = null;   // null = tháng hiện tại theo máy chủ
+        var loading = false;
+
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function shiftMonth(key, delta) {
+            var p = key.split('-');
+            var d = new Date(Number(p[0]), Number(p[1]) - 1 + delta, 1);
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        }
+
+        function cardHtml(ev) {
+            var st = CATEGORY_STYLE[ev.category] || CATEGORY_STYLE.us_data;
+            var status = STATUS_LABEL[ev.status] || STATUS_LABEL.upcoming;
+            var faded = ev.status === 'past' ? 'opacity: 0.62;' : '';
+            var ring = ev.status === 'today'
+                ? 'box-shadow: 0 0 0 1px rgba(251,191,36,0.35), 0 0 18px rgba(251,191,36,0.12);'
+                : 'box-shadow: inset 0 0 10px rgba(0,229,255,0.02);';
+
+            var body = '';
+            if (ev.summary) body += esc(ev.summary);
+            if (ev.detail) body += " <strong class='text-emerald-400'>" + esc(ev.detail) + '</strong>';
+            if (ev.vn_impact) {
+                body += ' <strong class="text-red-400">[TÁC ĐỘNG VN]: ' + esc(ev.vn_impact) + '</strong>';
+            }
+            if (ev.recommendation) {
+                body += '<br/><span style="color:#fbbf24;font-weight:600;">📌 KHUYẾN NGHỊ: '
+                     + esc(ev.recommendation) + '</span>';
+            }
+            if (!body) body = '<span style="opacity:0.6;">Chưa có phân tích tác động. '
+                            + 'Bổ sung trong data/macro_events.json.</span>';
+
+            var fredTag = ev.source && ev.source.indexOf('fred') === 0
+                ? '<span title="Ngày công bố lấy tự động từ FRED - Fed St. Louis" '
+                  + 'style="font-size:9px;color:#64748b;border:1px solid rgba(100,116,139,0.35);'
+                  + 'border-radius:4px;padding:0 4px;">FRED</span>'
+                : '';
+
+            return ''
+                + '<div style="background: ' + st.bg + '; border: 1px solid ' + st.border + '; '
+                +      'border-radius: 8px; padding: 12px; display: flex; flex-direction: column; '
+                +      'gap: 6px; ' + ring + faded + '">'
+                +   '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">'
+                +     '<div style="font-size: 11px; color: ' + st.color + '; font-weight: 600; '
+                +          'display: flex; align-items: center; gap: 4px;">'
+                +       '<i class="fa-solid ' + st.icon + '"></i> ' + esc(ev.date_display)
+                +     '</div>'
+                +     '<div style="display:flex;align-items:center;gap:4px;">' + fredTag
+                +       '<span style="font-size:9px;font-weight:700;color:' + status.color + ';">'
+                +         status.text + '</span>'
+                +     '</div>'
+                +   '</div>'
+                +   '<div style="font-size: 12px; font-weight: 600; color: #fff;">' + esc(ev.title) + '</div>'
+                +   '<div style="font-size: 11px; color: var(--color-text-muted); line-height: 1.5;">'
+                +     body + '</div>'
+                + '</div>';
+        }
+
+        function setWarning(messages) {
+            var box = document.getElementById('macro-events-warning');
+            if (!box) return;
+            if (!messages || !messages.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+            box.style.display = 'block';
+            box.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> '
+                          + messages.map(esc).join('<br/>');
+        }
+
+        async function loadMacroEvents() {
+            if (loading) return;
+            loading = true;
+            var grid = document.getElementById('macro-events-grid');
+            var label = document.getElementById('macro-events-month');
+            if (!grid || !label) { loading = false; return; }
+
+            try {
+                // Không phụ thuộc biến HOST của script khác: nếu script đó lỗi thì
+                // khối lịch này vẫn phải chạy được thay vì chết theo.
+                var base = (typeof HOST !== 'undefined' && HOST) ? HOST : window.location.origin;
+                var url = base + '/api/macro-events' + (viewMonth ? '?month=' + viewMonth : '');
+                var res = await fetch(url, { cache: 'no-store' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var data = await res.json();
+
+                viewMonth = data.month_key;
+                label.textContent = '(THÁNG ' + data.month + ')'
+                                  + (data.is_current_month ? '' : ' — XEM LẠI');
+                setWarning(data.warnings);
+
+                if (!data.events.length) {
+                    grid.innerHTML = '<div style="grid-column: 1 / -1; padding: 18px; text-align: center; '
+                        + 'font-size: 12px; color: var(--color-text-muted); border: 1px dashed '
+                        + 'rgba(255,255,255,0.08); border-radius: 8px;">'
+                        + 'Chưa có sự kiện nào cho tháng ' + esc(data.month) + '.'
+                        + '<br/><span style="font-size:11px;opacity:0.75;">Cấu hình FRED_API_KEY để tự lấy '
+                        + 'lịch công bố CPI/PPI/PCE/Việc làm Mỹ, hoặc thêm sự kiện vào '
+                        + 'data/macro_events.json.</span></div>';
+                } else {
+                    grid.innerHTML = data.events.map(cardHtml).join('');
+                }
+            } catch (e) {
+                console.error('Macro events load failed:', e);
+                label.textContent = '(KHÔNG TẢI ĐƯỢC)';
+                setWarning(['Không tải được lịch sự kiện vĩ mô: ' + e.message
+                          + '. Dữ liệu hiển thị có thể không phải của tháng hiện tại.']);
+                grid.innerHTML = '<div style="grid-column: 1 / -1; padding: 18px; text-align: center; '
+                    + 'font-size: 12px; color: #ef4444; border: 1px dashed rgba(239,68,68,0.25); '
+                    + 'border-radius: 8px;">Lỗi kết nối máy chủ lịch sự kiện.</div>';
+            } finally {
+                loading = false;
+            }
+        }
+
+        function wire(id, handler) {
+            var el = document.getElementById(id);
+            if (el) el.addEventListener('click', handler);
+        }
+        wire('macro-events-prev',  function () { viewMonth = shiftMonth(viewMonth, -1); loadMacroEvents(); });
+        wire('macro-events-next',  function () { viewMonth = shiftMonth(viewMonth,  1); loadMacroEvents(); });
+        wire('macro-events-today', function () { viewMonth = null; loadMacroEvents(); });
+
+        loadMacroEvents();
+        // Tự làm mới mỗi 30 phút để nhãn ngày lật sang tháng mới mà không cần tải lại trang
+        setInterval(function () { if (!viewMonth) loadMacroEvents(); }, 30 * 60 * 1000);
+    })();
     </script>
 </body>
 </html>

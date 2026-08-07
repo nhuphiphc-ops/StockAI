@@ -1,0 +1,61 @@
+{
+  "_huong_dan": [
+    "Kho su kien vi mo do nguoi dung tu bien tap.",
+    "Cac moc lich cong bo CPI/PPI/PCE/Bao cao viec lam duoc tu dong lay tu FRED (Fed St. Louis).",
+    "File nay dung cho: (1) su kien khong co trong FRED nhu dia chinh tri, gia dau, FOMC;",
+    "(2) phan binh luan tac dong toi Viet Nam - FRED chi cho ngay cong bo, khong cho phan tich.",
+    "Neu 'date' va 'category' trung voi mot su kien FRED thi noi dung o day se duoc gop de len.",
+    "category hop le: us_data | fomc | geopolitics | commodity | vn_data",
+    "Chi 'date' va 'title' la bat buoc."
+  ],
+  "events": [
+    {
+      "date": "2026-07-02",
+      "category": "us_data",
+      "title": "Báo cáo Việc làm Mỹ",
+      "summary": "Chỉ số Employment Situation đo sức khỏe lao động Mỹ.",
+      "detail": "[CHI TIẾT]: Non-farm Payrolls mới đạt 206K (dự báo 190K), tỷ lệ thất nghiệp nhích nhẹ lên 4.1%. Thị trường lao động hạ nhiệt đúng lộ trình giúp hạ nhiệt lợi suất trái phiếu Mỹ kỳ hạn 10 năm về 4.28%, củng cố kỳ vọng Fed cắt giảm lãi suất vào kỳ họp tháng 9 tới 72%."
+    },
+    {
+      "date": "2026-07-08",
+      "category": "geopolitics",
+      "title": "🔥 Xung đột Mỹ - Iran Leo thang (Trung Đông)",
+      "summary": "Lệnh ngừng bắn sụp đổ ngày 08/07/2026. Mỹ không kích hạ tầng quân sự & hạt nhân Iran liên tiếp. Iran đáp trả bằng tên lửa/drone nhắm căn cứ Mỹ tại Bahrain, Kuwait, Jordan. Eo biển Hormuz (20% dầu thế giới) bị đe dọa phong tỏa.",
+      "vn_impact": "Giá dầu Brent vượt 92 USD/thùng → xăng nội địa tăng mạnh → lạm phát nhập khẩu → SBV khó hạ lãi suất. Dòng vốn ngoại (FII) rút sang tài sản trú ẩn (USD, Vàng) → áp lực bán ròng HOSE. Chi phí logistics tăng 15-20% bóp nghẹt biên lợi nhuận DN sản xuất, dệt may, thủy sản.",
+      "recommendation": "Giảm tỷ trọng 20-30%, tích lũy GAS/BSR/PLX hưởng lợi giá dầu. Tránh HVN, phân bón, hóa chất. VN-Index có thể điều chỉnh thêm 2-5% nếu căng thẳng leo thang."
+    },
+    {
+      "date": "2026-07-14",
+      "category": "us_data",
+      "title": "Chỉ số Lạm phát CPI Mỹ",
+      "summary": "CPI tháng 6 của Mỹ.",
+      "detail": "[CHI TIẾT]: CPI tăng 3.0% YoY (dự báo 3.1%, trước đó 3.3%), CPI lõi giảm về 3.3% (dự báo 3.4%). Lạm phát Mỹ hạ nhiệt mạnh ở mảng năng lượng và nhà ở giúp xoa dịu áp lực tỷ giá USD/VND tại Việt Nam từ đỉnh 26.250 giảm về mốc 26.150."
+    },
+    {
+      "date": "2026-07-15",
+      "category": "us_data",
+      "title": "Chỉ số Giá sản xuất PPI Mỹ",
+      "summary": "PPI đo lường lạm phát từ phía sản xuất.",
+      "detail": "[CHI TIẾT]: PPI tăng 0.2% MoM (khớp dự báo), tăng 2.6% YoY do chi phí dịch vụ kho bãi và logistics nhích nhẹ. Xu hướng giảm lạm phát đầu vào được duy trì, củng cố thêm niềm tin thị trường rằng Fed sẽ tiến hành 2 lần cắt giảm lãi suất trong năm 2026."
+    },
+    {
+      "date": "2026-07-22",
+      "category": "commodity",
+      "title": "🛢️ Dầu Brent 92.4 USD - Houthi đe dọa Biển Đỏ",
+      "summary": "Dầu Brent đạt 92.4 USD/thùng, WTI 85-86 USD — cao nhất 6 tuần. Houthi mở rộng đe dọa Biển Đỏ, tàu chở dầu Saudi phải đổi lộ trình, chi phí vận tải tăng 15-20%.",
+      "vn_impact": "Giá xăng nội địa dự báo tăng 500-1,000 VND/lít kỳ tới. GAS, BSR, PLX hưởng lợi biên lợi nhuận giãn rộng. HVN (hàng không), nhựa, phân bón chịu áp lực chi phí đầu vào tăng."
+    },
+    {
+      "date": "2026-07-29",
+      "category": "fomc",
+      "title": "Quyết định Lãi suất FOMC",
+      "summary": "Dự kiến Fed giữ nguyên lãi suất nhưng hé lộ tín hiệu cắt giảm lãi suất cho kỳ họp tháng 9."
+    },
+    {
+      "date": "2026-07-30",
+      "category": "us_data",
+      "title": "Chỉ số Lạm phát PCE Mỹ",
+      "summary": "Thước đo lạm phát ưa thích của Fed dùng để đánh giá dài hạn và điều chỉnh lãi suất cơ bản."
+    }
+  ]
+}

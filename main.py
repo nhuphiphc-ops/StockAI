@@ -526,6 +526,25 @@ def get_news(limit: int = Query(8, description="Number of news stories to fetch"
     data = fireant_client.get_news(limit)
     return data
 
+@app.get("/api/macro-events")
+def get_macro_events(month: str = Query(None, description="Tháng cần xem, dạng YYYY-MM. Bỏ trống = tháng hiện tại")):
+    """
+    Lịch sự kiện vĩ mô của một tháng.
+
+    Ghép ngày công bố lấy tự động từ FRED (Fed St. Louis) với phần sự kiện và bình luận
+    tác động tới Việt Nam do người dùng biên tập trong data/macro_events.json.
+    Bỏ trống 'month' thì lấy tháng hiện tại theo đồng hồ máy chủ.
+    """
+    from core.macro_calendar import get_macro_events as build_calendar
+    try:
+        return build_calendar(month)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        traceback.print_exc()
+        # Không nuốt lỗi im lặng: giao diện cần biết để hiện cảnh báo thay vì tháng cũ
+        raise HTTPException(status_code=500, detail=f"Không dựng được lịch vĩ mô: {e}")
+
 # -------------------------------------------------------------------------
 # Excel Dashboard Sync & CRUD APIs
 # -------------------------------------------------------------------------
