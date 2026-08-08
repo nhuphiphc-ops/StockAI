@@ -3,7 +3,7 @@ import sys
 import json
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 # Nạp .env khi chạy máy cá nhân. Trên Vercel biến môi trường được tiêm sẵn nên hàm này
 # không tìm thấy file và cũng không làm gì - vô hại. Thiếu bước này thì chạy local
@@ -741,11 +741,23 @@ def get_excel_portfolio():
         return {}
         
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+
+def vn_now():
+    """
+    Giờ Việt Nam, không phụ thuộc múi giờ của máy chủ.
+
+    Hàm serverless trên Vercel chạy theo UTC, nên datetime.now() ở đó trả về giờ sớm
+    hơn Việt Nam 7 tiếng. Dùng thẳng nó để xét phiên giao dịch thì máy chủ sẽ tưởng sàn
+    mở lúc 15:45-21:45 giờ Việt Nam. Chạy trên máy cá nhân đặt múi giờ VN lại đúng, nên
+    lỗi kiểu này không lộ ra khi thử ở local.
+    """
+    return datetime.now(timezone(timedelta(hours=7)))
+
 
 def derivatives_session_state(now=None):
     """
-    Phiên hợp đồng tương lai VN30F1M trên HNX.
+    Phiên hợp đồng tương lai VN30F1M trên HNX, tính theo giờ Việt Nam.
 
     ATO 8:45-9:00, khớp liên tục 9:00-11:30, nghỉ trưa, 13:00-14:30, ATC 14:30-14:45.
     Thiếu hàm này nên trước đây cứ mở trang là hệ thống sinh khuyến nghị và ghi vào
@@ -754,7 +766,7 @@ def derivatives_session_state(now=None):
     Chỉ chặn được cuối tuần, KHÔNG chặn được ngày lễ vì không có nguồn lịch nghỉ của
     HNX trong dự án. Nói rõ giới hạn đó ra thay vì để người dùng tưởng đã lọc hết.
     """
-    now = now or datetime.now()
+    now = now or vn_now()
     if now.weekday() >= 5:
         return False, "Thứ 7 và Chủ nhật sàn không giao dịch."
     minutes = now.hour * 60 + now.minute
@@ -786,7 +798,9 @@ def save_derivatives_log(trend, action, entry, sl, tp):
         except Exception:
             data = []
             
-    now = datetime.now()
+    # Giờ Việt Nam, không phải giờ máy chủ: trên Vercel datetime.now() là UTC nên nhật ký
+    # sẽ đóng dấu lệch 7 tiếng, có bản ghi rơi sang ngày hôm trước.
+    now = vn_now()
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M:%S")
     
