@@ -11,7 +11,7 @@ uvicorn main:app --reload
 
 `launch_dashboard.bat` cũng khởi chạy được. Không có test suite.
 
-## Kiến trúc — 3 điểm dễ vấp
+## Kiến trúc — 5 điểm dễ vấp
 
 **1. `templates/index.html` được phục vụ dạng TĨNH, không qua Jinja.**
 `vercel.json` route `/(.*)` trỏ thẳng vào file. Trong template không có một cú pháp
@@ -41,6 +41,63 @@ PY
 Build Python chỉ đóng gói những gì được liệt kê ở `config.includeFiles`. Hiện có
 `data/**`. Thêm file dữ liệu mới thì phải bổ sung vào đây, nếu không nó tồn tại ở
 local nhưng biến mất trên Vercel.
+
+**4. Hàm serverless trên Vercel chạy theo UTC, không phải giờ Việt Nam.**
+`datetime.now()` ở đó trả về giờ sớm hơn Việt Nam 7 tiếng. Dùng
+`vn_now()` trong `main.py` (ghim `timezone(timedelta(hours=7))`) cho **mọi** logic
+phụ thuộc giờ: xét phiên giao dịch, đóng dấu thời gian bản ghi, cắt theo ngày.
+
+Đã trả giá cho chuyện này: chốt chặn phiên phái sinh viết bằng `datetime.now()` khi
+lên production sẽ coi **15:45–21:45 giờ Việt Nam là trong phiên** và chặn đúng
+8:45–14:45 — đảo ngược hoàn toàn. Máy cá nhân đặt múi giờ VN nên chạy `uvicorn` ở
+nhà thấy đúng hết; bản deploy cũng qua được lượt kiểm tra đầu vì hôm đó là thứ Bảy,
+chốt chặn cuối tuần chạy trước nên che mất lỗi giờ.
+
+**Không có gì trong giao diện phơi ra "máy chủ đang nghĩ mấy giờ"**, nên cả lớp lỗi
+này im lặng. Nghi ngờ lệch giờ thì đối chiếu:
+
+```bash
+curl -s https://stock-ai-six-iota.vercel.app/api/macro-events | python -c "import sys,json;print(json.load(sys.stdin)['today'])"
+```
+
+**5. `/static/...` trên Vercel KHÔNG chạy qua Python.**
+`vercel.json` route `/static/(.*)` thẳng vào build `@vercel/static`, nên mọi route
+FastAPI khai cùng đường dẫn đó chỉ có tác dụng ở local. Từng có một route riêng phục
+vụ `/static/lightweight-charts.js` đọc từ `templates/`, khiến hai môi trường nạp hai
+file khác nhau: local ra bản v5.2.0, production 404. Biểu đồ nến vì thế chưa bao giờ
+chạy trên site thật.
+
+File tĩnh phải nằm **thật** trong `static/`. Đừng thêm route FastAPI cho đường dẫn
+`/static/`; handler chung `get_static_file()` đã đọc đúng thư mục Vercel phục vụ.
+
+## Biểu đồ nến
+
+`static/lightweight-charts.js` là TradingView Lightweight Charts **4.2.3**, vendor
+sẵn trong repo. Phải giữ nhánh **v4**: code trong `initChart()` gọi
+`addCandlestickSeries()` và `param.seriesData.get()`, **cả hai đã bị gỡ ở v5**. Nâng
+lên v5 mà không sửa code thì các guard `typeof … === 'function'` sẽ lặng lẽ bỏ qua —
+biểu đồ vẽ trục nhưng không có nến, và console không báo gì cả.
+
+Biểu đồ nằm ở tab **Bảng Giá Live** (`<div id="tvChart">`), không phải tab Phái Sinh.
+
+## Phái sinh M5
+
+- `derivatives_session_state()` — phiên VN30F1M trên HNX: T2–T6, ATO 8:45, khớp liên
+  tục 9:00–11:30, nghỉ trưa, 13:00–14:30, ATC tới 14:45. Ngoài phiên thì
+  `/api/derivatives/intraday-forecast` trả `NGOÀI PHIÊN GIAO DỊCH` và **không ghi
+  nhật ký**. Trước khi có hàm này, chỉ cần mở trang là cứ 15 giây log dài thêm một
+  dòng — kể cả thứ Bảy, Chủ nhật, 7 giờ tối.
+- **Chỉ chặn được cuối tuần, không chặn ngày lễ** — dự án không có lịch nghỉ HNX.
+- Nhật ký nằm ở `localStorage` của trình duyệt, không phải trên server. Route
+  `/api/derivatives/history-log` đọc `static/derivatives_history.json`, mà filesystem
+  trên Vercel chỉ đọc nên đường đó thực tế luôn rỗng.
+- Từ khóa nhận hướng trong `price_action` phải đủ dài để không nuốt nghĩa nhau. Bản
+  cũ để `"long"`, `"short"` trần, mà chính câu mô tả trung lập tự sinh là *"hai phe
+  Long/Short đang giằng co"* — khớp cả hai phía rồi rơi vào nhánh Short. `"tăng"`
+  cũng khớp trong *"từ chối tăng"*.
+- Con số ở hàng ROI **không phải lãi/lỗ đã thực hiện**: nó cộng khoảng cách
+  Entry→TP1 của mọi tín hiệu, tức giả định lệnh nào cũng chạm TP1 và không lệnh nào
+  chạm SL. Hệ thống chưa đối chiếu giá sau tín hiệu nên chưa biết kết quả thật.
 
 ## Lịch sự kiện vĩ mô
 
@@ -91,9 +148,12 @@ BOM, dấu nháy rồi, nhưng nạp sạch ngay từ đầu vẫn hơn.
 
 ## Việc còn dang dở
 
-- Các thẻ lấy từ FRED chưa có phân tích tác động tới VN — chỉ có mô tả chung về
-  loại báo cáo. Bổ sung qua `data/macro_events.json`.
 - FOMC không có trong FRED, phải nhập tay.
+- Bốn loại báo cáo FRED đã có bình luận tác động VN qua `binh_luan_mac_dinh`, nhưng
+  trường `recommendation` để trống — phần khuyến nghị đầu tư cụ thể do người dùng viết.
+- Chưa theo dõi kết quả thật của tín hiệu phái sinh (so giá sau tín hiệu với SL/TP)
+  nên hàng ROI vẫn là kịch bản giả định, chưa phải lãi/lỗ thật.
+- Ngày lễ chưa được lọc khỏi phiên giao dịch, chỉ mới lọc cuối tuần.
 - `data.db` và `__pycache__/*.pyc` **đang bị git theo dõi**. `.gitignore` không gỡ
   được, cần `git rm --cached`.
 - `ssi_client.py` ở thư mục gốc và `core/ssi_client.py` là hai bản khác nhau;
