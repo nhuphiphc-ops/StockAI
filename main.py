@@ -14,53 +14,6 @@ try:
 except ImportError:
     pass
 
-# Helper to log derivatives recommendation
-def save_derivatives_log(trend, action, entry, sl, tp):
-    if action not in ["Mở Long", "Mở Short"]:
-        return # Only record actual trades, skip neutral "Đứng ngoài"
-        
-    log_file = "static/derivatives_history.json"
-    data = []
-    if os.path.exists(log_file):
-        try:
-            with open(log_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception:
-            data = []
-            
-    now = datetime.now()
-    date_str = now.strftime("%Y-%m-%d")
-    time_str = now.strftime("%H:%M:%S")
-    
-    # Avoid duplicate entry within short period
-    if len(data) > 0:
-        last = data[0]
-        if last.get("date") == date_str and last.get("action") == action and last.get("entry") == entry:
-            return
-
-    new_log = {
-        "date": date_str,
-        "time": time_str,
-        "trend": trend,
-        "action": action,
-        "entry": entry,
-        "sl": sl,
-        "tp": tp,
-        "status": "Khớp lệnh"
-    }
-    data.insert(0, new_log)
-    
-    # Keep last 100 entries
-    if len(data) > 100:
-        data = data[:100]
-        
-    try:
-        os.makedirs("static", exist_ok=True)
-        with open(log_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-    except Exception as e:
-        print("Error saving derivatives log:", e)
-
 import traceback
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -790,11 +743,40 @@ def get_excel_portfolio():
 import json
 from datetime import datetime
 
+def derivatives_session_state(now=None):
+    """
+    Phiên hợp đồng tương lai VN30F1M trên HNX.
+
+    ATO 8:45-9:00, khớp liên tục 9:00-11:30, nghỉ trưa, 13:00-14:30, ATC 14:30-14:45.
+    Thiếu hàm này nên trước đây cứ mở trang là hệ thống sinh khuyến nghị và ghi vào
+    nhật ký, kể cả thứ bảy, chủ nhật và 7 giờ tối - lúc sàn đã đóng từ lâu.
+
+    Chỉ chặn được cuối tuần, KHÔNG chặn được ngày lễ vì không có nguồn lịch nghỉ của
+    HNX trong dự án. Nói rõ giới hạn đó ra thay vì để người dùng tưởng đã lọc hết.
+    """
+    now = now or datetime.now()
+    if now.weekday() >= 5:
+        return False, "Thứ 7 và Chủ nhật sàn không giao dịch."
+    minutes = now.hour * 60 + now.minute
+    if minutes < 8 * 60 + 45:
+        return False, "Chưa tới giờ mở cửa phiên phái sinh (ATO 8:45)."
+    if minutes >= 14 * 60 + 45:
+        return False, "Phiên phái sinh đã kết thúc (ATC đóng lúc 14:45)."
+    if 11 * 60 + 30 <= minutes < 13 * 60:
+        return False, "Đang nghỉ trưa giữa phiên (11:30-13:00)."
+    return True, ""
+
+
 # Helper to log derivatives recommendation
 def save_derivatives_log(trend, action, entry, sl, tp):
     if action not in ["Mở Long", "Mở Short"]:
         return # Only record actual trades, skip neutral "Đứng ngoài"
-        
+
+    # Ngoài phiên thì không có lệnh nào để ghi - nhật ký trước đây đầy bản ghi cuối tuần
+    is_open, _ = derivatives_session_state()
+    if not is_open:
+        return
+
     log_file = "static/derivatives_history.json"
     data = []
     if os.path.exists(log_file):
@@ -1675,20 +1657,44 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
         else:
             # Check price position in range
             candle_range = high_p - low_p
-            mid_p = (high_p + low_p) / 2.0
             
-            # Check keywords for strong directions
-            long_signals = ["rút chân", "pinbar", "tăng", "bứt phá", "long", "vượt đỉnh", "cạn cung", "bullish"]
-            short_signals = ["đỏ", "giảm", "short", "thủng đáy", "phân kỳ", "bán", "áp lực", "bearish"]
-            
+            # Từ khóa nhận dạng hướng trong mô tả hành động giá.
+            #
+            # Trước đây danh sách chứa "long" và "short" trần, mà chính câu mô tả TRUNG LẬP
+            # do /api/derivatives/live-candle sinh ra lại là "hai phe Long/Short đang giằng
+            # co" - khớp cả hai phía cùng lúc. Tương tự "tăng" khớp trong "từ chối tăng"
+            # (nghĩa giảm) và "áp lực" khớp trong "áp lực chốt lời". Ba trong năm câu mô tả
+            # tự sinh đều dính cả hai nhóm, và cây quyết định khi đó luôn rơi vào nhánh
+            # Short. Đây chính là chỗ khuyến nghị lệch khỏi diễn biến thật.
+            # Nay dùng cụm đủ dài để không nuốt nghĩa của nhau.
+            long_signals = ["rút chân", "pinbar", "bứt phá", "vượt đỉnh", "cạn cung",
+                            "lực cầu", "bullish"]
+            short_signals = ["đỏ dài", "thủng đáy", "phân kỳ", "áp lực bán", "chốt lời",
+                             "đè nặng", "từ chối tăng", "bearish"]
+            neutral_signals = ["giằng co", "đi ngang", "cân bằng", "thăm dò", "biến động hẹp"]
+
             has_long_kw = any(kw in pa for kw in long_signals)
             has_short_kw = any(kw in pa for kw in short_signals)
-            
+            # Mô tả trung lập, hoặc dính cả hai phía -> coi như không có tín hiệu từ chữ,
+            # để vị trí đóng cửa trong nến quyết định thay vì ép về một bên.
+            if any(kw in pa for kw in neutral_signals) or (has_long_kw and has_short_kw):
+                has_long_kw = has_short_kw = False
+
             # Calculate price position ratio within candle range (0.0 = low, 1.0 = high)
             pos_ratio = (close_p - low_p) / (candle_range) if candle_range > 0 else 0.5
-            
+
+            # Nến quá ngắn thì vị trí đóng cửa trong nến chỉ là nhiễu, không phải xu hướng
+            if candle_range < 1.0:
+                pos_ratio = 0.5
+                has_long_kw = has_short_kw = False
+
             # Decision Tree for Long vs Short signals:
-            if (has_short_kw or pos_ratio < 0.45 or close_p < mid_p) and not (has_long_kw and pos_ratio > 0.75):
+            #
+            # Bỏ vế "close_p < mid_p": nó tương đương pos_ratio < 0.5 nên nuốt luôn ngưỡng
+            # 0.45, khiến vùng trung lập 0.45-0.55 không bao giờ tồn tại. Hệ quả là mọi nến
+            # đóng cửa lệch dù chỉ nửa tick đều bị ép thành Long hoặc Short, và nhánh
+            # "ĐI NGANG" phía dưới gần như không bao giờ chạy được.
+            if (has_short_kw or pos_ratio < 0.45) and not (has_long_kw and pos_ratio > 0.75):
                 trend = "GIẢM (SHORT)"
                 action = "Mở Short"
                 entry = f"{close_p - 0.2:.1f} - {close_p + 0.2:.1f}"
@@ -1697,7 +1703,7 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
                 arg_pa = f"Hành động giá phe bán chiếm ưu thế: {item.price_action or 'Nến M5 đóng cửa ở vùng giá thấp'} với vol đạt {volume:.0f} hợp đồng."
                 arg_basis = f"Basis đạt {basis:+.1f} điểm, áp lực phòng thủ và xả Short tăng mạnh."
                 arg_sr = f"Kháng cự ngắn hạn M5 tại {high_p:.1f}. Hỗ trợ mục tiêu phía dưới là {close_p - 5.0:.1f}."
-            elif (has_long_kw or pos_ratio > 0.55 or close_p > mid_p) and not (has_short_kw and pos_ratio < 0.25):
+            elif (has_long_kw or pos_ratio > 0.55) and not (has_short_kw and pos_ratio < 0.25):
                 trend = "TĂNG (LONG)"
                 action = "Mở Long"
                 entry = f"{close_p - 0.2:.1f} - {close_p + 0.2:.1f}"
@@ -1716,6 +1722,20 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
                 arg_basis = f"Basis duy trì quanh {basis:+.1f} điểm chưa kích hoạt dòng tiền bứt phá."
                 arg_sr = f"Hỗ trợ: {low_p:.1f} | Kháng cự: {high_p:.1f}."
 
+        # Ngoài phiên thì nến M5 đang đứng yên, mọi tín hiệu rút ra từ nó đều vô nghĩa.
+        # Trả trạng thái ra để giao diện nói thẳng, thay vì hiện khuyến nghị như thường.
+        session_open, session_note = derivatives_session_state()
+        if not session_open:
+            trend = "NGOÀI PHIÊN GIAO DỊCH"
+            action = "Đứng ngoài"
+            entry = "Không khuyến nghị"
+            sl = "Không có"
+            tp = "Không có"
+            arg_pa = (f"{session_note} Dữ liệu nến M5 đang đứng yên nên không rút ra được "
+                      "tín hiệu nào có ý nghĩa.")
+            arg_basis = f"Basis ghi nhận lần cuối {basis:+.1f} điểm."
+            arg_sr = f"Hỗ trợ: {low_p:.1f} | Kháng cự: {high_p:.1f} (theo nến cuối phiên)."
+
         # Save recommendation to file log
         try:
             save_derivatives_log(trend, action, entry, sl, tp)
@@ -1724,6 +1744,8 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
 
         return {
             "success": True,
+            "session_open": session_open,
+            "session_note": session_note,
             "trend_verdict": trend,
             "action_signal": action,
             "entry_range": entry,

@@ -2019,7 +2019,7 @@
                         <h3 style="font-size: 14px; font-weight: 700; color: #00e5ff; display: flex; align-items: center; gap: 8px; margin: 0;">
                             <i class="fa-solid fa-clock-rotate-left"></i> THỐNG KÊ LỊCH SỬ KHUYẾN NGHỊ TRONG NGÀY (M5 LOG)
                         </h3>
-                        <span style="font-size: 11px; color: var(--color-text-muted);">Khởi tạo tự động · Lưu 10 lệnh gần nhất</span>
+                        <span style="font-size: 11px; color: var(--color-text-muted);">Khởi tạo tự động · Lưu 20 lệnh gần nhất · Chỉ ghi trong phiên</span>
                     </div>
 
                     <!-- ROI Calculator Row -->
@@ -2030,15 +2030,20 @@
                             <span style="color: var(--color-text-muted);">HĐ</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                            <!-- Con số này KHÔNG phải lãi/lỗ đã thực hiện: nó cộng khoảng cách
+                                 Entry->TP1 của mọi lệnh, tức giả định lệnh nào cũng chạm TP1 và
+                                 không lệnh nào chạm SL. Nhãn cũ ghi "Lợi nhuận ròng tạm tính"
+                                 nên đọc vào tưởng là tiền thật đã lãi. Hệ thống chưa hề đối
+                                 chiếu giá sau đó, nên chưa biết được kết quả thật của lệnh nào. -->
                             <div>
-                                <span style="color: var(--color-text-muted);">Tổng điểm tích lũy:</span>
+                                <span style="color: var(--color-text-muted);">Tổng điểm mục tiêu:</span>
                                 <span id="roi-total-points" style="font-family:'JetBrains Mono',monospace; font-weight: 700; color: #fff; margin-left: 4px;">0.0 điểm</span>
                             </div>
                             <div style="padding-left: 12px; border-left: 1px solid rgba(255,255,255,0.1);">
-                                <span style="color: var(--color-text-muted);">Lợi nhuận ròng tạm tính:</span>
-                                <span id="roi-net-money" style="font-family:'JetBrains Mono',monospace; font-weight: 800; color: #00ff88; font-size: 17.3px; margin-left: 4px;">0 VND</span>
+                                <span style="color: var(--color-text-muted);">Quy ra tiền nếu mọi lệnh chạm TP1:</span>
+                                <span id="roi-net-money" style="font-family:'JetBrains Mono',monospace; font-weight: 800; color: #fbbf24; font-size: 17.3px; margin-left: 4px;">0 VND</span>
                             </div>
-                            <span style="font-size: 10.5px; color: var(--color-text-muted); font-style: italic;">(Đã trừ phí giao dịch 20.000đ/HĐ/vòng)</span>
+                            <span style="font-size: 10.5px; color: #fbbf24; font-style: italic;">⚠ Kịch bản giả định 100% lệnh chạm TP1, chưa đối chiếu kết quả thật — không phải lãi/lỗ đã thực hiện. Đã trừ phí 20.000đ/HĐ/vòng.</span>
                         </div>
                     </div>
                     <div style="overflow-x: auto; width: 100%;">
@@ -3877,7 +3882,12 @@
             }
         }
 
-        function addDerivativesLog(action, entry, sl, tp) {
+        function addDerivativesLog(action, entry, sl, tp, sessionOpen) {
+            // Ngoài phiên thì không có lệnh nào để ghi. Trước đây thiếu chốt chặn này nên
+            // chỉ cần mở trang là nhật ký có thêm dòng - kể cả thứ bảy, chủ nhật, hay
+            // 7 giờ tối, lúc sàn đã đóng cửa từ lâu.
+            if (sessionOpen === false) return;
+
             const now = new Date();
             const dateStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
             const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -3913,11 +3923,19 @@
             const tbody = document.getElementById('derivatives-history-tbody');
             if (!tbody) return;
 
-            // Compute ROI (Lợi nhuận ròng tạm tính)
+            // Bảng ghi rõ "TRONG NGÀY" nhưng trước đây đổ ra cả 20 bản ghi gần nhất bất kể
+            // ngày, nên lệnh của tuần trước nằm lẫn với hôm nay và cộng dồn luôn vào phần
+            // tổng kết bên trên. Lọc đúng ngày hôm nay, số cũ vẫn giữ trong localStorage.
+            const t = new Date();
+            const todayStr = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, '0')
+                           + "-" + String(t.getDate()).padStart(2, '0');
+            const todayLogs = derivativesHistoryLog.filter(l => l.date === todayStr);
+            const olderCount = derivativesHistoryLog.length - todayLogs.length;
+
             let totalPoints = 0;
             let tradeCount = 0;
-            
-            derivativesHistoryLog.forEach(log => {
+
+            todayLogs.forEach(log => {
                 const act = log.action || "";
                 if (act.includes("Long") || act.includes("LONG") || act.includes("Short") || act.includes("SHORT")) {
                     let entryPrice = 0;
@@ -3947,7 +3965,8 @@
             const contractsEl = document.getElementById('roi-contracts');
             const contractsCount = contractsEl ? (parseInt(contractsEl.value) || 1) : 1;
             
-            // Lợi nhuận gộp: 1 điểm = 67.000 VND
+            // Hệ số nhân hợp đồng VN30F1M: 1 điểm chỉ số = 100.000 VND
+            // (ghi chú cũ ở đây ghi 67.000 VND, không khớp với chính công thức bên dưới)
             const grossProfit = totalPoints * 100000 * contractsCount;
             // Chi phí giao dịch: 20,000 VND/hợp đồng cho cả 2 lượt mua và bán (vòng quay)
             const totalFees = tradeCount * 20000 * contractsCount;
@@ -3962,21 +3981,24 @@
                 pointsEl.style.color = totalPoints >= 0 ? "var(--color-up)" : "var(--color-down)";
             }
             if (moneyEl) {
+                // Giữ màu vàng cảnh báo, không tô xanh: đây là kịch bản giả định chứ không
+                // phải tiền đã lãi, tô xanh như trước khiến người đọc tin nhầm là kết quả.
                 moneyEl.innerText = (netProfit >= 0 ? "+" : "") + netProfit.toLocaleString('vi-VN') + " VND";
-                moneyEl.style.color = netProfit >= 0 ? "var(--color-up)" : "var(--color-down)";
+                moneyEl.style.color = "#fbbf24";
             }
 
-            if (derivativesHistoryLog.length === 0) {
+            if (todayLogs.length === 0) {
                 tbody.innerHTML = `<tr>
                     <td colspan="7" style="padding: 20px; text-align: center; color: var(--color-text-muted);">
-                        Chưa có lệnh giao dịch phái sinh nào được lưu trên Server.
+                        Chưa có lệnh khuyến nghị nào được phát ra trong ngày hôm nay.
+                        ${olderCount > 0 ? `<br/><span style="font-size:11px; opacity:0.7;">(${olderCount} lệnh của những ngày trước vẫn được lưu, không hiển thị ở bảng trong ngày.)</span>` : ''}
                     </td>
                 </tr>`;
                 return;
             }
 
             tbody.innerHTML = '';
-            derivativesHistoryLog.forEach(log => {
+            todayLogs.forEach(log => {
                 let actionColor = 'var(--color-text-muted)';
                 if (log.action.includes("Long") || log.action.includes("LONG")) actionColor = 'var(--color-up)';
                 else if (log.action.includes("Short") || log.action.includes("SHORT")) actionColor = 'var(--color-down)';
@@ -4076,8 +4098,10 @@
                     document.getElementById('m5-arg-basis').innerText = data.arguments.basis_impact;
                     document.getElementById('m5-arg-sr').innerText = data.arguments.support_resistance;
 
-                    // Log to derivatives trading history
-                    addDerivativesLog(data.action_signal, data.entry_range, data.stop_loss, data.take_profit);
+                    // Chỉ ghi nhật ký khi sàn đang mở. Máy chủ là nơi quyết định, vì đồng
+                    // hồ máy người dùng có thể lệch múi giờ hoặc bị chỉnh tay.
+                    addDerivativesLog(data.action_signal, data.entry_range, data.stop_loss,
+                                      data.take_profit, data.session_open !== false);
 
                     contentEl.style.display = 'flex';
                 } else {
