@@ -14,6 +14,7 @@ try:
 except ImportError:
     pass
 
+import re
 import traceback
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -169,6 +170,19 @@ class IntradayCandleItem(BaseModel):
     low_price: float
     basis: float
     price_action: Optional[str] = ""
+
+class TradeSignalItem(BaseModel):
+    """Một dòng nhật ký M5 gửi lên từ localStorage của trình duyệt."""
+    date: str
+    time: str
+    action: str
+    entry: str = ""
+    sl: str = ""
+    tp: str = ""
+
+class EvaluateLogRequest(BaseModel):
+    signals: List[TradeSignalItem]
+    contracts: int = 1
 
 # -------------------------------------------------------------------------
 # Webapp Page & Static Handlers
@@ -1777,6 +1791,191 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+# ---------------------------------------------------------------------------
+# ĐỐI CHIẾU KẾT QUẢ THẬT CỦA TÍN HIỆU PHÁI SINH
+#
+# Hàng tổng kết trước đây cộng khoảng cách Entry->TP1 của mọi tín hiệu, tức ngầm giả
+# định lệnh nào cũng chạm TP1 và không lệnh nào chạm SL, rồi trưng ra dưới cái tên
+# "Lợi nhuận ròng tạm tính". Ở đây thay bằng việc dò giá thật sau thời điểm phát tín
+# hiệu để xem chạm SL hay TP trước.
+#
+# Nguồn: nến 1 phút của VN30F1M qua vnstock (VCI), 241 nến mỗi phiên phủ 09:00-14:45.
+# Dùng vnstock_client.get_historical_data vì nó trả [] khi hỏng - KHÔNG bao giờ sinh
+# dữ liệu giả như đường SSI mock. Lãi lỗ tính từ giá bịa ra thì còn tệ hơn con số cũ.
+# ---------------------------------------------------------------------------
+VN30F1M_POINT_VALUE = 100_000   # VND cho mỗi điểm chỉ số, theo đặc tả hợp đồng
+ROUND_TRIP_FEE = 20_000         # VND mỗi hợp đồng cho trọn vòng mở + đóng
+
+_NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?")
+
+
+def _numbers_in(text):
+    return [float(x) for x in _NUMBER_RE.findall(str(text or ""))]
+
+
+def _entry_price(text):
+    """
+    "1889.8 - 1890.2" -> 1890.0.
+
+    Lấy trung điểm dải entry. Giá khớp thật nằm đâu đó trong dải và hệ thống không ghi
+    lại, nên đây là một giả định - phải nói ra, không được lờ đi.
+    """
+    nums = _numbers_in(text)
+    if not nums:
+        return None
+    return round(sum(nums[:2]) / len(nums[:2]), 2)
+
+
+def _tp1_price(text):
+    """ "TP1: 1886.0 | TP2: 1884.0 (R:R tối thiểu 1:2)" -> 1886.0 """
+    m = re.search(r"TP1\s*:\s*(-?\d+(?:\.\d+)?)", str(text or ""))
+    if m:
+        return float(m.group(1))
+    nums = _numbers_in(text)
+    return nums[0] if nums else None
+
+
+def _load_minute_bars(day):
+    """Nến 1 phút của VN30F1M trong một ngày, đã sắp theo thời gian. Hỏng thì trả []."""
+    rows = vnstock_client.get_historical_data("VN30F1M", day, day, "1m", "VCI")
+    bars = []
+    for r in rows or []:
+        t = str(r.get("time", ""))
+        if not t.startswith(day):
+            continue
+        try:
+            bars.append({
+                "time": t,
+                "high": float(r["high"]),
+                "low": float(r["low"]),
+                "close": float(r["close"]),
+            })
+        except (KeyError, TypeError, ValueError):
+            continue
+    bars.sort(key=lambda b: b["time"])
+    return bars
+
+
+def _resolve_signal(sig, bars, session_open_now):
+    """
+    Dò từng nến sau thời điểm phát tín hiệu xem chạm SL hay TP1 trước.
+
+    Trong một nến 1 phút mà giá quét qua CẢ hai mức thì không thể biết mức nào tới
+    trước - trả 'khong_xac_dinh' thay vì đoán. Đoán ở đây là bịa ra một khoản lãi lỗ.
+    """
+    action = (sig.action or "")
+    if "Long" in action:
+        direction = 1
+    elif "Short" in action:
+        direction = -1
+    else:
+        return {"outcome": "khong_phai_lenh", "points": None}
+
+    entry = _entry_price(sig.entry)
+    sl = _numbers_in(sig.sl)[0] if _numbers_in(sig.sl) else None
+    tp = _tp1_price(sig.tp)
+    if entry is None or sl is None or tp is None:
+        return {"outcome": "thieu_thong_so", "points": None}
+
+    if not bars:
+        return {"outcome": "thieu_du_lieu", "points": None}
+
+    opened_at = f"{sig.date} {sig.time}"
+    for b in bars:
+        if b["time"] <= opened_at:
+            continue
+        if direction == 1:
+            hit_tp, hit_sl = b["high"] >= tp, b["low"] <= sl
+        else:
+            hit_tp, hit_sl = b["low"] <= tp, b["high"] >= sl
+        if hit_tp and hit_sl:
+            return {"outcome": "khong_xac_dinh", "points": None, "resolved_at": b["time"]}
+        if hit_tp:
+            return {"outcome": "thang", "exit": tp, "entry": entry,
+                    "points": round(direction * (tp - entry), 2), "resolved_at": b["time"]}
+        if hit_sl:
+            return {"outcome": "thua", "exit": sl, "entry": entry,
+                    "points": round(direction * (sl - entry), 2), "resolved_at": b["time"]}
+
+    # Chưa chạm mức nào. Còn trong phiên thì lệnh vẫn đang chạy; hết phiên rồi thì
+    # tính tạm theo giá đóng cửa và tách riêng, KHÔNG cộng vào lãi lỗ đã chốt.
+    last_close = bars[-1]["close"]
+    unreal = round(direction * (last_close - entry), 2)
+    if session_open_now and sig.date == vn_now().strftime("%Y-%m-%d"):
+        return {"outcome": "dang_mo", "entry": entry, "mark": last_close,
+                "points": None, "unrealized_points": unreal}
+    return {"outcome": "het_phien_chua_cham", "entry": entry, "mark": last_close,
+            "points": None, "unrealized_points": unreal}
+
+
+@app.post("/api/derivatives/evaluate-log")
+def evaluate_derivatives_log(req: EvaluateLogRequest):
+    """
+    Chấm kết quả thật cho nhật ký tín hiệu M5.
+
+    Trả về từng tín hiệu kèm kết quả, và phần tổng kết CHỈ cộng những lệnh đã chốt
+    (chạm SL hoặc TP). Lệnh đang mở, lệnh hết phiên chưa chạm, lệnh không đủ dữ liệu
+    đều đếm riêng và nêu rõ - không gộp vào con số lãi lỗ.
+    """
+    try:
+        contracts = max(1, int(req.contracts or 1))
+        session_open_now, _ = derivatives_session_state()
+
+        bars_by_day, warnings = {}, []
+        for day in sorted({s.date for s in req.signals}):
+            bars_by_day[day] = _load_minute_bars(day)
+            if not bars_by_day[day]:
+                warnings.append(f"Không lấy được nến 1 phút của VN30F1M ngày {day}; "
+                                f"các lệnh trong ngày đó chưa chấm được.")
+
+        results, realized_points, wins, losses = [], 0.0, 0, 0
+        pending = {"dang_mo": 0, "het_phien_chua_cham": 0,
+                   "khong_xac_dinh": 0, "thieu_du_lieu": 0, "thieu_thong_so": 0}
+
+        for sig in req.signals:
+            r = _resolve_signal(sig, bars_by_day.get(sig.date, []), session_open_now)
+            if r["outcome"] == "khong_phai_lenh":
+                continue
+            if r["outcome"] == "thang":
+                wins += 1
+                realized_points += r["points"]
+            elif r["outcome"] == "thua":
+                losses += 1
+                realized_points += r["points"]
+            elif r["outcome"] in pending:
+                pending[r["outcome"]] += 1
+            results.append({**r, "date": sig.date, "time": sig.time, "action": sig.action})
+
+        closed = wins + losses
+        gross = realized_points * VN30F1M_POINT_VALUE * contracts
+        fees = closed * ROUND_TRIP_FEE * contracts
+        return {
+            "success": True,
+            "results": results,
+            "summary": {
+                "closed": closed,
+                "wins": wins,
+                "losses": losses,
+                "win_rate": round(wins / closed * 100, 1) if closed else None,
+                "realized_points": round(realized_points, 2),
+                "realized_vnd": round(gross - fees),
+                "fees_vnd": fees,
+                "contracts": contracts,
+                "pending": pending,
+            },
+            "assumptions": [
+                "Giá vào lệnh lấy trung điểm dải Entry; giá khớp thật không được ghi lại.",
+                "Giá thoát lấy đúng mức SL/TP, chưa tính trượt giá.",
+                "Nến 1 phút quét qua cả SL lẫn TP thì không biết mức nào tới trước, "
+                "lệnh đó để 'không xác định' chứ không đoán.",
+            ],
+            "warnings": warnings,
+        }
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Không chấm được nhật ký: {e}")
 
 
 @app.get("/api/derivatives/history-log")

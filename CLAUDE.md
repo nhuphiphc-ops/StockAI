@@ -95,9 +95,20 @@ Biểu đồ nằm ở tab **Bảng Giá Live** (`<div id="tvChart">`), không p
   cũ để `"long"`, `"short"` trần, mà chính câu mô tả trung lập tự sinh là *"hai phe
   Long/Short đang giằng co"* — khớp cả hai phía rồi rơi vào nhánh Short. `"tăng"`
   cũng khớp trong *"từ chối tăng"*.
-- Con số ở hàng ROI **không phải lãi/lỗ đã thực hiện**: nó cộng khoảng cách
-  Entry→TP1 của mọi tín hiệu, tức giả định lệnh nào cũng chạm TP1 và không lệnh nào
-  chạm SL. Hệ thống chưa đối chiếu giá sau tín hiệu nên chưa biết kết quả thật.
+- `POST /api/derivatives/evaluate-log` chấm kết quả thật: dò **nến 1 phút của
+  VN30F1M** sau thời điểm phát tín hiệu xem chạm SL hay TP1 trước. Hàng ROI chỉ cộng
+  lệnh **đã chốt**; đang mở / hết phiên chưa chạm / không xác định / thiếu dữ liệu đều
+  đếm riêng và ghi rõ. Trước đây nó cộng khoảng cách Entry→TP1 của mọi tín hiệu, tức
+  ngầm giả định lệnh nào cũng thắng.
+- Nguồn nến: `vnstock_client.get_historical_data("VN30F1M", d, d, "1m", "VCI")` —
+  241 nến mỗi phiên, 09:00–14:45. **Phải dùng đường này**, đừng dùng
+  `ssi_client.get_intraday()`: thiếu credential SSI thì nó tự sinh giá ngẫu nhiên
+  (`_generate_mock_intraday`), mà tính lãi lỗ từ giá bịa còn tệ hơn con số cũ.
+  `get_historical_data` trả `[]` khi hỏng, giao diện khi đó để trống kèm cảnh báo.
+- Một nến 1 phút quét qua **cả** SL lẫn TP thì không biết mức nào tới trước → để
+  `khong_xac_dinh`, không đoán. Giá vào lệnh lấy trung điểm dải Entry và giá thoát lấy
+  đúng mức SL/TP (chưa tính trượt giá) — hai giả định này hiện ngay trong `assumptions`
+  của API.
 
 ## Lịch sự kiện vĩ mô
 
@@ -151,9 +162,9 @@ BOM, dấu nháy rồi, nhưng nạp sạch ngay từ đầu vẫn hơn.
 - FOMC không có trong FRED, phải nhập tay.
 - Bốn loại báo cáo FRED đã có bình luận tác động VN qua `binh_luan_mac_dinh`, nhưng
   trường `recommendation` để trống — phần khuyến nghị đầu tư cụ thể do người dùng viết.
-- Chưa theo dõi kết quả thật của tín hiệu phái sinh (so giá sau tín hiệu với SL/TP)
-  nên hàng ROI vẫn là kịch bản giả định, chưa phải lãi/lỗ thật.
 - Ngày lễ chưa được lọc khỏi phiên giao dịch, chỉ mới lọc cuối tuần.
+- Nhật ký M5 nằm ở `localStorage`, nên đổi máy hoặc xóa dữ liệu trình duyệt là mất
+  lịch sử, và kết quả đã chấm không tích lũy được qua nhiều ngày.
 - `data.db` và `__pycache__/*.pyc` **đang bị git theo dõi**. `.gitignore` không gỡ
   được, cần `git rm --cached`.
 - `ssi_client.py` ở thư mục gốc và `core/ssi_client.py` là hai bản khác nhau;
