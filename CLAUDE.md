@@ -11,7 +11,7 @@ uvicorn main:app --reload
 
 `launch_dashboard.bat` cũng khởi chạy được. Không có test suite.
 
-## Kiến trúc — 5 điểm dễ vấp
+## Kiến trúc — 6 điểm dễ vấp
 
 **1. `templates/index.html` được phục vụ dạng TĨNH, không qua Jinja.**
 `vercel.json` route `/(.*)` trỏ thẳng vào file. Trong template không có một cú pháp
@@ -69,6 +69,22 @@ chạy trên site thật.
 
 File tĩnh phải nằm **thật** trong `static/`. Đừng thêm route FastAPI cho đường dẫn
 `/static/`; handler chung `get_static_file()` đã đọc đúng thư mục Vercel phục vụ.
+
+**6. `vnstock` ghi vào `Path.home()`, mà home trên Vercel chỉ đọc.**
+Gói `vnai` mà `vnstock` phụ thuộc (đo lường sử dụng/license) ghi cache vào
+`Path.home()/".vnstock"`. Trên Vercel, `Path.home()` trỏ vào `/home/sbx_user...` —
+chỉ `/tmp` ghi được. Ghi thất bại làm hỏng **luôn cả lệnh gọi đang chạy**, không
+riêng phần ghi: `get_historical_data()` bắt exception rồi in ra "Vnstock Rate
+Limit", nhưng lỗi thật nằm ở `[Errno 30] Read-only file system`, không liên quan
+gì đến giới hạn tốc độ — dòng log đó đánh lừa người đọc đi sai hướng.
+
+`main.py` đã tự dò việc này ở đầu file, trước khi bất cứ chỗ nào import
+`vnstock`: nếu `~` không ghi được thì ghim cả `HOME` lẫn `USERPROFILE` sang
+`tempfile.gettempdir()`. Cần cả hai biến vì `os.path.expanduser` trên POSIX
+(Vercel) chỉ nhìn `HOME`, còn trên Windows lại ưu tiên `USERPROFILE` và bỏ qua
+`HOME` — thiếu một trong hai thì bản sửa vô tác dụng trên đúng nền tảng đó. Đặt
+sau dòng `import core.vnstock_client` là vô ích, vì `vnai` đã cache đường dẫn cũ
+ngay lúc import.
 
 ## Biểu đồ nến
 

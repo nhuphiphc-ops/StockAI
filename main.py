@@ -5,6 +5,23 @@ import json
 import json
 from datetime import datetime, timedelta, timezone
 
+# vnstock kéo theo gói vnai (đo lường sử dụng/license) ghi vào Path.home()/".vnstock".
+# Trên Vercel, Path.home() trỏ vào một thư mục chỉ đọc (/home/sbx_user...) - chỉ /tmp
+# ghi được. Việc ghi thất bại làm hỏng LUÔN CẢ LỆNH ĐANG GỌI, không riêng gì phần ghi:
+# get_historical_data() bắt Exception rồi báo "Vnstock Rate Limit", nhưng lỗi thật là
+# "[Errno 30] Read-only file system", không liên quan gì đến giới hạn tốc độ. Phải ghim
+# home sang một thư mục ghi được TRƯỚC khi bất cứ chỗ nào import vnstock (dòng import
+# core.vnstock_client ở dưới làm việc đó) - đặt sau thì vnai đã cache đường dẫn cũ mất rồi.
+#
+# Set cả HOME lẫn USERPROFILE: os.path.expanduser trên POSIX (Vercel) chỉ nhìn HOME,
+# còn trên Windows lại ưu tiên USERPROFILE và bỏ qua HOME - thiếu một trong hai thì
+# bản sửa này vô tác dụng trên đúng nền tảng đó.
+if not os.access(os.path.expanduser("~"), os.W_OK):
+    import tempfile
+    _writable_home = tempfile.gettempdir()
+    os.environ["HOME"] = _writable_home
+    os.environ["USERPROFILE"] = _writable_home
+
 # Nạp .env khi chạy máy cá nhân. Trên Vercel biến môi trường được tiêm sẵn nên hàm này
 # không tìm thấy file và cũng không làm gì - vô hại. Thiếu bước này thì chạy local
 # FRED_API_KEY luôn rỗng và lịch vĩ mô báo thiếu key dù .env có sẵn giá trị.
