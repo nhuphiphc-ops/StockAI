@@ -37,7 +37,7 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 import uvicorn
 
 # Monkey-patch os._exit to block vnstock from terminating the FastAPI server process
@@ -59,6 +59,7 @@ from core.excel_manager import ExcelManager
 from core.forecaster import AIForecaster
 from openpyxl.styles import Font, PatternFill
 import core.database as db
+import core.supabase_client as supabase_client
 
 app = FastAPI(title="Stock API Gateway & AI Core (API Chứng Khoán)", version="1.0.0")
 
@@ -189,7 +190,7 @@ class IntradayCandleItem(BaseModel):
     price_action: Optional[str] = ""
 
 class TradeSignalItem(BaseModel):
-    """Một dòng nhật ký M5 gửi lên từ localStorage của trình duyệt."""
+    """Một dòng nhật ký M5, đọc lại từ Supabase (core/supabase_client.py)."""
     date: str
     time: str
     action: str
@@ -198,7 +199,13 @@ class TradeSignalItem(BaseModel):
     tp: str = ""
 
 class EvaluateLogRequest(BaseModel):
-    signals: List[TradeSignalItem]
+    """
+    Trước đây client tự gửi kèm 'signals' đọc từ localStorage - client giữ bản sao dữ
+    liệu, dễ lệch với những gì thật sự đã được ghi. Nay server tự lấy đúng nhật ký của
+    ngày đó từ Supabase, client chỉ cần nói ngày nào (mặc định hôm nay) và bao nhiêu
+    hợp đồng.
+    """
+    date: Optional[str] = None
     contracts: int = 1
 
 # -------------------------------------------------------------------------
@@ -846,57 +853,41 @@ def derivatives_session_state(now=None):
 
 # Helper to log derivatives recommendation
 def save_derivatives_log(trend, action, entry, sl, tp):
+    """
+    Ghi tín hiệu Long/Short thật vào Supabase (core/supabase_client.py).
+
+    Trước đây ghi vào static/derivatives_history.json - hoạt động ở local nhưng vô
+    dụng trên Vercel vì filesystem ở đó chỉ đọc, nên GET /api/derivatives/history-log
+    trên production luôn trả về rỗng. Supabase là kho bền, sống ngoài vòng đời của một
+    lượt gọi hàm serverless và dùng chung được giữa các trình duyệt/thiết bị.
+    """
     if action not in ["Mở Long", "Mở Short"]:
-        return # Only record actual trades, skip neutral "Đứng ngoài"
+        return  # Only record actual trades, skip neutral "Đứng ngoài"
 
     # Ngoài phiên thì không có lệnh nào để ghi - nhật ký trước đây đầy bản ghi cuối tuần
     is_open, _ = derivatives_session_state()
     if not is_open:
         return
 
-    log_file = "static/derivatives_history.json"
-    data = []
-    if os.path.exists(log_file):
-        try:
-            with open(log_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception:
-            data = []
-            
     # Giờ Việt Nam, không phải giờ máy chủ: trên Vercel datetime.now() là UTC nên nhật ký
     # sẽ đóng dấu lệch 7 tiếng, có bản ghi rơi sang ngày hôm trước.
     now = vn_now()
     date_str = now.strftime("%Y-%m-%d")
-    time_str = now.strftime("%H:%M:%S")
-    
-    # Avoid duplicate entry within short period
-    if len(data) > 0:
-        last = data[0]
-        if last.get("date") == date_str and last.get("action") == action and last.get("entry") == entry:
+
+    # Auto-live gọi lại mỗi 15 giây; tín hiệu thường đứng yên nhiều phút liền. Không chặn
+    # trùng thì mỗi lượt polling chèn thêm một dòng y hệt, làm loãng cả bảng lẫn tỷ lệ
+    # thắng/thua. So với bản ghi gần nhất trong ngày, không phải toàn bộ lịch sử.
+    existing, _ = supabase_client.get_signals(date_str)
+    if existing:
+        last = existing[-1]
+        if last["action"] == action and last["entry"] == entry:
             return
 
-    new_log = {
-        "date": date_str,
-        "time": time_str,
-        "trend": trend,
-        "action": action,
-        "entry": entry,
-        "sl": sl,
-        "tp": tp,
-        "status": "Khớp lệnh"
-    }
-    data.insert(0, new_log)
-    
-    # Keep last 100 entries
-    if len(data) > 100:
-        data = data[:100]
-        
-    try:
-        os.makedirs("static", exist_ok=True)
-        with open(log_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-    except Exception as e:
-        print("Error saving derivatives log:", e)
+    supabase_client.insert_signal(
+        trade_date=date_str,
+        trade_time=now.strftime("%H:%M:%S"),
+        trend=trend, action=action, entry=entry, sl=sl, tp=tp,
+    )
 
 @app.post("/api/excel/portfolio")
 def add_excel_portfolio(item: PortfolioItem):
@@ -1971,21 +1962,24 @@ def evaluate_derivatives_log(req: EvaluateLogRequest):
     """
     try:
         contracts = max(1, int(req.contracts or 1))
+        target_date = req.date or vn_now().strftime("%Y-%m-%d")
         session_open_now, _ = derivatives_session_state()
 
-        bars_by_day, warnings = {}, []
-        for day in sorted({s.date for s in req.signals}):
-            bars_by_day[day] = _load_minute_bars(day)
-            if not bars_by_day[day]:
-                warnings.append(f"Không lấy được nến 1 phút của VN30F1M ngày {day}; "
-                                f"các lệnh trong ngày đó chưa chấm được.")
+        rows, sig_warning = supabase_client.get_signals(target_date)
+        signals = [TradeSignalItem(**row) for row in rows]
+
+        warnings = [sig_warning] if sig_warning else []
+        bars = _load_minute_bars(target_date)
+        if not bars:
+            warnings.append(f"Không lấy được nến 1 phút của VN30F1M ngày {target_date}; "
+                            f"các lệnh trong ngày đó chưa chấm được.")
 
         results, realized_points, wins, losses = [], 0.0, 0, 0
         pending = {"dang_mo": 0, "het_phien_chua_cham": 0,
                    "khong_xac_dinh": 0, "thieu_du_lieu": 0, "thieu_thong_so": 0}
 
-        for sig in req.signals:
-            r = _resolve_signal(sig, bars_by_day.get(sig.date, []), session_open_now)
+        for sig in signals:
+            r = _resolve_signal(sig, bars, session_open_now)
             if r["outcome"] == "khong_phai_lenh":
                 continue
             if r["outcome"] == "thang":
@@ -2003,6 +1997,7 @@ def evaluate_derivatives_log(req: EvaluateLogRequest):
         fees = closed * ROUND_TRIP_FEE * contracts
         return {
             "success": True,
+            "date": target_date,
             "results": results,
             "summary": {
                 "closed": closed,
@@ -2029,15 +2024,19 @@ def evaluate_derivatives_log(req: EvaluateLogRequest):
 
 
 @app.get("/api/derivatives/history-log")
-def get_derivatives_history_log():
-    log_file = "static/derivatives_history.json"
-    if not os.path.exists(log_file):
-        return []
-    try:
-        with open(log_file, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return []
+def get_derivatives_history_log(date: str = Query(None, description="YYYY-MM-DD, bỏ trống lấy hôm nay (giờ VN)")):
+    """
+    Nhật ký tín hiệu M5 của một ngày, đọc từ Supabase.
+
+    Trước đây đọc static/derivatives_history.json - đúng ở local, luôn rỗng trên
+    Vercel vì filesystem chỉ đọc. Không bao giờ ném lỗi ra ngoài: Supabase hỏng thì
+    trả 'signals': [] kèm 'warning', để giao diện phân biệt được "chưa có lệnh nào"
+    với "không đọc được dữ liệu" - im lặng trả rỗng ở đây sẽ trông giống trường hợp
+    trước, gây hiểu nhầm.
+    """
+    target_date = date or vn_now().strftime("%Y-%m-%d")
+    signals, warning = supabase_client.get_signals(target_date)
+    return {"date": target_date, "signals": signals, "warning": warning}
 
 
 if __name__ == "__main__":

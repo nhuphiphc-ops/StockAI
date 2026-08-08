@@ -2444,7 +2444,7 @@
                 } else if (viewId === 'predictor') {
                     loadPredictorTab();
                 } else if (viewId === 'intraday-derivatives') {
-                    loadDerivativesHistoryFromLocalStorage();
+                    loadDerivativesHistoryFromServer();
                 }
             } catch (err) {
                 console.error("Error loading tab data for " + viewId + ":", err);
@@ -2482,8 +2482,6 @@
                         if (viewText.includes("AI Overview")) loadOverviewTab();
                         else if (viewText.includes("Vĩ Mô")) loadMacroTab();
                         else if (viewText.includes("AI Predictor")) loadPredictorTab();
-                } else if (viewId === 'intraday-derivatives') {
-                    loadDerivativesHistoryFromLocalStorage();
                     }
                     updateAllData();
                 } else {
@@ -3855,65 +3853,35 @@
             }
         }
 
-        // ── DERIVATIVES HISTORY TRADING LOG (SAVED VĨNH VIỄN TRONG TRÌNH DUYỆT) ─────────────────
+        // ── DERIVATIVES HISTORY TRADING LOG (LƯU TRÊN SUPABASE, KHÔNG PHẢI TRÌNH DUYỆT) ─────
+        // Trước đây nhật ký chỉ nằm ở localStorage: đổi máy hoặc xóa dữ liệu trình duyệt là
+        // mất sạch, và không tích lũy được qua nhiều ngày để đối chiếu dài hạn. Server giờ là
+        // nơi lưu duy nhất (core/supabase_client.py) - máy chủ tự ghi tín hiệu thật ngay khi
+        // /api/derivatives/intraday-forecast tính xong (nếu đang trong phiên), client chỉ
+        // tải lại để hiển thị chứ không tự quản lý mảng dữ liệu của riêng mình nữa. Việc này
+        // cũng dứt điểm luôn một lỗi ngầm: "hôm nay" trước đây tính bằng new Date() theo múi
+        // giờ TRÌNH DUYỆT, có thể lệch với "hôm nay" theo giờ Việt Nam mà server dùng.
         let derivativesHistoryLog = [];
+        let derivativesHistoryLoadWarning = null;
 
-        function loadDerivativesHistoryFromLocalStorage() {
-            try {
-                const saved = localStorage.getItem('derivativesHistoryLog');
-                if (saved) {
-                    derivativesHistoryLog = JSON.parse(saved);
-                } else {
-                    derivativesHistoryLog = [];
-                }
-                renderDerivativesHistory();
-            } catch (err) {
-                console.error("Error reading derivatives history from localStorage:", err);
-            }
+        function escHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
-        function saveDerivativesHistoryToLocalStorage() {
+        async function loadDerivativesHistoryFromServer() {
             try {
-                localStorage.setItem('derivativesHistoryLog', JSON.stringify(derivativesHistoryLog));
+                const base = (typeof HOST !== 'undefined' && HOST) ? HOST : window.location.origin;
+                const res = await fetch(`${base}/api/derivatives/history-log`, { cache: 'no-store' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                derivativesHistoryLog = data.signals || [];
+                derivativesHistoryLoadWarning = data.warning || null;
             } catch (err) {
-                console.error("Error saving derivatives history to localStorage:", err);
+                console.error('Không tải được nhật ký tín hiệu M5:', err);
+                derivativesHistoryLog = [];
+                derivativesHistoryLoadWarning = 'Không kết nối được máy chủ nhật ký (' + err.message + ').';
             }
-        }
-
-        function addDerivativesLog(action, entry, sl, tp, sessionOpen) {
-            // Ngoài phiên thì không có lệnh nào để ghi. Trước đây thiếu chốt chặn này nên
-            // chỉ cần mở trang là nhật ký có thêm dòng - kể cả thứ bảy, chủ nhật, hay
-            // 7 giờ tối, lúc sàn đã đóng cửa từ lâu.
-            if (sessionOpen === false) return;
-
-            const now = new Date();
-            const dateStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + String(now.getDate()).padStart(2, '0');
-            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            
-            // Allow new real-time log entries if entry or time changes
-            if (derivativesHistoryLog.length > 0) {
-                const last = derivativesHistoryLog[0];
-                if (last.action === action && last.entry === entry && last.time === timeStr) {
-                    return;
-                }
-            }
-
-            derivativesHistoryLog.unshift({
-                date: dateStr,
-                time: timeStr,
-                action: action,
-                entry: entry,
-                sl: sl,
-                tp: tp,
-                status: (action.includes("Đứng ngoài") || action.includes("Không")) ? "Theo dõi" : "Khớp lệnh"
-            });
-
-            // Giới hạn 20 lệnh gần nhất trong lịch sử
-            if (derivativesHistoryLog.length > 20) {
-                derivativesHistoryLog.pop();
-            }
-
-            saveDerivativesHistoryToLocalStorage();
             renderDerivativesHistory();
         }
 
@@ -3921,28 +3889,23 @@
             const tbody = document.getElementById('derivatives-history-tbody');
             if (!tbody) return;
 
-            // Bảng ghi rõ "TRONG NGÀY" nhưng trước đây đổ ra cả 20 bản ghi gần nhất bất kể
-            // ngày, nên lệnh của tuần trước nằm lẫn với hôm nay và cộng dồn luôn vào phần
-            // tổng kết bên trên. Lọc đúng ngày hôm nay, số cũ vẫn giữ trong localStorage.
-            const t = new Date();
-            const todayStr = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, '0')
-                           + "-" + String(t.getDate()).padStart(2, '0');
-            const todayLogs = derivativesHistoryLog.filter(l => l.date === todayStr);
-            const olderCount = derivativesHistoryLog.length - todayLogs.length;
+            // Server đã lọc đúng "hôm nay theo giờ Việt Nam" (mặc định của
+            // /api/derivatives/history-log) trước khi trả về, nên mảng này không còn lẫn
+            // ngày khác - không cần lọc lại ở client như bản localStorage cũ.
+            const logs = derivativesHistoryLog;
 
-            if (todayLogs.length === 0) {
-                tbody.innerHTML = `<tr>
-                    <td colspan="7" style="padding: 20px; text-align: center; color: var(--color-text-muted);">
-                        Chưa có lệnh khuyến nghị nào được phát ra trong ngày hôm nay.
-                        ${olderCount > 0 ? `<br/><span style="font-size:11px; opacity:0.7;">(${olderCount} lệnh của những ngày trước vẫn được lưu, không hiển thị ở bảng trong ngày.)</span>` : ''}
-                    </td>
-                </tr>`;
-                setRoiSummary(null);
+            if (logs.length === 0) {
+                tbody.innerHTML = derivativesHistoryLoadWarning
+                    ? `<tr><td colspan="7" style="padding: 20px; text-align: center; color: #fbbf24;">
+                        ⚠ ${escHtml(derivativesHistoryLoadWarning)}</td></tr>`
+                    : `<tr><td colspan="7" style="padding: 20px; text-align: center; color: var(--color-text-muted);">
+                        Chưa có lệnh khuyến nghị nào được phát ra trong ngày hôm nay.</td></tr>`;
+                setRoiSummary(null, derivativesHistoryLoadWarning);
                 return;
             }
 
             tbody.innerHTML = '';
-            todayLogs.forEach((log, idx) => {
+            logs.forEach((log, idx) => {
                 let actionColor = 'var(--color-text-muted)';
                 if (log.action.includes("Long") || log.action.includes("LONG")) actionColor = 'var(--color-up)';
                 else if (log.action.includes("Short") || log.action.includes("SHORT")) actionColor = 'var(--color-down)';
@@ -3971,7 +3934,7 @@
                 `;
             });
 
-            evaluateDerivativesLog(todayLogs);
+            evaluateDerivativesLog(logs);
         }
 
         // ── ĐỐI CHIẾU KẾT QUẢ THẬT ────────────────────────────────────────────────
@@ -3989,7 +3952,7 @@
             khong_phai_lenh:      { text: '—',               color: 'var(--color-text-muted)' }
         };
 
-        function setRoiSummary(data) {
+        function setRoiSummary(data, loadWarning) {
             const closedEl = document.getElementById('roi-closed');
             const moneyEl  = document.getElementById('roi-net-money');
             const noteEl   = document.getElementById('roi-note');
@@ -3999,7 +3962,15 @@
                 closedEl.innerText = '—';
                 moneyEl.innerText = '—';
                 moneyEl.style.color = 'var(--color-text-muted)';
-                noteEl.innerText = 'Chưa có lệnh nào trong ngày để đối chiếu.';
+                // Phân biệt "chưa có lệnh nào" với "không đọc được dữ liệu" - im lặng dùng
+                // chung một câu sẽ khiến sự cố kết nối trông giống hệt một phiên bình thường.
+                if (loadWarning) {
+                    noteEl.innerText = '⚠ ' + loadWarning;
+                    noteEl.style.color = '#fbbf24';
+                } else {
+                    noteEl.innerText = 'Chưa có lệnh nào trong ngày để đối chiếu.';
+                    noteEl.style.color = 'var(--color-text-muted)';
+                }
                 return;
             }
 
@@ -4038,16 +4009,13 @@
             const contracts = contractsEl ? (parseInt(contractsEl.value) || 1) : 1;
             try {
                 const base = (typeof HOST !== 'undefined' && HOST) ? HOST : window.location.origin;
+                // Không gửi kèm 'signals' nữa: server tự đọc đúng nhật ký của ngày đó từ
+                // Supabase, đảm bảo luôn khớp với những gì thật sự đã lưu thay vì dựa vào
+                // bản sao phía client có thể bị lệch.
                 const res = await fetch(`${base}/api/derivatives/evaluate-log`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contracts: contracts,
-                        signals: todayLogs.map(l => ({
-                            date: l.date, time: l.time, action: l.action,
-                            entry: l.entry || '', sl: l.sl || '', tp: l.tp || ''
-                        }))
-                    })
+                    body: JSON.stringify({ contracts: contracts })
                 });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
@@ -4156,10 +4124,9 @@
                     document.getElementById('m5-arg-basis').innerText = data.arguments.basis_impact;
                     document.getElementById('m5-arg-sr').innerText = data.arguments.support_resistance;
 
-                    // Chỉ ghi nhật ký khi sàn đang mở. Máy chủ là nơi quyết định, vì đồng
-                    // hồ máy người dùng có thể lệch múi giờ hoặc bị chỉnh tay.
-                    addDerivativesLog(data.action_signal, data.entry_range, data.stop_loss,
-                                      data.take_profit, data.session_open !== false);
+                    // Máy chủ đã tự ghi tín hiệu vào Supabase (nếu đang trong phiên) ngay khi
+                    // tính xong dự báo - ở đây chỉ cần tải lại nhật ký để hiển thị bản mới nhất.
+                    loadDerivativesHistoryFromServer();
 
                     contentEl.style.display = 'flex';
                 } else {

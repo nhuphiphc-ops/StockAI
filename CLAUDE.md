@@ -111,9 +111,29 @@ Biểu đồ nằm ở tab **Bảng Giá Live** (`<div id="tvChart">`), không p
   cửa đặc biệt ngoài lịch nghỉ lễ nhà nước, nếu HNX có công bố riêng. Đường import là
   module nội bộ, có thể đổi khi nâng phiên bản `vnstock`; lỗi thì lặng lẽ quay về chỉ
   lọc cuối tuần (`_load_vn_holidays()` trả `{}`), không làm chết cả hàm.
-- Nhật ký nằm ở `localStorage` của trình duyệt, không phải trên server. Route
-  `/api/derivatives/history-log` đọc `static/derivatives_history.json`, mà filesystem
-  trên Vercel chỉ đọc nên đường đó thực tế luôn rỗng.
+- Nhật ký lưu trên **Supabase** (`core/supabase_client.py`), không phải localStorage
+  hay file JSON. Trước đây nằm ở localStorage: đổi máy hoặc xóa dữ liệu trình duyệt là
+  mất sạch, không tích lũy qua nhiều ngày. Trước nữa còn có bản ghi
+  `static/derivatives_history.json`, nhưng filesystem trên Vercel chỉ đọc nên đường đó
+  thực tế luôn rỗng trên production.
+  - Gọi thẳng REST API của Supabase (PostgREST) qua `requests`, không dùng SDK
+    `supabase` chính thức — SDK kéo theo httpx/postgrest-py/gotrue/realtime, nặng
+    không cần thiết cho hai thao tác insert/select đơn giản. Đúng phong cách các
+    client khác trong dự án (SSI, FRED, vnstock đều gọi REST trực tiếp).
+  - Dùng `SUPABASE_KEY` dạng **service_role**, không phải anon: mọi lượt ghi/đọc đều
+    đi qua backend, trình duyệt không bao giờ gọi thẳng vào Supabase. service_role bỏ
+    qua RLS nên không cần bật policy công khai cho bảng — khóa đó tuyệt đối không được
+    lộ ra phía client.
+  - Schema bảng `derivatives_signals` và các bước tạo project nằm trong
+    `.env.example`. Thiếu `SUPABASE_URL`/`SUPABASE_KEY` (hoặc project đã bị Supabase
+    tự tạm dừng do không hoạt động) thì nhật ký vẫn tính tín hiệu bình thường nhưng
+    không lưu được gì — giao diện hiện cảnh báo màu vàng ở cả bảng lẫn hàng tổng kết,
+    không âm thầm coi như "chưa có lệnh nào".
+  - `POST /api/derivatives/evaluate-log` không còn nhận `signals` từ client nữa —
+    server tự đọc đúng nhật ký của ngày đó từ Supabase. Trước đây client tính "hôm
+    nay" bằng `new Date()` theo múi giờ **trình duyệt**, có thể lệch với "hôm nay"
+    theo giờ Việt Nam (`vn_now()`) mà server dùng; nay chỉ còn một nơi quyết định
+    ngày, không còn hai nguồn có thể lệch nhau.
 - Từ khóa nhận hướng trong `price_action` phải đủ dài để không nuốt nghĩa nhau. Bản
   cũ để `"long"`, `"short"` trần, mà chính câu mô tả trung lập tự sinh là *"hai phe
   Long/Short đang giằng co"* — khớp cả hai phía rồi rơi vào nhánh Short. `"tăng"`
@@ -183,8 +203,10 @@ BOM, dấu nháy rồi, nhưng nạp sạch ngay từ đầu vẫn hơn.
 ## Việc còn dang dở
 
 - FOMC không có trong FRED, phải nhập tay.
-- Nhật ký M5 nằm ở `localStorage`, nên đổi máy hoặc xóa dữ liệu trình duyệt là mất
-  lịch sử, và kết quả đã chấm không tích lũy được qua nhiều ngày.
+- Project Supabase tham chiếu trong `.env` cũ đã **chết** (DNS không phân giải được -
+  domain không tồn tại, khả năng bị Supabase tự tạm dừng do không hoạt động). Cần tạo
+  project mới rồi cập nhật `SUPABASE_URL`/`SUPABASE_KEY` cả local lẫn Vercel (xem
+  `.env.example` để biết schema và các bước) thì nhật ký M5 mới thật sự lưu được.
 - `data.db` và `__pycache__/*.pyc` **đang bị git theo dõi**. `.gitignore` không gỡ
   được, cần `git rm --cached`.
 - `ssi_client.py` ở thư mục gốc và `core/ssi_client.py` là hai bản khác nhau;
