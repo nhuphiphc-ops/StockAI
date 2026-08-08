@@ -787,6 +787,36 @@ def vn_now():
     return datetime.now(timezone(timedelta(hours=7)))
 
 
+def _load_vn_holidays():
+    """
+    Ngày nghỉ lễ chính thức của Việt Nam (Tết Dương lịch, Tết Nguyên Đán, Giỗ Tổ Hùng
+    Vương, 30/4, 1/5, Quốc khánh), lấy từ chính dữ liệu `vnstock` đang vendor sẵn -
+    không tự nhập tay ngày nào.
+
+    Cả nhãn "Holiday" và "Compensation" (nghỉ bù khi lễ rơi vào cuối tuần, ví dụ Tết
+    Dương lịch 2000 rơi thứ Bảy 01/01 thì nghỉ bù sang thứ Hai 03/01) đều là ngày sàn
+    đóng cửa - lọc thiếu "Compensation" thì vẫn còn lọt.
+
+    Đây là lịch nghỉ CHUNG của cả nước, không phải một luồng dữ liệu chính thức riêng
+    của HNX cho hợp đồng tương lai. Trùng khớp trong hầu hết trường hợp vì sàn nghỉ
+    đúng theo lịch nghỉ lễ nhà nước, nhưng nếu HNX có thông báo đóng cửa đặc biệt ngoài
+    lịch này (hiếm, thường công bố riêng theo từng năm) thì sẽ không được lọc ở đây.
+
+    Đường import là module nội bộ của vnstock, có thể đổi khi nâng phiên bản. Lỗi thì
+    trả dict rỗng - chốt chặn quay về chỉ lọc cuối tuần như trước, không làm chết cả hàm.
+    """
+    try:
+        from vnstock.core.utils.market_events import MARKET_EVENTS
+        return {d: v.get("event", "Nghỉ lễ") for d, v in MARKET_EVENTS.items()
+               if v.get("type") in ("Holiday", "Compensation")}
+    except Exception as e:
+        print(f"Không nạp được lịch nghỉ lễ VN từ vnstock: {e}")
+        return {}
+
+
+_VN_HOLIDAYS = _load_vn_holidays()
+
+
 def derivatives_session_state(now=None):
     """
     Phiên hợp đồng tương lai VN30F1M trên HNX, tính theo giờ Việt Nam.
@@ -795,12 +825,15 @@ def derivatives_session_state(now=None):
     Thiếu hàm này nên trước đây cứ mở trang là hệ thống sinh khuyến nghị và ghi vào
     nhật ký, kể cả thứ bảy, chủ nhật và 7 giờ tối - lúc sàn đã đóng từ lâu.
 
-    Chỉ chặn được cuối tuần, KHÔNG chặn được ngày lễ vì không có nguồn lịch nghỉ của
-    HNX trong dự án. Nói rõ giới hạn đó ra thay vì để người dùng tưởng đã lọc hết.
+    Lọc cả cuối tuần và nghỉ lễ (xem `_load_vn_holidays`). Vẫn không phủ được các
+    thông báo đóng cửa đặc biệt ngoài lịch nghỉ lễ nhà nước, nếu có.
     """
     now = now or vn_now()
     if now.weekday() >= 5:
         return False, "Thứ 7 và Chủ nhật sàn không giao dịch."
+    date_str = now.strftime("%Y-%m-%d")
+    if date_str in _VN_HOLIDAYS:
+        return False, f"Nghỉ lễ: {_VN_HOLIDAYS[date_str]}."
     minutes = now.hour * 60 + now.minute
     if minutes < 8 * 60 + 45:
         return False, "Chưa tới giờ mở cửa phiên phái sinh (ATO 8:45)."

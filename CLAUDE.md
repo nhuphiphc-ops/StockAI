@@ -103,7 +103,14 @@ Biểu đồ nằm ở tab **Bảng Giá Live** (`<div id="tvChart">`), không p
   `/api/derivatives/intraday-forecast` trả `NGOÀI PHIÊN GIAO DỊCH` và **không ghi
   nhật ký**. Trước khi có hàm này, chỉ cần mở trang là cứ 15 giây log dài thêm một
   dòng — kể cả thứ Bảy, Chủ nhật, 7 giờ tối.
-- **Chỉ chặn được cuối tuần, không chặn ngày lễ** — dự án không có lịch nghỉ HNX.
+- Lọc cả cuối tuần và nghỉ lễ. Lịch nghỉ lấy từ `vnstock.core.utils.market_events`
+  (module nội bộ, vendor sẵn trong `vnstock` — không tự nhập tay ngày nào), gồm cả
+  nhãn `Compensation` (nghỉ bù khi lễ rơi cuối tuần), không riêng `Holiday`. Đây là
+  lịch nghỉ CHUNG của cả nước, không phải luồng chính thức riêng của HNX cho hợp đồng
+  tương lai — trùng khớp hầu hết trường hợp nhưng không phủ được các thông báo đóng
+  cửa đặc biệt ngoài lịch nghỉ lễ nhà nước, nếu HNX có công bố riêng. Đường import là
+  module nội bộ, có thể đổi khi nâng phiên bản `vnstock`; lỗi thì lặng lẽ quay về chỉ
+  lọc cuối tuần (`_load_vn_holidays()` trả `{}`), không làm chết cả hàm.
 - Nhật ký nằm ở `localStorage` của trình duyệt, không phải trên server. Route
   `/api/derivatives/history-log` đọc `static/derivatives_history.json`, mà filesystem
   trên Vercel chỉ đọc nên đường đó thực tế luôn rỗng.
@@ -176,9 +183,6 @@ BOM, dấu nháy rồi, nhưng nạp sạch ngay từ đầu vẫn hơn.
 ## Việc còn dang dở
 
 - FOMC không có trong FRED, phải nhập tay.
-- Bốn loại báo cáo FRED đã có bình luận tác động VN qua `binh_luan_mac_dinh`, nhưng
-  trường `recommendation` để trống — phần khuyến nghị đầu tư cụ thể do người dùng viết.
-- Ngày lễ chưa được lọc khỏi phiên giao dịch, chỉ mới lọc cuối tuần.
 - Nhật ký M5 nằm ở `localStorage`, nên đổi máy hoặc xóa dữ liệu trình duyệt là mất
   lịch sử, và kết quả đã chấm không tích lũy được qua nhiều ngày.
 - `data.db` và `__pycache__/*.pyc` **đang bị git theo dõi**. `.gitignore` không gỡ
