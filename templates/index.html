@@ -1067,6 +1067,19 @@
         @media(max-width: 900px) {
             .macro-layout { grid-template-columns: 1fr; }
         }
+        /* Khung nhập nến M5 và khung kết quả vốn để 2 cột cố định (1fr 1fr) viết thẳng
+           trong style inline, mà style inline luôn thắng bất kỳ rule nào trong media
+           query - phải khai lại grid-template-columns ở đây (không còn trong inline)
+           để media query dưới có cái ăn đè lên. Không có nó thì trên điện thoại mỗi
+           cột co lại còn ~170px, không đủ chỗ gõ số hay đọc kết quả. */
+        .derivatives-m5-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media(max-width: 900px) {
+            .derivatives-m5-layout { grid-template-columns: 1fr; }
+        }
         
         .macro-table-box {
             display: flex;
@@ -1910,7 +1923,7 @@
             <div style="display: flex; flex-direction: column; gap: 12px; height: 100%; overflow-y: auto; padding-bottom: 10px; flex: 1;">
                 
                 <!-- Grid layout of Form & Results -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-shrink: 0;">
+                <div class="derivatives-m5-layout" style="flex-shrink: 0;">
                     <!-- Column 1: M5 Candle Input Form -->
                     <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;">
                         <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; justify-content: space-between; align-items: center; width: 100%;">
@@ -2041,7 +2054,7 @@
                                 <span style="color: var(--color-text-muted);">Lãi/lỗ đã chốt:</span>
                                 <span id="roi-net-money" style="font-family:'JetBrains Mono',monospace; font-weight: 800; color: var(--color-text-muted); font-size: 17.3px; margin-left: 4px;">—</span>
                             </div>
-                            <span id="roi-note" style="font-size: 10.5px; color: var(--color-text-muted); font-style: italic;">Đang đối chiếu giá thật…</span>
+                            <span id="roi-note" style="font-size: 10.5px; color: var(--color-text-muted); font-style: italic; overflow-wrap: anywhere; word-break: break-word; min-width: 0; display: block; width: 100%;">Đang đối chiếu giá thật…</span>
                         </div>
                     </div>
                     <div style="overflow-x: auto; width: 100%;">
