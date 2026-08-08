@@ -9,3 +9,6 @@ config.json
 # Python
 __pycache__/
 *.pyc
+
+# Nhat ky sinh ra luc chay, khong phai ma nguon
+static/derivatives_history.json

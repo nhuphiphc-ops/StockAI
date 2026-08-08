@@ -181,14 +181,6 @@ def read_root():
         return FileResponse(html_path)
     return HTMLResponse("<h3>Frontend file template/index.html not found!</h3>")
 
-@app.get("/static/lightweight-charts.js")
-def get_chart_js():
-    """Serves the local TradingView charts library."""
-    js_path = os.path.join(os.path.dirname(__file__), "templates", "lightweight-charts.js")
-    if os.path.exists(js_path):
-        return FileResponse(js_path, media_type="application/javascript")
-    raise HTTPException(status_code=404, detail="Local charts library file not found")
-
 @app.get("/static/favicon.ico")
 def get_favicon():
     """Serves the custom dashboard favicon."""
@@ -210,7 +202,14 @@ def get_manifest():
 
 @app.get("/static/{filename:path}")
 def get_static_file(filename: str):
-    """Serves any file from the static directory (icons, etc.)."""
+    """
+    Serves any file from the static directory (icons, charts library, etc.).
+
+    Trước đây /static/lightweight-charts.js có một route riêng đọc từ templates/, trong khi
+    vercel.json lại route /static/ thẳng vào static build và không hề chạy qua Python. Hai
+    môi trường vì thế nạp hai thứ khác nhau: máy cá nhân chạy được, production 404. Nay chỉ
+    còn một chỗ phục vụ, đọc đúng thư mục mà Vercel phục vụ.
+    """
     static_dir = os.path.join(os.path.dirname(__file__), "static")
     file_path = os.path.join(static_dir, filename)
     # Security: must stay within static dir
@@ -218,8 +217,10 @@ def get_static_file(filename: str):
         raise HTTPException(status_code=403, detail="Forbidden")
     if os.path.exists(file_path) and os.path.isfile(file_path):
         ext = os.path.splitext(filename)[1].lower()
+        # .js phải đúng MIME, trình duyệt từ chối chạy script trả về octet-stream
         mime = {".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml",
-                ".ico": "image/x-icon", ".json": "application/json"}.get(ext, "application/octet-stream")
+                ".ico": "image/x-icon", ".json": "application/json",
+                ".js": "application/javascript", ".css": "text/css"}.get(ext, "application/octet-stream")
         return FileResponse(file_path, media_type=mime)
     raise HTTPException(status_code=404, detail=f"Static file not found: {filename}")
 
