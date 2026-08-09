@@ -271,7 +271,18 @@
             width: 100%;
             height: 100%;
         }
-        
+        /* Hai cột biên cộng lại đã 610px cố định. Dưới ngưỡng đó, cột giữa (1fr) - chứa
+           băng giá, biểu đồ nến, sổ lệnh - co về 0px và biến mất hoàn toàn, không tràn
+           ra ngoài để còn nhận ra vấn đề. Không có media query nào che chắn cho tới giờ,
+           khác với .macro-layout/.derivatives-m5-layout đã có sẵn hai cột 1fr 1fr. Xếp
+           dọc dưới 900px; height:100% dựa vào chiều cao dòng lưới cố định trên desktop
+           nên phải đổi sang auto khi xếp dọc, nếu không mỗi khối vẫn cố chiếm 100% một
+           dòng lưới không còn ý nghĩa và bị cắt bởi overflow:hidden của chính nó. */
+        @media(max-width: 900px) {
+            .live-board-layout { grid-template-columns: 1fr; height: auto; }
+            .sidebar-panel, .center-layout { height: auto; overflow: visible; }
+        }
+
         .sidebar-panel {
             display: flex;
             flex-direction: column;
@@ -517,7 +528,12 @@
         }
 
         .chart-box {
-            display: none !important;
+            /* display:none !important đã nằm ở đây từ commit đầu tiên, không có JS hay
+               rule nào từng bật lại (không gì thắng được !important của chính stylesheet
+               này). Biểu đồ nến vì thế chưa từng hiển thị ra màn hình ở BẤT KỲ kích cỡ
+               nào, kể cả desktop - initChart() vẫn tạo đủ canvas và dữ liệu thật bên
+               trong, chỉ là toàn bộ khối bị ẩn nên không ai nhìn thấy nến. */
+            display: flex;
             flex-grow: 1;
             min-height: 250px;
             position: relative;
@@ -2518,6 +2534,14 @@
                 container.style.position = 'relative';
 
                 chartInstance = LightweightCharts.createChart(container, {
+                    // .chart-box từng bị display:none!important vô điều kiện suốt từ commit
+                    // đầu, nên container luôn đo được 0x0 đúng lúc createChart() chạy. Không
+                    // truyền width/height, thư viện tự lấy kích thước container tại thời điểm
+                    // gọi rồi thôi - canvas kẹt luôn ở độ phân giải 0/300x150 dù CSS sau đó có
+                    // sửa đúng. autoSize:true bắt thư viện tự đặt ResizeObserver theo dõi
+                    // container, tự đo lại bất cứ khi nào kích thước đổi - đúng lúc mở trang,
+                    // đổi tab, xoay máy, hay resize cửa sổ - không chỉ một lần lúc khởi tạo.
+                    autoSize: true,
                     layout: {
                         background: { color: 'transparent' },
                         textColor: '#90a0c4',

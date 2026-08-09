@@ -96,6 +96,23 @@ biểu đồ vẽ trục nhưng không có nến, và console không báo gì c�
 
 Biểu đồ nằm ở tab **Bảng Giá Live** (`<div id="tvChart">`), không phải tab Phái Sinh.
 
+Từ commit đầu tiên của repo, `.chart-box` mang `display: none !important` **vô điều
+kiện** — không route JS hay rule CSS nào từng bật lại nó. `initChart()` vẫn chạy,
+canvas vẫn được tạo, `candleSeries` vẫn có dữ liệu thật, nên mọi phép kiểm tra chỉ
+nhìn vào state JS (như `candleSeries.data().length`) sẽ báo "OK" nhầm — phải nhìn
+`getComputedStyle(...).display` hoặc chụp ảnh thật mới lộ ra. Nay đã đổi thành
+`display: flex` và thêm `autoSize: true` vào `createChart()` để thư viện tự đặt
+`ResizeObserver` theo dõi container (đổi tab, resize cửa sổ, xoay máy đều tự đo lại) —
+`.chart-box` từng luôn 0×0 nên container không có kích thước thật để thư viện đo lúc
+khởi tạo.
+
+`.live-board-layout` (khung 3 cột của tab Bảng Giá Live: `290px 1fr 320px`) cũng
+không có media query nào che cho tới giờ. Hai cột biên cố định đã 610px, nên dưới
+ngưỡng đó cột giữa (`1fr`) — chứa băng giá, biểu đồ, sổ lệnh — co về 0px và biến mất,
+không tràn ra ngoài để còn dễ nhận ra. Media query dưới 900px xếp dọc ba khối, kèm
+đổi `height: 100%` sang `auto` cho `.sidebar-panel`/`.center-layout` vì các khối đó
+dựa vào chiều cao dòng lưới cố định trên desktop.
+
 ## Phái sinh M5
 
 - `derivatives_session_state()` — phiên VN30F1M trên HNX: T2–T6, ATO 8:45, khớp liên
