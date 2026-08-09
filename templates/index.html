@@ -778,7 +778,13 @@
            ------------------------------------------------------------------------- */
         .overview-layout {
             display: grid;
-            grid-template-columns: 1fr;
+            /* minmax(0, 1fr) chứ không phải "1fr" trần: mặc định CSS Grid không cho
+               track co xuống dưới kích thước nội dung nhỏ nhất của phần tử con (ở đây
+               là bảng report-table/signal-analysis-table, bảng không tự co). Thiếu
+               minmax(0, ...) thì cả cột - và mọi khối bên trong, kể cả .ai-scores-
+               container đã có media query riêng - bị bảng ép rộng ra theo, đẩy toàn
+               trang phải cuộn ngang dù hộp bọc bảng đã có overflow-x:auto. */
+            grid-template-columns: minmax(0, 1fr);
             gap: 16px;
             width: 100%;
             height: 100%;
