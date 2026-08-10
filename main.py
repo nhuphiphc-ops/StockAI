@@ -32,7 +32,9 @@ except ImportError:
     pass
 
 import re
+import time
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -2065,3 +2067,156 @@ def api_top10_trading():
         return {"status": "success", "data": data}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+# -------------------------------------------------------------------------
+# Surfing / T+3 Screener — lọc cổ phiếu theo khối lượng đột biến + kỹ thuật
+# -------------------------------------------------------------------------
+
+_INDUSTRY_MAP: dict = {
+    "ACB": "Ngân hàng", "BID": "Ngân hàng", "CTG": "Ngân hàng",
+    "HDB": "Ngân hàng", "LPB": "Ngân hàng", "MBB": "Ngân hàng",
+    "MSB": "Ngân hàng", "SHB": "Ngân hàng", "SSB": "Ngân hàng",
+    "STB": "Ngân hàng", "TCB": "Ngân hàng", "TPB": "Ngân hàng",
+    "VCB": "Ngân hàng", "VIB": "Ngân hàng", "VPB": "Ngân hàng",
+    "BSI": "Chứng khoán", "CTS": "Chứng khoán", "HCM": "Chứng khoán",
+    "SSI": "Chứng khoán", "VCI": "Chứng khoán", "VND": "Chứng khoán",
+    "BCM": "BĐS", "DIG": "BĐS", "DXG": "BĐS", "KDH": "BĐS",
+    "NLG": "BĐS", "NVL": "BĐS", "PDR": "BĐS", "VHM": "BĐS",
+    "VIC": "BĐS", "VRE": "BĐS",
+    "FPT": "Công nghệ",
+    "MWG": "Bán lẻ", "PNJ": "Bán lẻ",
+    "VNM": "Thực phẩm", "MSN": "Tiêu dùng", "SAB": "Đồ uống", "KDC": "Thực phẩm",
+    "HPG": "Thép", "HSG": "Thép", "NKG": "Thép",
+    "GAS": "Dầu khí", "PLX": "Dầu khí", "PVD": "Dầu khí", "PVS": "Dầu khí",
+    "GVR": "Cao su",
+    "DGC": "Hóa chất", "DCM": "Hóa chất", "DPM": "Hóa chất",
+    "CTD": "Xây dựng", "HBC": "Xây dựng", "VCG": "Xây dựng",
+    "REE": "Năng lượng", "POW": "Năng lượng", "NT2": "Năng lượng",
+    "VJC": "Hàng không", "ACV": "Cảng hàng không",
+    "GMD": "Cảng biển", "VSC": "Cảng biển", "HAH": "Cảng biển",
+    "VTP": "Logistics",
+    "BVH": "Bảo hiểm",
+    "REE": "Hạ tầng KCN", "IDC": "KCN", "KBC": "KCN",
+    "PHR": "Cao su", "SZC": "KCN",
+}
+
+_VN30_FALLBACK = [
+    "ACB", "BCM", "BID", "BVH", "CTG", "FPT", "GAS", "GVR", "HDB",
+    "HPG", "LPB", "MBB", "MSN", "MWG", "PLX", "POW", "SAB", "SHB",
+    "SSB", "SSI", "STB", "TCB", "TPB", "VCB", "VHM", "VIB", "VIC",
+    "VJC", "VNM", "VPB",
+]
+
+_VN100_FALLBACK = _VN30_FALLBACK + [
+    "AGG", "ANV", "BSI", "CII", "CTD", "CTR", "DCM", "DGC", "DGW",
+    "DIG", "DPM", "DXG", "EVF", "GMD", "HAH", "HBC", "HCM", "HDG",
+    "HSG", "HT1", "IDC", "KBC", "KDH", "KSB", "MSB", "NKG", "NLG",
+    "NT2", "NVL", "PDR", "PHR", "PNJ", "PPC", "PVD", "PVS", "REE",
+    "SCS", "SZC", "TCH", "THD", "VCI", "VCG", "VGC", "VHC", "VND",
+    "VPI", "VRE", "VSC", "VTP",
+]
+
+_surfing_cache: dict = {}
+_SURFING_TTL = 3600
+
+
+def _calc_rsi(closes: list, period: int = 14) -> float:
+    if len(closes) < period + 1:
+        return None
+    gains, losses = [], []
+    for i in range(1, len(closes)):
+        d = closes[i] - closes[i - 1]
+        gains.append(max(d, 0.0))
+        losses.append(max(-d, 0.0))
+    ag = sum(gains[-period:]) / period
+    al = sum(losses[-period:]) / period
+    if al == 0:
+        return 100.0
+    return round(100 - 100 / (1 + ag / al), 1)
+
+
+def _fetch_one_surfing(symbol: str) -> dict:
+    try:
+        today = vn_now().date()
+        start = (today - timedelta(days=65)).strftime("%Y-%m-%d")
+        end = today.strftime("%Y-%m-%d")
+        bars = vnstock_client.get_historical_data(symbol, start, end, "1D", "VCI")
+        if not bars or len(bars) < 21:
+            return None
+
+        closes = [b["close"] for b in bars]
+        volumes = [b["volume"] for b in bars]
+
+        today_vol = volumes[-1]
+        avg_vol = sum(volumes[-21:-1]) / 20
+        vol_ratio = round(today_vol / avg_vol, 2) if avg_vol else None
+
+        ma20 = sum(closes[-20:]) / 20
+        ma50 = sum(closes[-50:]) / 50 if len(closes) >= 50 else None
+        rsi = _calc_rsi(closes)
+        change_pct = round((closes[-1] - closes[-2]) / closes[-2] * 100, 2) if len(closes) >= 2 else None
+
+        signals = []
+        if vol_ratio and vol_ratio >= 2.0:
+            signals.append("KL đột biến")
+        elif vol_ratio and vol_ratio >= 1.5:
+            signals.append("KL cao")
+        if rsi is not None and rsi <= 30:
+            signals.append("RSI quá bán")
+        elif rsi is not None and rsi >= 70:
+            signals.append("RSI quá mua")
+        signals.append("Trên MA20" if closes[-1] > ma20 else "Dưới MA20")
+        if ma50 is not None:
+            signals.append("Trên MA50" if closes[-1] > ma50 else "Dưới MA50")
+
+        return {
+            "symbol": symbol,
+            "industry": _INDUSTRY_MAP.get(symbol, "Khác"),
+            "price": closes[-1],
+            "change_pct": change_pct,
+            "volume": int(today_vol),
+            "avg_vol_20d": int(avg_vol),
+            "vol_ratio": vol_ratio,
+            "rsi": rsi,
+            "ma20": round(ma20),
+            "above_ma20": closes[-1] > ma20,
+            "ma50": round(ma50) if ma50 else None,
+            "above_ma50": closes[-1] > ma50 if ma50 else None,
+            "signals": signals,
+        }
+    except Exception:
+        return None
+
+
+@app.get("/api/surfing/screener")
+def surfing_screener(universe: str = "VN30", refresh: bool = False):
+    cache_key = universe.upper()
+    if not refresh:
+        cached = _surfing_cache.get(cache_key)
+        if cached and (time.time() - cached[0]) < _SURFING_TTL:
+            return cached[1]
+
+    try:
+        from vnstock import Listing
+        df = Listing().symbols_by_group(cache_key)
+        symbols = df["ticker"].dropna().tolist()
+    except Exception:
+        symbols = _VN30_FALLBACK if cache_key == "VN30" else _VN100_FALLBACK
+
+    results = []
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        for r in pool.map(_fetch_one_surfing, symbols):
+            if r:
+                results.append(r)
+
+    results.sort(key=lambda x: x.get("vol_ratio") or 0, reverse=True)
+
+    resp = {
+        "universe": cache_key,
+        "count": len(results),
+        "updated_at": vn_now().strftime("%H:%M %d/%m/%Y"),
+        "data": results,
+    }
+    _surfing_cache[cache_key] = (time.time(), resp)
+    return resp

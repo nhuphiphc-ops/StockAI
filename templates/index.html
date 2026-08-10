@@ -656,6 +656,24 @@
             background: rgba(255, 255, 255, 0.05);
             color: #fff;
         }
+        .surf-universe-btn {
+            background: transparent;
+            border: none;
+            color: var(--color-text-secondary);
+            padding: 5px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .surf-universe-btn.active {
+            background: rgba(0, 229, 255, 0.15);
+            color: #00e5ff;
+        }
+        #surf-table th { cursor: default; user-select: none; }
+        #surf-table th.sortable { cursor: pointer; }
+        #surf-table th.sortable:hover { color: #00e5ff; }
         .report-period-selector {
             display: flex;
             border: 1px solid rgba(255, 255, 255, 0.03);
@@ -1501,6 +1519,10 @@
             <i class="fa-solid fa-globe"></i>
             <span>Vĩ Mô</span>
         </button>
+        <button class="bottom-nav-item" onclick="switchView(this,'surfing')">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+            <span>Lướt T+3</span>
+        </button>
     </div>
 
     <div class="loading-overlay" id="loading-overlay">
@@ -1525,6 +1547,7 @@
                 <button class="nav-btn" onclick="switchView(this,'intraday-derivatives')"><i class="fa-solid fa-bolt"></i> Phái Sinh Trong Phiên</button>
                 <button class="nav-btn" onclick="switchView(this,'builders')"><i class="fa-solid fa-arrow-trend-up"></i> Cổ Phiếu Xu Hướng Tăng</button>
                 <button class="nav-btn" onclick="switchView(this,'macro')"><i class="fa-solid fa-globe"></i> Vĩ Mô & Địa Trị</button>
+                <button class="nav-btn" onclick="switchView(this,'surfing')"><i class="fa-solid fa-magnifying-glass-chart"></i> Lướt T+3</button>
             </nav>
 
             <div class="header-actions">
@@ -2271,8 +2294,74 @@
              VIEW 6: Asset Allocation
              ========================================================================= -->
 
+        <!-- =========================================================================
+             VIEW 7: Lướt T+3 — Screener kỹ thuật
+             ========================================================================= -->
+        <div class="view-content" id="view-surfing">
+            <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 16px; height: 100%; overflow-y: auto;">
 
+                <!-- Tiêu đề + controls -->
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 20px;">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i> Lướt T+3 — Bộ lọc kỹ thuật
+                        </h2>
+                        <p style="margin: 6px 0 0; font-size: 13px; color: var(--color-text-secondary);">
+                            Sắp xếp theo tỷ lệ khối lượng giao dịch so với trung bình 20 phiên.
+                        </p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; background: rgba(0,0,0,0.35); border-radius: 7px; border: 1px solid var(--border-color); padding: 3px;">
+                            <button id="surf-btn-vn30"  class="surf-universe-btn active" onclick="setSurfUniverse('VN30')">VN30</button>
+                            <button id="surf-btn-vn100" class="surf-universe-btn"        onclick="setSurfUniverse('VN100')">VN100</button>
+                        </div>
+                        <button onclick="loadSurfingTab(true)" style="background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.25); color: #00e5ff; padding: 7px 16px; border-radius: 7px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+                        </button>
+                    </div>
+                </div>
 
+                <!-- Meta + loading -->
+                <div id="surf-meta" style="font-size: 13px; color: var(--color-text-secondary); min-height: 20px;"></div>
+                <div id="surf-loading" style="display: none; text-align: center; padding: 60px; color: var(--color-text-secondary);">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px; color: #00e5ff;"></i>
+                    <p style="margin: 14px 0 0; font-size: 14px;">Đang tải dữ liệu — VN30 ~10s, VN100 ~30s</p>
+                </div>
+
+                <!-- Bảng kết quả -->
+                <div style="overflow-x: auto; flex: 1;">
+                    <table class="pred-table" id="surf-table" style="width: 100%; min-width: 860px;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left; width:32px;">#</th>
+                                <th style="text-align:left;" class="sortable" onclick="sortSurfTable('symbol')">Mã</th>
+                                <th style="text-align:left;">Ngành</th>
+                                <th class="sortable" onclick="sortSurfTable('price')">Giá</th>
+                                <th class="sortable" onclick="sortSurfTable('change_pct')">%Ngày</th>
+                                <th class="sortable" onclick="sortSurfTable('volume')">KL hôm nay</th>
+                                <th>TB KL 20 phiên</th>
+                                <th class="sortable" onclick="sortSurfTable('vol_ratio')" style="color:#00e5ff;">Tỷ lệ KL ↓</th>
+                                <th class="sortable" onclick="sortSurfTable('rsi')">RSI(14)</th>
+                                <th>MA20</th>
+                                <th>MA50</th>
+                                <th style="text-align:left;">Tín hiệu</th>
+                            </tr>
+                        </thead>
+                        <tbody id="surf-tbody">
+                            <tr><td colspan="12" style="text-align:center; color:var(--color-text-secondary); padding: 40px;">
+                                Chọn VN30 hoặc VN100 và nhấn Làm mới để tải dữ liệu.
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Cảnh báo pháp lý -->
+                <p style="font-size: 12px; color: #666; border-top: 1px solid var(--border-color); padding-top: 12px; margin: 0; line-height: 1.6;">
+                    ⚠️ <strong>Lưu ý:</strong> Bảng này chỉ hiển thị chỉ báo kỹ thuật tính từ dữ liệu lịch sử — không phải khuyến nghị đầu tư.
+                    Khối lượng đột biến và RSI là chỉ báo trễ, không thể dự báo biến động giá tương lai. Nhà đầu tư tự chịu trách nhiệm với mọi quyết định.
+                </p>
+            </div>
+        </div>
 
     </div>
 
@@ -2480,6 +2569,8 @@
                     loadPredictorTab();
                 } else if (viewId === 'intraday-derivatives') {
                     loadDerivativesHistoryFromServer();
+                } else if (viewId === 'surfing') {
+                    loadSurfingTab();
                 }
             } catch (err) {
                 console.error("Error loading tab data for " + viewId + ":", err);
@@ -5105,6 +5196,122 @@
             // Save references
             canvas._onMouseMove = handleMouseMove;
             canvas._onMouseLeave = handleMouseLeave;
+        }
+
+        // ── Surfing T+3 Screener ─────────────────────────────
+        let _surfUniverse = 'VN30';
+        let _surfData = [];
+        let _surfSortKey = 'vol_ratio';
+        let _surfSortAsc = false;
+
+        function setSurfUniverse(u) {
+            _surfUniverse = u;
+            document.getElementById('surf-btn-vn30').classList.toggle('active', u === 'VN30');
+            document.getElementById('surf-btn-vn100').classList.toggle('active', u === 'VN100');
+            loadSurfingTab(false);
+        }
+
+        async function loadSurfingTab(forceRefresh) {
+            const tbody = document.getElementById('surf-tbody');
+            const meta  = document.getElementById('surf-meta');
+            const spin  = document.getElementById('surf-loading');
+            if (!tbody) return;
+
+            spin.style.display = 'block';
+            tbody.innerHTML = '';
+            meta.textContent = '';
+
+            try {
+                const qs = forceRefresh ? '&refresh=true' : '';
+                const r  = await fetch(`${HOST}/api/surfing/screener?universe=${_surfUniverse}${qs}`);
+                if (!r.ok) throw new Error(r.status);
+                const d = await r.json();
+                spin.style.display = 'none';
+                _surfData = d.data || [];
+                meta.textContent = `${d.count} mã · cập nhật ${d.updated_at}`;
+                renderSurfTable();
+            } catch(e) {
+                spin.style.display = 'none';
+                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#ff5252;padding:40px;">Không tải được dữ liệu — thử lại sau.</td></tr>';
+            }
+        }
+
+        function sortSurfTable(key) {
+            if (_surfSortKey === key) { _surfSortAsc = !_surfSortAsc; }
+            else { _surfSortKey = key; _surfSortAsc = (key === 'symbol'); }
+            renderSurfTable();
+        }
+
+        function renderSurfTable() {
+            const tbody = document.getElementById('surf-tbody');
+            if (!tbody) return;
+            if (!_surfData.length) {
+                tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#888;padding:40px;">Chưa có dữ liệu.</td></tr>';
+                return;
+            }
+            const sorted = [..._surfData].sort((a, b) => {
+                const va = a[_surfSortKey] ?? (_surfSortAsc ? Infinity : -Infinity);
+                const vb = b[_surfSortKey] ?? (_surfSortAsc ? Infinity : -Infinity);
+                if (typeof va === 'string') return _surfSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+                return _surfSortAsc ? va - vb : vb - va;
+            });
+
+            const fmtVol = v => {
+                if (!v && v !== 0) return '—';
+                if (v >= 1e6) return (v/1e6).toFixed(1) + 'M';
+                if (v >= 1e3) return (v/1e3).toFixed(0) + 'K';
+                return v;
+            };
+            const fmtPx = p => p ? Math.round(p).toLocaleString('vi-VN') : '—';
+
+            tbody.innerHTML = sorted.map((row, i) => {
+                const chgCls = row.change_pct > 0 ? 'up' : row.change_pct < 0 ? 'down' : '';
+                const chgStr = row.change_pct != null
+                    ? (row.change_pct > 0 ? '+' : '') + row.change_pct.toFixed(2) + '%'
+                    : '—';
+
+                const vrStyle = row.vol_ratio >= 2.0
+                    ? 'color:#ff5252;font-weight:700;'
+                    : row.vol_ratio >= 1.5 ? 'color:#ffb300;font-weight:600;' : '';
+                const vrStr = row.vol_ratio ? row.vol_ratio.toFixed(2) + 'x' : '—';
+
+                const rsiStyle = row.rsi >= 70 ? 'color:#ff5252;' : row.rsi <= 30 ? 'color:#00e676;' : '';
+                const rsiStr  = row.rsi != null ? row.rsi.toFixed(1) : '—';
+
+                const ma20El = row.above_ma20 != null
+                    ? (row.above_ma20
+                        ? '<span style="color:#00e676;">↑ MA20</span>'
+                        : '<span style="color:#ff5252;">↓ MA20</span>')
+                    : '—';
+                const ma50El = row.above_ma50 != null
+                    ? (row.above_ma50
+                        ? '<span style="color:#00e676;">↑ MA50</span>'
+                        : '<span style="color:#ff5252;">↓ MA50</span>')
+                    : '—';
+
+                const sigEl = (row.signals || []).map(s => {
+                    const c = s === 'KL đột biến' ? '#ff5252'
+                            : s === 'KL cao'       ? '#ffb300' : '';
+                    return c
+                        ? `<span style="color:${c};font-weight:600;">${s}</span>`
+                        : `<span style="color:#888;">${s}</span>`;
+                }).join(' <span style="color:#444;">·</span> ');
+
+                return `<tr>
+                    <td style="color:#555;">${i+1}</td>
+                    <td style="font-weight:700;letter-spacing:0.5px;">${row.symbol}</td>
+                    <td style="font-size:12px;color:#9fb3c8;">${row.industry}</td>
+                    <td class="num">${fmtPx(row.price)}</td>
+                    <td class="num ${chgCls}">${chgStr}</td>
+                    <td class="num">${fmtVol(row.volume)}</td>
+                    <td class="num" style="color:#666;">${fmtVol(row.avg_vol_20d)}</td>
+                    <td class="num" style="${vrStyle}">${vrStr}</td>
+                    <td class="num" style="${rsiStyle}">${rsiStr}</td>
+                    <td>${ma20El}</td>
+                    <td>${ma50El}</td>
+                    <td style="font-size:12px;">${sigEl}</td>
+                </tr>`;
+            }).join('');
         }
 
         // ── PWA SERVICE WORKER REGISTRATION ─────────────────
