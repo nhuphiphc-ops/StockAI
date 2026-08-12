@@ -4027,7 +4027,7 @@
                 if (badge) {
                     const t = candle.candle_time || '';
                     const volNote = candle.vol_spike >= 1.8 ? ` · KL ${candle.vol_spike.toFixed(1)}x` : '';
-                    badge.textContent = `● Nến ${t.slice(11,16)} · ${candle.bars_used || 5}×1m${volNote}`;
+                    badge.textContent = `● Nến 1m ${t.slice(11,16)}${volNote}`;
                     badge.style.color = '#00e676';
                 }
 

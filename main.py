@@ -1641,18 +1641,20 @@ def get_derivatives_live_candle():
             raise HTTPException(status_code=503,
                                 detail="Chưa có dữ liệu nến VN30F1M hôm nay. Kiểm tra lại trong giờ giao dịch.")
 
-        # Bỏ nến cuối (có thể đang hình thành), lấy 5 nến hoàn chỉnh liền trước
-        complete = bars_1m[:-1] if len(bars_1m) > 5 else bars_1m
-        recent = complete[-5:] if len(complete) >= 5 else complete
-        if not recent:
+        # Bỏ nến cuối (đang hình thành), lấy nến 1 phút hoàn chỉnh gần nhất
+        complete = bars_1m[:-1] if len(bars_1m) > 1 else bars_1m
+        if not complete:
             raise HTTPException(status_code=503, detail="Không đủ nến hoàn chỉnh.")
 
-        open_p  = recent[0]["open"]
-        close_p = recent[-1]["close"]
-        high_p  = max(b["high"] for b in recent)
-        low_p   = min(b["low"]  for b in recent)
-        volume  = sum(b["volume"] for b in recent)
-        candle_time = str(recent[0].get("time", ""))[:16]
+        # Dùng đúng 1 nến 1 phút — chuẩn xác hơn gộp M5 vì giữ nguyên timing
+        bar = complete[-1]
+        open_p  = bar["open"]
+        close_p = bar["close"]
+        high_p  = bar["high"]
+        low_p   = bar["low"]
+        volume  = bar["volume"]
+        recent  = [bar]
+        candle_time = str(bar.get("time", ""))[:16]
 
         # 2. VN30 index cho basis (cố gắng lấy, không bắt buộc)
         vn30_close = None
