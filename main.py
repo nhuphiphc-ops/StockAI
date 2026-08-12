@@ -1627,68 +1627,91 @@ def get_stock_signals(tickers: str = ""):
 
 @app.get("/api/derivatives/live-candle")
 def get_derivatives_live_candle():
+    """
+    Trả về nến M5 gần nhất của VN30F1M bằng cách gộp 5 nến 1 phút gần nhất
+    từ vnstock (dữ liệu thật), không dùng SSI mock.
+    """
     try:
-        # 1. Fetch VN30F1M price depth and basis/VN30
-        vf_depth = ssi_client.get_price_depth("VN30F1M")
-        if not vf_depth or vf_depth.get("last_price", 0) == 0:
-            vf_depth = ssi_client._generate_mock_price_depth("VN30F1M")
-            
-        v30_depth = ssi_client.get_price_depth("VN30")
-        if not v30_depth or v30_depth.get("last_price", 0) == 0:
-            v30_depth = ssi_client._generate_mock_price_depth("VN30")
-            
-        close_p = vf_depth.get("last_price", 2001.2)
-        v30_price = v30_depth.get("last_price", 2002.5)
-        basis = close_p - v30_price
-        
-        # 2. Fetch intraday transactions of VN30F1M
-        trades = ssi_client.get_intraday("VN30F1M")
-        if not trades:
-            trades = ssi_client._generate_mock_intraday("VN30F1M")
-            
-        # 3. Calculate candle (High, Low, Volume) from trades
-        # Take the most recent trades (e.g. the last 20 trades to simulate recent 5m activity)
-        recent_trades = trades[:20] if trades else []
-        if recent_trades:
-            high_p = max(t["price"] for t in recent_trades)
-            low_p = min(t["price"] for t in recent_trades)
-            volume = sum(t["volume"] for t in recent_trades)
-        else:
-            # Fallback
-            high_p = close_p + 1.2
-            low_p = close_p - 0.8
-            volume = 1200
-            
-        # Ensure high >= close >= low
-        high_p = max(high_p, close_p)
-        low_p = min(low_p, close_p)
-        
-        # 4. Generate Price Action text dynamically
+        today = vn_now().date()
+        start = end = today.strftime("%Y-%m-%d")
+
+        # 1. Lấy nến 1 phút VN30F1M hôm nay (thật, không mock)
+        bars_1m = vnstock_client.get_historical_data("VN30F1M", start, end, "1m", "VCI")
+        if not bars_1m:
+            raise HTTPException(status_code=503,
+                                detail="Chưa có dữ liệu nến VN30F1M hôm nay. Kiểm tra lại trong giờ giao dịch.")
+
+        # Bỏ nến cuối (có thể đang hình thành), lấy 5 nến hoàn chỉnh liền trước
+        complete = bars_1m[:-1] if len(bars_1m) > 5 else bars_1m
+        recent = complete[-5:] if len(complete) >= 5 else complete
+        if not recent:
+            raise HTTPException(status_code=503, detail="Không đủ nến hoàn chỉnh.")
+
+        open_p  = recent[0]["open"]
+        close_p = recent[-1]["close"]
+        high_p  = max(b["high"] for b in recent)
+        low_p   = min(b["low"]  for b in recent)
+        volume  = sum(b["volume"] for b in recent)
+        candle_time = str(recent[0].get("time", ""))[:16]
+
+        # 2. VN30 index cho basis (cố gắng lấy, không bắt buộc)
+        vn30_close = None
+        try:
+            vn30_bars = vnstock_client.get_historical_data("VN30", start, end, "1m", "VCI")
+            if vn30_bars:
+                vn30_close = vn30_bars[-1]["close"]
+        except Exception:
+            pass
+        basis = round(close_p - vn30_close, 1) if vn30_close else None
+
+        # 3. Tạo mô tả price action dựa trên hình dạng nến thật
         candle_range = high_p - low_p
-        if volume < 500:
+        body = abs(close_p - open_p)
+        body_ratio = body / candle_range if candle_range > 0 else 0
+        bullish = close_p >= open_p
+
+        # So sánh volume với trung bình các nến đã có trong ngày
+        avg_vol_per_bar = sum(b["volume"] for b in bars_1m) / len(bars_1m)
+        vol_spike = volume / (avg_vol_per_bar * len(recent)) if avg_vol_per_bar > 0 else 1.0
+        vol_note = " KL đột biến xác nhận." if vol_spike >= 1.8 else ""
+
+        near_high = close_p >= high_p - candle_range * 0.06
+        near_low  = close_p <= low_p  + candle_range * 0.06
+
+        if volume < 200:
             pa_text = "Thanh khoản cạn kiệt, thị trường đi ngang thăm dò."
-        elif close_p > (high_p + low_p)/2 + candle_range * 0.1:
-            if close_p >= high_p - 0.2:
-                pa_text = "Nến bứt phá vượt đỉnh, dòng tiền Long gia tăng mạnh mẽ."
-            else:
-                pa_text = "Nến rút chân tích cực, lực cầu chủ động hấp thụ cung."
-        elif close_p < (high_p + low_p)/2 - candle_range * 0.1:
-            if close_p <= low_p + 0.2:
-                pa_text = "Thân nến đỏ dài sát đáy, áp lực bán đè nặng phe Long."
-            else:
-                pa_text = "Nến từ chối tăng, áp lực chốt lời ngắn hạn xuất hiện."
+        elif body_ratio >= 0.65 and bullish and near_high:
+            pa_text = f"Nến bứt phá vượt đỉnh, lực cầu Long áp đảo.{vol_note}"
+        elif body_ratio >= 0.55 and bullish:
+            pa_text = f"Nến rút chân tích cực, lực cầu chủ động hấp thụ cung.{vol_note}"
+        elif body_ratio >= 0.65 and not bullish and near_low:
+            pa_text = f"Thân nến đỏ dài sát đáy, áp lực bán đè nặng phe Long.{vol_note}"
+        elif body_ratio >= 0.55 and not bullish:
+            pa_text = f"Nến từ chối tăng, áp lực chốt lời ngắn hạn xuất hiện.{vol_note}"
+        elif close_p > (high_p + low_p) / 2 + candle_range * 0.1:
+            pa_text = "Nến rút chân tích cực, lực cầu chủ động hấp thụ cung."
+        elif close_p < (high_p + low_p) / 2 - candle_range * 0.1:
+            pa_text = "Nến từ chối tăng, áp lực chốt lời ngắn hạn xuất hiện."
         else:
             pa_text = "Nến thân nhỏ biến động hẹp, hai phe Long/Short đang giằng co."
-            
+
         return {
             "success": True,
+            "candle_time": candle_time,
+            "open_price": round(open_p, 1),
             "close_price": round(close_p, 1),
             "high_price": round(high_p, 1),
             "low_price": round(low_p, 1),
             "volume": int(volume),
-            "basis": round(basis, 1),
-            "price_action": pa_text
+            "basis": basis,
+            "vn30_price": round(vn30_close, 1) if vn30_close else None,
+            "price_action": pa_text,
+            "bars_used": len(recent),
+            "vol_spike": round(vol_spike, 2),
+            "data_source": "vnstock_real",
         }
+    except HTTPException:
+        raise
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
