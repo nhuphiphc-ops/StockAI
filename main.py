@@ -191,10 +191,12 @@ class IntradayCandleItem(BaseModel):
     basis: float
     price_action: Optional[str] = ""
     # Enhanced context from live-candle auto mode (None = manual entry, unknown)
-    vol_spike:    Optional[float] = None   # volume / avg_volume (20 bars)
-    m15_bullish:  Optional[bool]  = None   # True/False/None
-    session_high: Optional[float] = None   # today's intraday session high
-    session_low:  Optional[float] = None   # today's intraday session low
+    vol_spike:     Optional[float] = None   # volume / avg_volume (20 bars)
+    m15_bullish:   Optional[bool]  = None   # True/False/None
+    session_high:  Optional[float] = None   # today's intraday session high
+    session_low:   Optional[float] = None   # today's intraday session low
+    choppiness:    Optional[float] = None   # Choppiness Index 0-100
+    market_regime: Optional[str]   = None   # "TRENDING" | "RANGING" | "NEUTRAL"
 
 class TradeSignalItem(BaseModel):
     """Một dòng nhật ký M5, đọc lại từ Supabase (core/supabase_client.py)."""
@@ -1671,7 +1673,19 @@ def get_derivatives_live_candle():
             pass
         basis = round(close_p - vn30_close, 1) if vn30_close else None
 
-        # 3. M15 trend: dùng 15 nến 1m hoàn chỉnh gần nhất làm "nến M15"
+        # 3. Choppiness Index (14 bars) — regime detection
+        ci = _calc_choppiness(complete, period=14)
+        if ci is not None:
+            if ci > 61.8:
+                market_regime = "RANGING"
+            elif ci < 38.2:
+                market_regime = "TRENDING"
+            else:
+                market_regime = "NEUTRAL"
+        else:
+            market_regime = None
+
+        # 4. M15 trend: dùng 15 nến 1m hoàn chỉnh gần nhất làm "nến M15"
         m15_bars = complete[-15:] if len(complete) >= 15 else complete
         if m15_bars:
             m15_open  = m15_bars[0]["open"]
@@ -1680,11 +1694,11 @@ def get_derivatives_live_candle():
         else:
             m15_bullish = None
 
-        # 4. Session high/low (dùng toàn bộ nến hôm nay kể cả nến đang hình thành)
+        # 5. Session high/low (dùng toàn bộ nến hôm nay kể cả nến đang hình thành)
         session_high = max(b["high"] for b in bars_1m)
         session_low  = min(b["low"]  for b in bars_1m)
 
-        # 5. Tạo mô tả price action dựa trên hình dạng nến thật
+        # 6. Tạo mô tả price action dựa trên hình dạng nến thật
         candle_range = high_p - low_p
         body = abs(close_p - open_p)
         body_ratio = body / candle_range if candle_range > 0 else 0
@@ -1731,6 +1745,8 @@ def get_derivatives_live_candle():
             "m15_bullish": m15_bullish,
             "session_high": round(session_high, 1),
             "session_low": round(session_low, 1),
+            "choppiness": ci,
+            "market_regime": market_regime,
             "data_source": "vnstock_real",
         }
     except HTTPException:
@@ -1757,8 +1773,17 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
         candle_range = high_p - low_p
 
         # ── Hard filters (reject signal regardless of score) ─────────────────
+        choppiness    = item.choppiness
+        market_regime = item.market_regime
         hard_neutral_reason = None
-        if volume < 100:
+        if market_regime == "RANGING":
+            ci_str = f"{choppiness:.0f}" if choppiness else "?"
+            hard_neutral_reason = (
+                f"Thị trường đang SIDEWAY (Choppiness Index = {ci_str} > 61.8). "
+                f"Trong range, tín hiệu chiều nào cũng thua vì giá dao động giữa 2 biên. "
+                f"Đợi CI giảm dưới 61.8 (thị trường chọn hướng) rồi mới giao dịch."
+            )
+        elif volume < 100:
             hard_neutral_reason = f"KL nến 1m cực thấp ({volume:.0f} HĐ) — dòng tiền cạn kiệt."
         elif abs(basis) > 8.0:
             hard_neutral_reason = f"Basis quá rộng ({basis:+.1f}đ) — rủi ro ép basis đột ngột."
@@ -1922,6 +1947,8 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
             "stop_loss": sl,
             "take_profit": tp,
             "score": score if not hard_neutral_reason else None,
+            "choppiness": choppiness,
+            "market_regime": market_regime,
             "arguments": {
                 "price_action_vol": arg_pa,
                 "basis_impact": arg_basis,
@@ -2218,6 +2245,27 @@ _VN100_FALLBACK = _VN30_FALLBACK + [
 
 _surfing_cache: dict = {}
 _SURFING_TTL = 3600
+
+
+def _calc_choppiness(bars: list, period: int = 14) -> float | None:
+    """
+    Choppiness Index: 100 * log10(sum(TR_1, n) / (HH - LL)) / log10(n)
+    > 61.8 = sideway/ranging, < 38.2 = strong trend, 38-62 = neutral.
+    """
+    if len(bars) < period + 1:
+        return None
+    recent = bars[-(period + 1):]
+    atr_sum = 0.0
+    for i in range(1, len(recent)):
+        h, l, pc = recent[i]["high"], recent[i]["low"], recent[i - 1]["close"]
+        atr_sum += max(h - l, abs(h - pc), abs(l - pc))
+    hh = max(b["high"] for b in recent[1:])
+    ll = min(b["low"]  for b in recent[1:])
+    if hh == ll or atr_sum == 0:
+        return 100.0
+    import math
+    ci = 100 * math.log10(atr_sum / (hh - ll)) / math.log10(period)
+    return round(min(100.0, max(0.0, ci)), 1)
 
 
 def _calc_rsi(closes: list, period: int = 14) -> float:
