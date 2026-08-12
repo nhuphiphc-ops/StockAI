@@ -190,6 +190,11 @@ class IntradayCandleItem(BaseModel):
     low_price: float
     basis: float
     price_action: Optional[str] = ""
+    # Enhanced context from live-candle auto mode (None = manual entry, unknown)
+    vol_spike:    Optional[float] = None   # volume / avg_volume (20 bars)
+    m15_bullish:  Optional[bool]  = None   # True/False/None
+    session_high: Optional[float] = None   # today's intraday session high
+    session_low:  Optional[float] = None   # today's intraday session low
 
 class TradeSignalItem(BaseModel):
     """Một dòng nhật ký M5, đọc lại từ Supabase (core/supabase_client.py)."""
@@ -1666,7 +1671,20 @@ def get_derivatives_live_candle():
             pass
         basis = round(close_p - vn30_close, 1) if vn30_close else None
 
-        # 3. Tạo mô tả price action dựa trên hình dạng nến thật
+        # 3. M15 trend: dùng 15 nến 1m hoàn chỉnh gần nhất làm "nến M15"
+        m15_bars = complete[-15:] if len(complete) >= 15 else complete
+        if m15_bars:
+            m15_open  = m15_bars[0]["open"]
+            m15_close = m15_bars[-1]["close"]
+            m15_bullish = m15_close > m15_open
+        else:
+            m15_bullish = None
+
+        # 4. Session high/low (dùng toàn bộ nến hôm nay kể cả nến đang hình thành)
+        session_high = max(b["high"] for b in bars_1m)
+        session_low  = min(b["low"]  for b in bars_1m)
+
+        # 5. Tạo mô tả price action dựa trên hình dạng nến thật
         candle_range = high_p - low_p
         body = abs(close_p - open_p)
         body_ratio = body / candle_range if candle_range > 0 else 0
@@ -1710,6 +1728,9 @@ def get_derivatives_live_candle():
             "price_action": pa_text,
             "bars_used": len(recent),
             "vol_spike": round(vol_spike, 2),
+            "m15_bullish": m15_bullish,
+            "session_high": round(session_high, 1),
+            "session_low": round(session_low, 1),
             "data_source": "vnstock_real",
         }
     except HTTPException:
@@ -1722,102 +1743,154 @@ def get_derivatives_live_candle():
 @app.post("/api/derivatives/intraday-forecast")
 def get_derivatives_intraday_forecast(item: IntradayCandleItem):
     try:
-        close_p = item.close_price
-        volume = item.volume
-        high_p = item.high_price
-        low_p = item.low_price
-        basis = item.basis
-        pa = item.price_action.strip().lower()
+        close_p      = item.close_price
+        volume       = item.volume
+        high_p       = item.high_price
+        low_p        = item.low_price
+        basis        = item.basis
+        pa           = item.price_action.strip().lower()
+        vol_spike    = item.vol_spike
+        m15_bullish  = item.m15_bullish
+        session_high = item.session_high
+        session_low  = item.session_low
 
-        # Rules
-        is_neutral = False
-        neutral_reason = ""
-        
-        # Rule 1: Volume too low
-        if volume < 500:
-            is_neutral = True
-            neutral_reason = f"Khối lượng nến M5 cực thấp ({volume:.0f} HĐ), dòng tiền cạn kiệt và tín hiệu nhiễu cao."
-        # Rule 2: Basis abnormal
+        candle_range = high_p - low_p
+
+        # ── Hard filters (reject signal regardless of score) ─────────────────
+        hard_neutral_reason = None
+        if volume < 100:
+            hard_neutral_reason = f"KL nến 1m cực thấp ({volume:.0f} HĐ) — dòng tiền cạn kiệt."
         elif abs(basis) > 8.0:
-            is_neutral = True
-            neutral_reason = f"Độ lệch basis quá rộng ({basis:+.1f} điểm), rủi ro ép basis đột ngột rất lớn."
+            hard_neutral_reason = f"Basis quá rộng ({basis:+.1f}đ) — rủi ro ép basis đột ngột."
+        elif candle_range < 0.5:
+            hard_neutral_reason = f"Range nến quá hẹp ({candle_range:.1f}đ) — tín hiệu nhiễu."
 
-        if is_neutral:
-            trend = "ĐI NGANG (QUAN SÁT)"
-            action = "Đứng ngoài"
-            entry = "Không khuyến nghị"
-            sl = "Không có"
-            tp = "Không có"
-            arg_pa = f"Thanh khoản thấp hoặc hành động giá chưa rõ ràng: {neutral_reason}"
-            arg_basis = f"Độ lệch basis là {basis:+.1f} điểm, ở trạng thái rủi ro chênh lệch cao."
-            arg_sr = f"Hỗ trợ gần nhất: {low_p - 1.0:.1f} | Kháng cự gần nhất: {high_p + 1.0:.1f}."
+        # ── Keyword detection ─────────────────────────────────────────────────
+        long_kws    = ["rút chân", "pinbar", "bứt phá", "vượt đỉnh", "cạn cung",
+                       "lực cầu", "bullish"]
+        short_kws   = ["đỏ dài", "thủng đáy", "phân kỳ", "áp lực bán", "chốt lời",
+                       "đè nặng", "từ chối tăng", "bearish"]
+        neutral_kws = ["giằng co", "đi ngang", "cân bằng", "thăm dò", "biến động hẹp"]
+
+        has_long_kw  = any(kw in pa for kw in long_kws)
+        has_short_kw = any(kw in pa for kw in short_kws)
+        if any(kw in pa for kw in neutral_kws) or (has_long_kw and has_short_kw):
+            has_long_kw = has_short_kw = False
+
+        # ── Position ratio (0 = đáy, 1 = đỉnh) ──────────────────────────────
+        pos_ratio = (close_p - low_p) / candle_range if candle_range > 0 else 0.5
+        if candle_range < 1.0:          # nến quá ngắn, vị trí không đáng tin
+            pos_ratio = 0.5
+            has_long_kw = has_short_kw = False
+
+        # ══ MULTI-FACTOR SCORING ═════════════════════════════════════════════
+        # Mỗi yếu tố đóng góp điểm dương (bullish) hoặc âm (bearish).
+        # Cần tổng ≥ +3 để ra Long, ≤ −3 để ra Short. Ngưỡng này đòi hỏi
+        # ít nhất 2-3 yếu tố đồng thuận — tránh kích hoạt từ 1 nến đơn lẻ.
+
+        # Yếu tố 1: Hình nến  (−2 … +2)
+        if has_long_kw or pos_ratio >= 0.65:
+            c_pts = 2
+            matched_kw = next((k for k in long_kws if k in pa), None)
+            c_desc = f"Bullish {pos_ratio:.0%} range" + (f" · kw '{matched_kw}'" if matched_kw else "")
+        elif pos_ratio > 0.55:
+            c_pts = 1
+            c_desc = f"Nghiêng tăng {pos_ratio:.0%} range"
+        elif has_short_kw or pos_ratio <= 0.35:
+            c_pts = -2
+            matched_kw = next((k for k in short_kws if k in pa), None)
+            c_desc = f"Bearish {pos_ratio:.0%} range" + (f" · kw '{matched_kw}'" if matched_kw else "")
+        elif pos_ratio < 0.45:
+            c_pts = -1
+            c_desc = f"Nghiêng giảm {pos_ratio:.0%} range"
         else:
-            # Check price position in range
-            candle_range = high_p - low_p
-            
-            # Từ khóa nhận dạng hướng trong mô tả hành động giá.
-            #
-            # Trước đây danh sách chứa "long" và "short" trần, mà chính câu mô tả TRUNG LẬP
-            # do /api/derivatives/live-candle sinh ra lại là "hai phe Long/Short đang giằng
-            # co" - khớp cả hai phía cùng lúc. Tương tự "tăng" khớp trong "từ chối tăng"
-            # (nghĩa giảm) và "áp lực" khớp trong "áp lực chốt lời". Ba trong năm câu mô tả
-            # tự sinh đều dính cả hai nhóm, và cây quyết định khi đó luôn rơi vào nhánh
-            # Short. Đây chính là chỗ khuyến nghị lệch khỏi diễn biến thật.
-            # Nay dùng cụm đủ dài để không nuốt nghĩa của nhau.
-            long_signals = ["rút chân", "pinbar", "bứt phá", "vượt đỉnh", "cạn cung",
-                            "lực cầu", "bullish"]
-            short_signals = ["đỏ dài", "thủng đáy", "phân kỳ", "áp lực bán", "chốt lời",
-                             "đè nặng", "từ chối tăng", "bearish"]
-            neutral_signals = ["giằng co", "đi ngang", "cân bằng", "thăm dò", "biến động hẹp"]
+            c_pts = 0
+            c_desc = f"Trung lập {pos_ratio:.0%} range (giằng co)"
 
-            has_long_kw = any(kw in pa for kw in long_signals)
-            has_short_kw = any(kw in pa for kw in short_signals)
-            # Mô tả trung lập, hoặc dính cả hai phía -> coi như không có tín hiệu từ chữ,
-            # để vị trí đóng cửa trong nến quyết định thay vì ép về một bên.
-            if any(kw in pa for kw in neutral_signals) or (has_long_kw and has_short_kw):
-                has_long_kw = has_short_kw = False
-
-            # Calculate price position ratio within candle range (0.0 = low, 1.0 = high)
-            pos_ratio = (close_p - low_p) / (candle_range) if candle_range > 0 else 0.5
-
-            # Nến quá ngắn thì vị trí đóng cửa trong nến chỉ là nhiễu, không phải xu hướng
-            if candle_range < 1.0:
-                pos_ratio = 0.5
-                has_long_kw = has_short_kw = False
-
-            # Decision Tree for Long vs Short signals:
-            #
-            # Bỏ vế "close_p < mid_p": nó tương đương pos_ratio < 0.5 nên nuốt luôn ngưỡng
-            # 0.45, khiến vùng trung lập 0.45-0.55 không bao giờ tồn tại. Hệ quả là mọi nến
-            # đóng cửa lệch dù chỉ nửa tick đều bị ép thành Long hoặc Short, và nhánh
-            # "ĐI NGANG" phía dưới gần như không bao giờ chạy được.
-            if (has_short_kw or pos_ratio < 0.45) and not (has_long_kw and pos_ratio > 0.75):
-                trend = "GIẢM (SHORT)"
-                action = "Mở Short"
-                entry = f"{close_p - 0.2:.1f} - {close_p + 0.2:.1f}"
-                sl = f"{close_p + 2.0:.1f} (Cắt lỗ 2.0 điểm)"
-                tp = f"TP1: {close_p - 4.0:.1f} | TP2: {close_p - 6.0:.1f} (R:R tối thiểu 1:2)"
-                arg_pa = f"Hành động giá phe bán chiếm ưu thế: {item.price_action or 'Nến M5 đóng cửa ở vùng giá thấp'} với vol đạt {volume:.0f} hợp đồng."
-                arg_basis = f"Basis đạt {basis:+.1f} điểm, áp lực phòng thủ và xả Short tăng mạnh."
-                arg_sr = f"Kháng cự ngắn hạn M5 tại {high_p:.1f}. Hỗ trợ mục tiêu phía dưới là {close_p - 5.0:.1f}."
-            elif (has_long_kw or pos_ratio > 0.55) and not (has_short_kw and pos_ratio < 0.25):
-                trend = "TĂNG (LONG)"
-                action = "Mở Long"
-                entry = f"{close_p - 0.2:.1f} - {close_p + 0.2:.1f}"
-                sl = f"{close_p - 2.0:.1f} (Cắt lỗ 2.0 điểm)"
-                tp = f"TP1: {close_p + 4.0:.1f} | TP2: {close_p + 6.0:.1f} (R:R tối thiểu 1:2)"
-                arg_pa = f"Hành động giá ủng hộ phe mua: {item.price_action or 'Nến M5 đóng cửa ở vùng giá cao'} với vol đạt {volume:.0f} hợp đồng."
-                arg_basis = f"Basis đạt {basis:+.1f} điểm, ủng hộ xu hướng kéo Long tiếp diễn."
-                arg_sr = f"Hỗ trợ ngắn hạn M5 quanh {low_p:.1f}. Kháng cự mục tiêu phía trên là {close_p + 5.0:.1f}."
+        # Yếu tố 2: Khối lượng  (−1 … +2)
+        if vol_spike is not None:
+            if vol_spike >= 2.0:
+                v_pts = 2
+                v_desc = f"KL đột biến {vol_spike:.1f}× TB — xác nhận mạnh"
+            elif vol_spike >= 1.4:
+                v_pts = 1
+                v_desc = f"KL cao {vol_spike:.1f}× TB — xác nhận xu hướng"
+            elif vol_spike < 0.6:
+                v_pts = -1
+                v_desc = f"KL yếu {vol_spike:.1f}× TB — kém tin cậy"
             else:
-                trend = "ĐI NGANG (QUAN SÁT)"
-                action = "Đứng ngoài"
-                entry = "Không khuyến nghị"
-                sl = "Không có"
-                tp = "Không có"
-                arg_pa = "Nến M5 giao động hẹp, lực cung cầu cân bằng chưa xác lập xu thế rõ rệt."
-                arg_basis = f"Basis duy trì quanh {basis:+.1f} điểm chưa kích hoạt dòng tiền bứt phá."
-                arg_sr = f"Hỗ trợ: {low_p:.1f} | Kháng cự: {high_p:.1f}."
+                v_pts = 0
+                v_desc = f"KL bình thường {vol_spike:.1f}× TB"
+        else:
+            v_pts = 0
+            v_desc = f"KL tuyệt đối {volume:.0f} HĐ (nhập tay, không có TB để so)"
+
+        # Yếu tố 3: Xu hướng M15  (−1 … +1)
+        if m15_bullish is True:
+            m_pts = 1
+            m_desc = "M15 ↑ Tăng — trend khung lớn ủng hộ Long"
+        elif m15_bullish is False:
+            m_pts = -1
+            m_desc = "M15 ↓ Giảm — trend khung lớn ủng hộ Short"
+        else:
+            m_pts = 0
+            m_desc = "M15 chưa xác định (chế độ nhập tay)"
+
+        # Yếu tố 4: Vị trí so với đỉnh/đáy phiên  (−1 … +1)
+        sr_pts = 0
+        sr_note = ""
+        if session_high and session_low:
+            near_high = close_p >= session_high - 1.5
+            near_low  = close_p <= session_low  + 1.5
+            if near_high:
+                sr_pts  = -1
+                sr_note = f"⚠ Sát đỉnh phiên {session_high:.1f} — kháng cự mạnh"
+            elif near_low:
+                sr_pts  = 1
+                sr_note = f"Sát đáy phiên {session_low:.1f} — vùng hỗ trợ"
+            else:
+                sr_note = f"Giữa biên {session_low:.1f}–{session_high:.1f}"
+
+        score = c_pts + v_pts + m_pts + sr_pts
+        MIN_SCORE = 3   # ngưỡng để ra tín hiệu (+3 Long, −3 Short)
+
+        # ── Quyết định ───────────────────────────────────────────────────────
+        if hard_neutral_reason:
+            trend  = "ĐI NGANG (QUAN SÁT)"
+            action = "Đứng ngoài"
+            entry  = "Không khuyến nghị"
+            sl     = "Không có"
+            tp     = "Không có"
+            arg_pa    = f"Lọc cứng: {hard_neutral_reason}"
+            arg_basis = f"Basis {basis:+.1f}đ | Điểm scoring bị bỏ qua."
+            arg_sr    = f"Hỗ trợ: {low_p:.1f} | Kháng cự: {high_p:.1f}."
+        elif score >= MIN_SCORE:
+            trend  = "TĂNG (LONG)"
+            action = "Mở Long"
+            entry  = f"{close_p - 0.2:.1f} – {close_p + 0.2:.1f}"
+            sl     = f"{close_p - 2.0:.1f} (Cắt lỗ 2.0đ)"
+            tp     = f"TP1: {close_p + 4.0:.1f} | TP2: {close_p + 6.0:.1f} (R:R ≥1:2)"
+            arg_pa    = f"Nến: {c_desc} [{c_pts:+d}] · KL: {v_desc} [{v_pts:+d}]"
+            arg_basis = f"M15: {m_desc} [{m_pts:+d}] · Basis {basis:+.1f}đ"
+            arg_sr    = f"S/R phiên: {sr_note} [{sr_pts:+d}] · Điểm tổng: {score:+d}/6 (ngưỡng ≥+{MIN_SCORE})"
+        elif score <= -MIN_SCORE:
+            trend  = "GIẢM (SHORT)"
+            action = "Mở Short"
+            entry  = f"{close_p - 0.2:.1f} – {close_p + 0.2:.1f}"
+            sl     = f"{close_p + 2.0:.1f} (Cắt lỗ 2.0đ)"
+            tp     = f"TP1: {close_p - 4.0:.1f} | TP2: {close_p - 6.0:.1f} (R:R ≥1:2)"
+            arg_pa    = f"Nến: {c_desc} [{c_pts:+d}] · KL: {v_desc} [{v_pts:+d}]"
+            arg_basis = f"M15: {m_desc} [{m_pts:+d}] · Basis {basis:+.1f}đ"
+            arg_sr    = f"S/R phiên: {sr_note} [{sr_pts:+d}] · Điểm tổng: {score:+d}/6 (ngưỡng ≤-{MIN_SCORE})"
+        else:
+            trend  = "ĐI NGANG (QUAN SÁT)"
+            action = "Đứng ngoài"
+            entry  = "Không khuyến nghị"
+            sl     = "Không có"
+            tp     = "Không có"
+            arg_pa    = f"Nến: {c_desc} [{c_pts:+d}] · KL: {v_desc} [{v_pts:+d}]"
+            arg_basis = f"M15: {m_desc} [{m_pts:+d}] · Basis {basis:+.1f}đ"
+            arg_sr    = f"S/R phiên: {sr_note} [{sr_pts:+d}] · Điểm tổng: {score:+d}/6 — chưa đủ ngưỡng ±{MIN_SCORE}"
 
         # Ngoài phiên thì nến M5 đang đứng yên, mọi tín hiệu rút ra từ nó đều vô nghĩa.
         # Trả trạng thái ra để giao diện nói thẳng, thay vì hiện khuyến nghị như thường.
@@ -1848,6 +1921,7 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
             "entry_range": entry,
             "stop_loss": sl,
             "take_profit": tp,
+            "score": score if not hard_neutral_reason else None,
             "arguments": {
                 "price_action_vol": arg_pa,
                 "basis_impact": arg_basis,

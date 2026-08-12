@@ -3974,6 +3974,7 @@
         }
 
         let m5AutoUpdateInterval = null;
+        let _m5LiveExtra = {};   // vol_spike, m15_bullish, session_high, session_low từ live-candle
 
         function toggleM5AutoUpdate() {
             const checkbox = document.getElementById('m5-auto-update');
@@ -4022,12 +4023,23 @@
                 }
                 document.getElementById('m5-price-action').value = candle.price_action;
 
+                // Lưu extra data để truyền vào forecast
+                _m5LiveExtra = {
+                    vol_spike:    candle.vol_spike    ?? null,
+                    m15_bullish:  candle.m15_bullish  ?? null,
+                    session_high: candle.session_high ?? null,
+                    session_low:  candle.session_low  ?? null,
+                };
+
                 // Hiện badge thời gian nến
                 const badge = document.getElementById('m5-live-badge');
                 if (badge) {
                     const t = candle.candle_time || '';
-                    const volNote = candle.vol_spike >= 1.8 ? ` · KL ${candle.vol_spike.toFixed(1)}x` : '';
-                    badge.textContent = `● Nến 1m ${t.slice(11,16)}${volNote}`;
+                    const vs = candle.vol_spike;
+                    const volNote = vs >= 1.8 ? ` · KL ${vs.toFixed(1)}x` : '';
+                    const m15Note = candle.m15_bullish === true  ? ' · M15↑'
+                                  : candle.m15_bullish === false ? ' · M15↓' : '';
+                    badge.textContent = `● 1m ${t.slice(11,16)}${volNote}${m15Note}`;
                     badge.style.color = '#00e676';
                 }
 
@@ -4270,7 +4282,12 @@
                         high_price: highVal,
                         low_price: lowVal,
                         basis: basisVal,
-                        price_action: paVal
+                        price_action: paVal,
+                        // Extra context từ auto mode (null nếu nhập tay)
+                        vol_spike:    _m5LiveExtra.vol_spike    ?? null,
+                        m15_bullish:  _m5LiveExtra.m15_bullish  ?? null,
+                        session_high: _m5LiveExtra.session_high ?? null,
+                        session_low:  _m5LiveExtra.session_low  ?? null,
                     })
                 });
 
