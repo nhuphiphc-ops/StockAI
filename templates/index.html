@@ -4025,12 +4025,13 @@
 
                 // Lưu extra data để truyền vào forecast
                 _m5LiveExtra = {
-                    vol_spike:     candle.vol_spike     ?? null,
-                    m15_bullish:   candle.m15_bullish   ?? null,
-                    session_high:  candle.session_high  ?? null,
-                    session_low:   candle.session_low   ?? null,
-                    choppiness:    candle.choppiness    ?? null,
-                    market_regime: candle.market_regime ?? null,
+                    vol_spike:      candle.vol_spike      ?? null,
+                    m15_bullish:    candle.m15_bullish    ?? null,
+                    session_high:   candle.session_high   ?? null,
+                    session_low:    candle.session_low    ?? null,
+                    choppiness:     candle.choppiness     ?? null,
+                    market_regime:  candle.market_regime  ?? null,
+                    session_volume: candle.session_volume ?? null,
                 };
 
                 // Hiện badge thời gian nến + regime
@@ -4040,7 +4041,13 @@
                     const vs  = candle.vol_spike ?? 0;
                     const ci  = candle.choppiness;
                     const reg = candle.market_regime;
-                    const volNote = vs >= 1.8 ? ` · KL ${vs.toFixed(1)}x` : '';
+                    const sv  = candle.session_volume;
+                    // Hiện KL nến 1m / Tổng KL phiên — giúp đối chiếu với SSI iBoard
+                    const vol1m = candle.volume ?? 0;
+                    const volLine = sv != null
+                        ? ` · KL:${vol1m.toLocaleString()}/Tổng:${sv.toLocaleString()}`
+                        : ` · KL:${vol1m.toLocaleString()}`;
+                    const spikeNote = vs >= 1.8 ? `(↑${vs.toFixed(1)}x)` : '';
                     const m15Note = candle.m15_bullish === true  ? ' · M15↑'
                                   : candle.m15_bullish === false ? ' · M15↓' : '';
                     const regLabel = reg === 'RANGING'  ? ` · ⚠ SIDEWAY(CI=${ci})`
@@ -4048,7 +4055,7 @@
                                    : ci != null         ? ` · CI=${ci}` : '';
                     const regColor = reg === 'RANGING'  ? '#ffb300'
                                    : reg === 'TRENDING' ? '#00e676' : '#00e5ff';
-                    badge.textContent = `● 1m ${t.slice(11,16)}${volNote}${m15Note}${regLabel}`;
+                    badge.textContent = `● 1m ${t.slice(11,16)}${volLine}${spikeNote}${m15Note}${regLabel}`;
                     badge.style.color = regColor;
                 }
 

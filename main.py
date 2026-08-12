@@ -1729,6 +1729,8 @@ def get_derivatives_live_candle():
         else:
             pa_text = "Nến thân nhỏ biến động hẹp, hai phe Long/Short đang giằng co."
 
+        session_volume = int(sum(b["volume"] for b in bars_1m))
+
         return {
             "success": True,
             "candle_time": candle_time,
@@ -1737,6 +1739,7 @@ def get_derivatives_live_candle():
             "high_price": round(high_p, 1),
             "low_price": round(low_p, 1),
             "volume": int(volume),
+            "session_volume": session_volume,
             "basis": basis,
             "vn30_price": round(vn30_close, 1) if vn30_close else None,
             "price_action": pa_text,
