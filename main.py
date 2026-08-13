@@ -1835,20 +1835,24 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
             c_pts = 0
             c_desc = f"Trung lập {pos_ratio:.0%} range (giằng co)"
 
-        # Yếu tố 2: Khối lượng  (−1 … +2)
+        # Yếu tố 2: Khối lượng — có hướng theo nến (c_pts đã tính ở trên)
+        # KL cao + nến tăng → mua mạnh (+); KL cao + nến giảm → bán mạnh (−).
+        # KL thấp luôn trừ điểm: thiếu dòng tiền dù nến hình dạng đẹp cũng không đáng tin.
+        candle_dir = 1 if c_pts > 0 else (-1 if c_pts < 0 else 0)
+
         if vol_spike is not None:
-            if vol_spike >= 2.0:
-                v_pts = 2
-                v_desc = f"KL đột biến {vol_spike:.1f}× TB — xác nhận mạnh"
-            elif vol_spike >= 1.4:
-                v_pts = 1
-                v_desc = f"KL cao {vol_spike:.1f}× TB — xác nhận xu hướng"
+            if vol_spike >= 2.0 and candle_dir != 0:
+                v_pts = 2 * candle_dir
+                v_desc = f"KL đột biến {vol_spike:.1f}× TB — xác nhận {'mua' if v_pts > 0 else 'bán'} rất mạnh"
+            elif vol_spike >= 1.4 and candle_dir != 0:
+                v_pts = candle_dir
+                v_desc = f"KL cao {vol_spike:.1f}× TB — xác nhận {'mua' if v_pts > 0 else 'bán'}"
             elif vol_spike < 0.6:
                 v_pts = -1
-                v_desc = f"KL yếu {vol_spike:.1f}× TB — kém tin cậy"
+                v_desc = f"KL yếu {vol_spike:.1f}× TB — thiếu dòng tiền xác nhận"
             else:
                 v_pts = 0
-                v_desc = f"KL bình thường {vol_spike:.1f}× TB"
+                v_desc = f"KL {vol_spike:.1f}× TB — {'trung tính' if candle_dir == 0 else 'không đủ mạnh để xác nhận'}"
         else:
             v_pts = 0
             v_desc = f"KL tuyệt đối {volume:.0f} HĐ (nhập tay, không có TB để so)"
@@ -1864,7 +1868,9 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
             m_pts = 0
             m_desc = "M15 chưa xác định (chế độ nhập tay)"
 
-        # Yếu tố 4: Vị trí so với đỉnh/đáy phiên  (−1 … +1)
+        # Yếu tố 4: Vị trí so với đỉnh/đáy phiên — có nhận thức xu hướng (−1 … +1)
+        # Sát đỉnh → kháng cự, luôn trừ điểm (−1).
+        # Sát đáy → hỗ trợ NẾU uptrend; nhưng trong downtrend = nguy cơ thủng đáy (−1 thay vì +1).
         sr_pts = 0
         sr_note = ""
         if session_high and session_low:
@@ -1874,8 +1880,12 @@ def get_derivatives_intraday_forecast(item: IntradayCandleItem):
                 sr_pts  = -1
                 sr_note = f"⚠ Sát đỉnh phiên {session_high:.1f} — kháng cự mạnh"
             elif near_low:
-                sr_pts  = 1
-                sr_note = f"Sát đáy phiên {session_low:.1f} — vùng hỗ trợ"
+                if m15_bullish is False:
+                    sr_pts  = -1
+                    sr_note = f"⚠ Sát đáy phiên {session_low:.1f} — rủi ro thủng đáy (downtrend)"
+                else:
+                    sr_pts  = 1
+                    sr_note = f"Sát đáy phiên {session_low:.1f} — vùng hỗ trợ"
             else:
                 sr_note = f"Giữa biên {session_low:.1f}–{session_high:.1f}"
 
