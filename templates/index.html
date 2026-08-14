@@ -2296,12 +2296,12 @@
                             <span id="macro-events-month" style="color: #00e5ff;">(ĐANG TẢI...)</span>
                         </h2>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <button id="macro-events-prev" title="Tháng trước" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 14px; cursor: pointer; font-size: 18.7px;"><i class="fa-solid fa-chevron-left"></i></button>
-                            <button id="macro-events-today" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 16px; cursor: pointer; font-size: 18.7px;">Tháng này</button>
-                            <button id="macro-events-next" title="Tháng sau" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 14px; cursor: pointer; font-size: 18.7px;"><i class="fa-solid fa-chevron-right"></i></button>
+                            <button id="macro-events-prev" title="Tháng trước" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 14px; cursor: pointer; font-size: 15px;"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button id="macro-events-today" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 16px; cursor: pointer; font-size: 15px;">Tháng này</button>
+                            <button id="macro-events-next" title="Tháng sau" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 14px; cursor: pointer; font-size: 15px;"><i class="fa-solid fa-chevron-right"></i></button>
                         </div>
                     </div>
-                    <div id="macro-events-warning" style="display: none; font-size: 18.7px; line-height: 1.55; color: #fbbf24; background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 6px; padding: 12px 14px;"></div>
+                    <div id="macro-events-warning" style="display: none; font-size: 15px; line-height: 1.55; color: #fbbf24; background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 6px; padding: 12px 14px;"></div>
                     <!-- Bối cảnh lãi suất - lợi suất - USD, lấy thẳng từ FRED, không gõ tay -->
                     <div id="macro-events-context" style="display: none;"></div>
                     <!-- Cột rộng hơn hẳn: chữ to mà cột hẹp thì thẻ cao vống lên, phải cuộn mới đọc hết -->
@@ -5593,7 +5593,7 @@
     (function () {
         // Cỡ chữ gốc của khối lịch nhỏ (9-13px) nên khó đọc. Nhân toàn bộ theo một hệ số
         // duy nhất, đổi số này là cả khối đổi theo - khỏi phải dò lại từng chỗ.
-        var FONT_SCALE = 1.7;
+        var FONT_SCALE = 1.36;
         function fs(px) {
             return 'font-size:' + Math.round(px * FONT_SCALE * 10) / 10 + 'px;';
         }
