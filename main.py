@@ -2408,15 +2408,15 @@ def surfing_screener(universe: str = "VN30", refresh: bool = False):
     return resp
 
 
-# Universe cố định 32 mã cho tab Cổ Phiếu Xu Hướng Tăng.
-# Nhỏ đủ để hoàn thành trong 10 giây (Vercel serverless limit),
-# phủ đủ 5 nhóm ngành, không phụ thuộc vnstock Listing API.
+# Universe 18 mã cho tab Cổ Phiếu Xu Hướng Tăng.
+# Benchmark: 10 mã ≈ 3s → 18 mã = 2 batch × 9 worker ≈ 3-4s, an toàn trong 10s Vercel.
+# Đủ rộng để chọn top 2/ngành trong hầu hết điều kiện thị trường.
 _UPTREND_UNIVERSE = [
-    "VCB", "BID", "TCB", "MBB", "CTG", "ACB", "VPB", "HDB",   # Ngân hàng
-    "SSI", "VND", "HCM", "VCI", "BSI",                          # Chứng khoán
-    "FPT", "CMG",                                                # Công nghệ
-    "HHV", "PC1", "REE", "POW", "GMD", "IDC", "KBC", "CTD",    # Xây dựng/ĐTC
-    "VHM", "NLG", "DXG", "KDH", "NVL", "BCM", "VIC", "VRE",   # BĐS
+    "VCB", "BID", "TCB", "MBB",       # Ngân hàng (4)
+    "SSI", "VND", "HCM", "VCI",        # Chứng khoán (4)
+    "FPT", "CMG",                       # Công nghệ (2 — hết pool niêm yết lớn)
+    "HHV", "PC1", "REE", "POW",        # Xây dựng/Đầu tư công (4)
+    "VHM", "NLG", "DXG", "KDH",        # Bất động sản (4)
 ]
 _uptrend_cache: dict = {}   # tách riêng khỏi _surfing_cache của tab T+3
 
@@ -2481,9 +2481,9 @@ def uptrend_by_sector(refresh: bool = False):
             parts.append(f"%ngày {'+' if cp >= 0 else ''}{cp:.1f}%")
         return " · ".join(parts) if parts else "Đang tích lũy, chờ tín hiệu rõ hơn."
 
-    # Fetch 32 mã song song (max 8 workers để không vượt rate limit vnstock)
+    # Fetch 18 mã song song (9 workers = 2 batch ≈ 3-4s, an toàn trong 10s Vercel)
     rows = []
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=9) as pool:
         for r in pool.map(_fetch_one_surfing, _UPTREND_UNIVERSE):
             if r:
                 rows.append(r)
