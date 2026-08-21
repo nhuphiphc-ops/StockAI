@@ -2230,13 +2230,15 @@ _INDUSTRY_MAP: dict = {
     "GAS": "Dầu khí", "PLX": "Dầu khí", "PVD": "Dầu khí", "PVS": "Dầu khí",
     "GVR": "Cao su",
     "DGC": "Hóa chất", "DCM": "Hóa chất", "DPM": "Hóa chất",
+    "CMG": "Công nghệ",
     "CTD": "Xây dựng", "HBC": "Xây dựng", "VCG": "Xây dựng",
+    "HHV": "Xây dựng", "PC1": "Xây dựng",
     "REE": "Năng lượng", "POW": "Năng lượng", "NT2": "Năng lượng",
     "VJC": "Hàng không", "ACV": "Cảng hàng không",
     "GMD": "Cảng biển", "VSC": "Cảng biển", "HAH": "Cảng biển",
     "VTP": "Logistics",
     "BVH": "Bảo hiểm",
-    "REE": "Hạ tầng KCN", "IDC": "KCN", "KBC": "KCN",
+    "IDC": "KCN", "KBC": "KCN",
     "PHR": "Cao su", "SZC": "KCN",
 }
 
@@ -2406,12 +2408,31 @@ def surfing_screener(universe: str = "VN30", refresh: bool = False):
     return resp
 
 
+# Universe cố định 32 mã cho tab Cổ Phiếu Xu Hướng Tăng.
+# Nhỏ đủ để hoàn thành trong 10 giây (Vercel serverless limit),
+# phủ đủ 5 nhóm ngành, không phụ thuộc vnstock Listing API.
+_UPTREND_UNIVERSE = [
+    "VCB", "BID", "TCB", "MBB", "CTG", "ACB", "VPB", "HDB",   # Ngân hàng
+    "SSI", "VND", "HCM", "VCI", "BSI",                          # Chứng khoán
+    "FPT", "CMG",                                                # Công nghệ
+    "HHV", "PC1", "REE", "POW", "GMD", "IDC", "KBC", "CTD",    # Xây dựng/ĐTC
+    "VHM", "NLG", "DXG", "KDH", "NVL", "BCM", "VIC", "VRE",   # BĐS
+]
+_uptrend_cache: dict = {}   # tách riêng khỏi _surfing_cache của tab T+3
+
+
 @app.get("/api/uptrend-by-sector")
 def uptrend_by_sector(refresh: bool = False):
     """
-    Top 2 cổ phiếu xu hướng tăng theo 5 nhóm ngành, chọn từ screener VN100 thật.
-    Điểm kỹ thuật tính từ RSI, MA20/50, vol_ratio, change_pct — không bịa số liệu.
+    Top 2 cổ phiếu xu hướng tăng theo 5 nhóm ngành.
+    Fetch 32 mã cố định (không gọi VN100 screener — tránh timeout Vercel 10s).
+    Điểm kỹ thuật tính từ RSI, MA20/50, vol_ratio, change_pct thật.
     """
+    cache_key = "uptrend"
+    cached = _uptrend_cache.get(cache_key)
+    if not refresh and cached and (time.time() - cached[0]) < _SURFING_TTL:
+        return cached[1]
+
     SECTOR_META = {
         "bank":  {"label": "Ngân hàng",              "industries": ["Ngân hàng"],
                   "catalyst": "Fed chu kỳ cắt lãi suất → NIM ngân hàng VN mở rộng, room tín dụng được nới, khối ngoại tăng tỷ trọng."},
@@ -2419,7 +2440,7 @@ def uptrend_by_sector(refresh: bool = False):
                   "catalyst": "Thanh khoản thị trường tăng → margin lending tăng, phí môi giới & IB phục hồi; kỳ vọng nâng hạng 2026."},
         "tech":  {"label": "Công nghệ",               "industries": ["Công nghệ"],
                   "catalyst": "AI/cloud & chuyển đổi số quốc gia; xuất khẩu phần mềm và đơn hàng nước ngoài tăng trưởng."},
-        "infra": {"label": "Xây dựng / Đầu tư công", "industries": ["Xây dựng", "Năng lượng", "KCN", "Hạ tầng KCN", "Cảng biển", "Logistics", "Cảng hàng không"],
+        "infra": {"label": "Xây dựng / Đầu tư công", "industries": ["Xây dựng", "Năng lượng", "KCN", "Cảng biển", "Logistics"],
                   "catalyst": "Gói đầu tư công 800K tỷ VNĐ giải ngân; Quy hoạch điện VIII; hạ tầng KCN đón FDI dịch chuyển."},
         "real":  {"label": "Bất động sản",            "industries": ["BĐS"],
                   "catalyst": "Luật Đất đai 2024 tháo gỡ pháp lý; lãi suất hạ nhiệt; tín dụng BĐS được nới; gói nhà ở xã hội 120K tỷ."},
@@ -2460,17 +2481,12 @@ def uptrend_by_sector(refresh: bool = False):
             parts.append(f"%ngày {'+' if cp >= 0 else ''}{cp:.1f}%")
         return " · ".join(parts) if parts else "Đang tích lũy, chờ tín hiệu rõ hơn."
 
-    # Lấy data từ cache hoặc fetch mới
-    cache_key = "VN100"
-    cached = _surfing_cache.get(cache_key)
-    if refresh or not cached or (time.time() - cached[0]) >= _SURFING_TTL:
-        try:
-            surfing_screener(universe="VN100", refresh=True)
-            cached = _surfing_cache.get(cache_key)
-        except Exception:
-            pass
-
-    rows = cached[1]["data"] if cached else []
+    # Fetch 32 mã song song (max 8 workers để không vượt rate limit vnstock)
+    rows = []
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for r in pool.map(_fetch_one_surfing, _UPTREND_UNIVERSE):
+            if r:
+                rows.append(r)
 
     result = []
     for skey, meta in SECTOR_META.items():
@@ -2498,9 +2514,11 @@ def uptrend_by_sector(refresh: bool = False):
             })
         result.append({"sector": skey, "label": meta["label"], "stocks": stocks})
 
-    return {
+    resp = {
         "success":    True,
         "updated_at": vn_now().strftime("%H:%M %d/%m/%Y"),
         "sectors":    result,
     }
+    _uptrend_cache[cache_key] = (time.time(), resp)
+    return resp
 
