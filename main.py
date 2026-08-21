@@ -2247,6 +2247,30 @@ _VN30_FALLBACK = [
     "VJC", "VNM", "VPB",
 ]
 
+_NAME_MAP: dict = {
+    "ACB": "ACB", "BID": "BIDV", "CTG": "VietinBank", "HDB": "HDBank",
+    "LPB": "LienVietPostBank", "MBB": "MB Bank", "MSB": "MSB",
+    "SHB": "SHB", "SSB": "SeABank", "STB": "Sacombank",
+    "TCB": "Techcombank", "TPB": "TPBank", "VCB": "Vietcombank",
+    "VIB": "VIB", "VPB": "VPBank",
+    "BSI": "BSI Securities", "CTS": "CTS Securities", "HCM": "HCMC Securities",
+    "SSI": "SSI Securities", "VCI": "Viet Capital Sec", "VND": "VNDirect",
+    "BCM": "Becamex", "DIG": "DIC Corp", "DXG": "Đất Xanh",
+    "KDH": "Khang Điền", "NLG": "Nam Long", "NVL": "Novaland",
+    "PDR": "Phát Đạt", "VHM": "Vinhomes", "VIC": "Vingroup", "VRE": "Vincom Retail",
+    "FPT": "FPT Corp", "CMG": "CMC Technology",
+    "MWG": "Mobile World", "PNJ": "PNJ", "VNM": "Vinamilk",
+    "MSN": "Masan", "SAB": "Sabeco", "HPG": "Hòa Phát", "HSG": "Hoa Sen",
+    "GAS": "PVGas", "PLX": "Petrolimex", "PVD": "PV Drilling", "PVS": "PTSC",
+    "CTD": "Coteccons", "HBC": "Hòa Bình", "VCG": "Vinaconex",
+    "REE": "REE Corp", "POW": "PV Power", "NT2": "Nhiệt điện NT2",
+    "VJC": "VietJet", "ACV": "ACV",
+    "GMD": "Gemadept", "VSC": "Viconship", "HAH": "Hải An",
+    "IDC": "IDC", "KBC": "KBC", "PC1": "PCC1", "HHV": "Đèo Cả BOT",
+    "DCM": "Đạm Cà Mau", "DGC": "DGC", "DPM": "Đạm Phú Mỹ",
+    "NKG": "Nam Kim", "GVR": "VRG",
+}
+
 _VN100_FALLBACK = _VN30_FALLBACK + [
     "AGG", "ANV", "BSI", "CII", "CTD", "CTR", "DCM", "DGC", "DGW",
     "DIG", "DPM", "DXG", "EVF", "GMD", "HAH", "HBC", "HCM", "HDG",
@@ -2380,3 +2404,103 @@ def surfing_screener(universe: str = "VN30", refresh: bool = False):
     }
     _surfing_cache[cache_key] = (time.time(), resp)
     return resp
+
+
+@app.get("/api/uptrend-by-sector")
+def uptrend_by_sector(refresh: bool = False):
+    """
+    Top 2 cổ phiếu xu hướng tăng theo 5 nhóm ngành, chọn từ screener VN100 thật.
+    Điểm kỹ thuật tính từ RSI, MA20/50, vol_ratio, change_pct — không bịa số liệu.
+    """
+    SECTOR_META = {
+        "bank":  {"label": "Ngân hàng",              "industries": ["Ngân hàng"],
+                  "catalyst": "Fed chu kỳ cắt lãi suất → NIM ngân hàng VN mở rộng, room tín dụng được nới, khối ngoại tăng tỷ trọng."},
+        "sec":   {"label": "Chứng khoán",             "industries": ["Chứng khoán"],
+                  "catalyst": "Thanh khoản thị trường tăng → margin lending tăng, phí môi giới & IB phục hồi; kỳ vọng nâng hạng 2026."},
+        "tech":  {"label": "Công nghệ",               "industries": ["Công nghệ"],
+                  "catalyst": "AI/cloud & chuyển đổi số quốc gia; xuất khẩu phần mềm và đơn hàng nước ngoài tăng trưởng."},
+        "infra": {"label": "Xây dựng / Đầu tư công", "industries": ["Xây dựng", "Năng lượng", "KCN", "Hạ tầng KCN", "Cảng biển", "Logistics", "Cảng hàng không"],
+                  "catalyst": "Gói đầu tư công 800K tỷ VNĐ giải ngân; Quy hoạch điện VIII; hạ tầng KCN đón FDI dịch chuyển."},
+        "real":  {"label": "Bất động sản",            "industries": ["BĐS"],
+                  "catalyst": "Luật Đất đai 2024 tháo gỡ pháp lý; lãi suất hạ nhiệt; tín dụng BĐS được nới; gói nhà ở xã hội 120K tỷ."},
+    }
+
+    def tech_score(r):
+        s = 0
+        if r.get("above_ma20"): s += 2
+        if r.get("above_ma50"): s += 1
+        rsi = r.get("rsi")
+        if rsi:
+            if 45 <= rsi <= 65:   s += 2
+            elif 35 < rsi < 45 or 65 < rsi <= 70: s += 1
+        vr = r.get("vol_ratio") or 0
+        if vr >= 2.0:   s += 2
+        elif vr >= 1.5: s += 1
+        cp = r.get("change_pct") or 0
+        if cp > 1:   s += 2
+        elif cp > 0: s += 1
+        return s
+
+    def gen_kt(r):
+        parts = []
+        ma20, ma50 = r.get("ma20"), r.get("ma50")
+        if r.get("above_ma20") and r.get("above_ma50"):
+            parts.append(f"Trên MA20({ma20:,.0f}) & MA50({ma50:,.0f})")
+        elif r.get("above_ma20"):
+            parts.append(f"Trên MA20({ma20:,.0f}), chưa vượt MA50")
+        rsi = r.get("rsi")
+        if rsi is not None:
+            if 45 <= rsi <= 65:   parts.append(f"RSI={rsi:.0f} vùng tăng tốt, dư địa còn tốt")
+            elif 65 < rsi <= 70:  parts.append(f"RSI={rsi:.0f} cao, sắp kháng cự")
+            elif rsi < 45:        parts.append(f"RSI={rsi:.0f} thấp, tiềm năng hồi phục")
+        vr = r.get("vol_ratio")
+        if vr and vr >= 1.5: parts.append(f"KL {vr:.1f}× TB20 — dòng tiền xác nhận")
+        cp = r.get("change_pct")
+        if cp is not None:
+            parts.append(f"%ngày {'+' if cp >= 0 else ''}{cp:.1f}%")
+        return " · ".join(parts) if parts else "Đang tích lũy, chờ tín hiệu rõ hơn."
+
+    # Lấy data từ cache hoặc fetch mới
+    cache_key = "VN100"
+    cached = _surfing_cache.get(cache_key)
+    if refresh or not cached or (time.time() - cached[0]) >= _SURFING_TTL:
+        try:
+            surfing_screener(universe="VN100", refresh=True)
+            cached = _surfing_cache.get(cache_key)
+        except Exception:
+            pass
+
+    rows = cached[1]["data"] if cached else []
+
+    result = []
+    for skey, meta in SECTOR_META.items():
+        candidates = [r for r in rows
+                      if r.get("industry") in meta["industries"] and r.get("above_ma20")]
+        candidates.sort(key=tech_score, reverse=True)
+        stocks = []
+        for r in candidates[:2]:
+            price = r["price"]
+            stocks.append({
+                "ticker":     r["symbol"],
+                "name":       _NAME_MAP.get(r["symbol"], r["symbol"]),
+                "price":      price,
+                "entry":      price,
+                "target":     round(price * 1.10, 1),
+                "sl":         round(price * 0.95, 1),
+                "upside":     "+10.0%",
+                "kythuat":    gen_kt(r),
+                "tinhieu":    ", ".join(r.get("signals", [])) or "Không có tín hiệu nổi bật",
+                "catalyst":   meta["catalyst"],
+                "score":      tech_score(r),
+                "rsi":        r.get("rsi"),
+                "vol_ratio":  r.get("vol_ratio"),
+                "change_pct": r.get("change_pct"),
+            })
+        result.append({"sector": skey, "label": meta["label"], "stocks": stocks})
+
+    return {
+        "success":    True,
+        "updated_at": vn_now().strftime("%H:%M %d/%m/%Y"),
+        "sectors":    result,
+    }
+

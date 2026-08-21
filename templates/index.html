@@ -2162,7 +2162,7 @@
                             <i class="fa-solid fa-arrow-trend-up" style="font-size:18px; color:#00ff88;"></i>
                             <div>
                                 <span style="font-size:15px; font-weight:700; color:#fff; letter-spacing:0.5px;">DANH SÁCH CỔ PHIẾU XU HƯỚNG TĂNG DỰ BÁO</span>
-                                <span style="font-size:11.5px; color:var(--color-text-muted); margin-left:10px;">AI CIO · 10 mã · 5 nhóm ngành · Kỳ vọng 30 ngày</span>
+                                <span style="font-size:11.5px; color:var(--color-text-muted); margin-left:10px;">Screener thật · VN100 · Top 2/nhóm ngành · Cập nhật mỗi giờ</span>
                             </div>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
@@ -4447,7 +4447,7 @@
             { key: 'real',    label: 'Bất động sản',         icon: 'fa-city',            color: '#ff6b35' }
         ];
 
-        async function generateUptrendData() {
+        async function generateUptrendData_REMOVED_START() {
             const stockSpecs = [
                 {
                     sector: 'bank',
@@ -4556,30 +4556,7 @@
                 console.error("Error fetching live prices for uptrend recommendations:", e);
             }
 
-            return stockSpecs.map(sec => {
-                return {
-                    sector: sec.sector,
-                    stocks: sec.stocks.map(st => {
-                        const livePrice = priceMap[st.ticker] || st.defaultPrice;
-                        const entryVal = livePrice;
-                        const targetVal = Number((livePrice * st.targetRatio).toFixed(1));
-                        const slVal = Number((livePrice * st.slRatio).toFixed(1));
-                        const upsidePct = '+' + (((targetVal - entryVal) / entryVal) * 100).toFixed(1) + '%';
-                        
-                        return {
-                            ticker: st.ticker,
-                            name: st.name,
-                            entry: entryVal.toFixed(1),
-                            target: targetVal.toFixed(1),
-                            sl: slVal.toFixed(1),
-                            upside: upsidePct,
-                            kythuat: st.kythuat,
-                            cocban: st.cocban,
-                            catalyst: st.catalyst
-                        };
-                    })
-                };
-            });
+            // function body removed
         }
 
         function formatVNStockPrice(priceStr) {
@@ -4615,15 +4592,24 @@
                 card.style.cssText = `padding:0; overflow:hidden; border-top:3px solid ${sectorMeta.color}; display:flex; flex-direction:column;`;
 
                 let stocksHtml = '';
-                sectorData.stocks.forEach((st, idx) => {
-                    stocksHtml += `
+                if (!sectorData.stocks || sectorData.stocks.length === 0) {
+                    stocksHtml = `<div style="padding:20px 14px; text-align:center; color:var(--color-text-muted); font-size:12px;">
+                        Hôm nay không có mã nào trên MA20.<br/>Nhóm ngành đang điều chỉnh.
+                    </div>`;
+                } else {
+                    sectorData.stocks.forEach((st, idx) => {
+                        const cpColor = (st.change_pct >= 0) ? '#00ff88' : '#ef5350';
+                        const cpSign  = (st.change_pct >= 0) ? '+' : '';
+                        const cpStr   = st.change_pct != null ? `${cpSign}${st.change_pct.toFixed(1)}%` : '';
+                        stocksHtml += `
                         <div style="padding:10px 14px; flex:1; ${idx > 0 ? 'border-top:1px solid rgba(255,255,255,.06);' : ''}">
                             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
-                                    <span style="font-size:17px; font-weight:800; color:#fff; font-family:'JetBrains Mono',monospace; letter-spacing:1px;">${st.ticker}</span>
+                                    <a href="https://fireant.vn/symbol/${st.ticker}" target="_blank"
+                                       style="font-size:17px; font-weight:800; color:#00e5ff; font-family:'JetBrains Mono',monospace; letter-spacing:1px; text-decoration:none;">${st.ticker}</a>
                                     <span style="font-size:12px; color:var(--color-text-muted);">${st.name}</span>
                                 </div>
-                                <span style="font-size:14px; font-weight:700; color:#00ff88; font-family:'JetBrains Mono',monospace;">${st.upside}</span>
+                                <span style="font-size:13px; font-weight:700; color:${cpColor}; font-family:'JetBrains Mono',monospace;">${cpStr}</span>
                             </div>
                             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-bottom:8px;">
                                 <div style="background:rgba(0,229,255,.08); border-radius:6px; padding:5px 6px; text-align:center;">
@@ -4631,11 +4617,11 @@
                                     <div style="font-size:12.5px; font-weight:700; color:#00e5ff; font-family:'JetBrains Mono',monospace;">${formatVNStockPrice(st.entry)}</div>
                                 </div>
                                 <div style="background:rgba(0,255,136,.08); border-radius:6px; padding:5px 6px; text-align:center;">
-                                    <div style="font-size:10px; color:var(--color-text-muted); margin-bottom:2px; font-weight:600;">TARGET</div>
+                                    <div style="font-size:10px; color:var(--color-text-muted); margin-bottom:2px; font-weight:600;">TARGET +10%</div>
                                     <div style="font-size:12.5px; font-weight:700; color:#00ff88; font-family:'JetBrains Mono',monospace;">${formatVNStockPrice(st.target)}</div>
                                 </div>
                                 <div style="background:rgba(239,83,80,.08); border-radius:6px; padding:5px 6px; text-align:center;">
-                                    <div style="font-size:10px; color:var(--color-text-muted); margin-bottom:2px; font-weight:600;">STOP</div>
+                                    <div style="font-size:10px; color:var(--color-text-muted); margin-bottom:2px; font-weight:600;">STOP -5%</div>
                                     <div style="font-size:12.5px; font-weight:700; color:#ef5350; font-family:'JetBrains Mono',monospace;">${formatVNStockPrice(st.sl)}</div>
                                 </div>
                             </div>
@@ -4644,20 +4630,22 @@
                                     <span style="color:#00e5ff; font-weight:700;">📊 KT:</span> ${st.kythuat}
                                 </div>
                                 <div style="font-size:12px; line-height:1.55; color:rgba(255,255,255,.82);">
-                                    <span style="color:#00ff88; font-weight:700;">📈 CB:</span> ${st.cocban}
+                                    <span style="color:#00ff88; font-weight:700;">🔔 TH:</span> ${st.tinhieu}
                                 </div>
                                 <div style="font-size:12px; line-height:1.55; color:rgba(255,255,255,.82);">
                                     <span style="color:#ffc107; font-weight:700;">⚡ CS:</span> ${st.catalyst}
                                 </div>
                             </div>
                         </div>`;
-                });
+                    });
+                }
 
+                const count = sectorData.stocks ? sectorData.stocks.length : 0;
                 card.innerHTML = `
                     <div style="padding:9px 14px; background:rgba(255,255,255,.04); display:flex; align-items:center; gap:10px; flex-shrink:0;">
                         <i class="fa-solid ${sectorMeta.icon}" style="color:${sectorMeta.color}; font-size:15px;"></i>
                         <span style="font-size:13px; font-weight:700; color:${sectorMeta.color}; letter-spacing:0.5px; text-transform:uppercase;">${sectorMeta.label}</span>
-                        <span style="font-size:11px; color:var(--color-text-muted); margin-left:auto;">2 mã</span>
+                        <span style="font-size:11px; color:var(--color-text-muted); margin-left:auto;">${count} mã đủ điều kiện</span>
                     </div>
                     ${stocksHtml}`;
                 grid.appendChild(card);
@@ -4679,14 +4667,12 @@
                     }
                 }
 
-                // Load fresh uptrend data enriched with real-time market prices
-                const data = await generateUptrendData();
-                renderUptrendSectors(data);
-
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
-                const dateStr = now.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'});
-                if (updateEl) updateEl.textContent = `Cập nhật lúc ${timeStr} ngày ${dateStr}`;
+                // Lấy top 2 mã/ngành từ screener VN100 thật
+                const resp = await fetch(`${HOST}/api/uptrend-by-sector${forceRefresh ? '?refresh=true' : ''}`);
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const json = await resp.json();
+                renderUptrendSectors(json.sectors);
+                if (updateEl) updateEl.textContent = `Cập nhật lúc ${json.updated_at || '—'}`;
 
                 if (uptrendAutoRefreshTimer) clearTimeout(uptrendAutoRefreshTimer);
                 uptrendAutoRefreshTimer = setTimeout(() => loadBuildersTab(true), 30 * 60 * 1000);
