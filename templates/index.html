@@ -4560,7 +4560,8 @@
         }
 
         function formatVNStockPrice(priceStr) {
-            if (!priceStr) return '—';
+            if (priceStr == null || priceStr === '') return '—';
+            priceStr = String(priceStr);
             let val = parseFloat(priceStr);
             if (isNaN(val)) return priceStr;
             
