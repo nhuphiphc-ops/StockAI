@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tư Duy Thị Trường Bất Động Sản — Nhìn Nhận & Phân Tích Vĩ Mô</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#020617',
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-amber-500 selection:text-slate-950">
+    <div id="root"></div>
+
+    <!-- React 18 & Babel for standalone execution -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // Data Definitions
+        const CAUSE_EFFECT_DATA = [
+            { id: 'ce-1', cause: 'Lãi suất điều hành & Lãi suất vay hạ nhiệt mạnh', effect: 'Tăng giá & Kích thích giao dịch bùng nổ', impactType: 'increase', impactGroup: 'Tài chính - Tiền tệ', detail: 'Chi phí vốn rẻ làm giảm áp lực trả nợ cho nhà đầu tư dùng đòn bẩy. Dòng tiền gửi tiết kiệm rút ra tìm kiếm kênh lợi suất cao hơn, thúc đẩy sức mua ở thực và đầu cơ tích lũy.' },
+            { id: 'ce-2', cause: 'SBV tăng lãi suất để hạ nhiệt tỷ giá & lạm phát', effect: 'Giảm giá sâu & Ép thoát hàng giải chấp', impactType: 'decrease', impactGroup: 'Tài chính - Tiền tệ', detail: 'Áp lực chi phí tài chính tăng vọt. Nhà đầu tư lỡ dùng đòn bẩy cao (>50%) buộc phải cắt lỗ hoặc giảm giá 20-35% để thu hồi dòng tiền trả gốc vay ngân hàng.' },
+            { id: 'ce-3', cause: 'Đẩy mạnh giải ngân các đại dự án đầu tư công (Cao tốc, Sân bay)', effect: 'Tăng giá cục bộ vùng hưởng lợi hạ tầng', impactType: 'increase', impactGroup: 'Hạ tầng - Quy hoạch', detail: 'Hạ tầng giao thông rút ngắn thời gian di chuyển, nâng cao giá trị thương mại và khai thác thực tế của quỹ đất xung quanh các nút giao và tuyến kết nối.' },
+            { id: 'ce-4', cause: 'Siết chặt hạn mức tín dụng (Room) vào Bất động sản', effect: 'Đóng băng thanh khoản & Sụt giảm nguồn cung', impactType: 'freeze', impactGroup: 'Chính sách - Pháp lý', detail: 'Chủ đầu tư không tiếp cận được vốn vay để triển khai dự án mới; người mua không được duyệt giải ngân khiến giao dịch thứ cấp rơi vào trạng thái đứng yên.' },
+            { id: 'ce-5', cause: 'Tỷ giá USD/VND bùng nổ tăng vọt trên 4-5%', effect: 'Ngắn hạn rút tiền / Dài hạn BĐS trú ẩn an toàn', impactType: 'freeze', impactGroup: 'Vĩ mô quốc tế', detail: 'Trong ngắn hạn, NHNN phải hút tiền ròng làm dòng tiền ngưng trệ. Dài hạn, BĐS gắn liền với đất vẫn là kênh chống mất giá tiền tệ hiệu quả hàng đầu.' },
+            { id: 'ce-6', cause: 'Giá vật liệu xây dựng (Thép, Xi măng, Cát đá) tăng 20-30%', effect: 'Tăng giá bán sơ cấp của dự án mới', impactType: 'increase', impactGroup: 'Chi phí đầu vào', detail: 'Chi phí xây dựng chiếm 30-40% tổng vốn đầu tư. Khi giá đầu vào đắt đỏ, các chủ đầu tư bắt buộc phải đẩy giá bán căn hộ/nhà phố mới lên cao hơn.' },
+            { id: 'ce-7', cause: 'Chính thức công bố quy hoạch đô thị / Lên quận', effect: 'Tăng mạnh kỳ vọng & Tạo sóng đất nền ngắn hạn', impactType: 'increase', impactGroup: 'Hạ tầng - Quy hoạch', detail: 'Tin tức quy hoạch kích thích dòng tiền đầu cơ đi trước đón đầu. Tuy nhiên nếu hạ tầng thực tế chậm triển khai, thị trường dễ xuất hiện bong bóng ảo.' },
+            { id: 'ce-8', cause: 'Kinh tế suy giảm, doanh nghiệp cắt giảm nhân sự', effect: 'Thấm chậm làm suy giảm cầu ở thực & Thu thuê', impactType: 'decrease', impactGroup: 'Kinh tế - Xã hội', detail: 'Thu nhập người dân thắt chặt làm giảm khả năng chi trả tiền vay mua nhà. Giá thuê chung cư, mặt bằng kinh doanh bị chiết khấu để giữ chân khách thuê.' }
+        ];
+
+        const FACTOR_TABS_DATA = [
+            {
+                id: 'financial', title: 'Tài chính - Tiền tệ', icon: 'fa-landmark', description: 'Yếu tố quyết định 70% nhịp sóng tăng/giảm và tính thanh khoản của toàn thị trường.',
+                factors: [
+                    { name: 'Lãi suất vay mua nhà (Mortgage Rate)', bullScenario: 'Lãi suất thả nổi xuống dưới 8.5%/năm', bullImpact: 'Kích hoạt làn sóng mua nhà ở thực và đầu tư cơ hội. Thanh khoản bùng nổ trên toàn phân khúc.', bearScenario: 'Lãi suất thả nổi vượt 12-14%/năm', bearImpact: 'Thị trường đóng băng. Áp lực bán tháo cắt lỗ từ nhà đầu tư cá nhân vay đòn bẩy quá đà.', impactedSegments: ['Đất nền', 'Chung cư', 'Nhà phố'] },
+                    { name: 'Chính sách tỷ giá USD/VND & Hành động Fed', bullScenario: 'DXY hạ nhiệt <100, Fed cắt giảm lãi suất mạnh', bullImpact: 'Giảm áp lực rút vốn ngoại, SBV nới lỏng chính sách tiền tệ, thúc đẩy dòng tiền chảy vào tài sản.', bearScenario: 'DXY tăng vọt >106, Fed kéo dài lãi suất cao', bearImpact: 'NHNN buộc phải nâng lãi suất hoặc bán ngoại tệ hút tiền về, thắt chặt dòng tiền chảy vào BĐS.', impactedSegments: ['BĐS Công nghiệp', 'Đất nền', 'Nhà phố'] },
+                    { name: 'Hạn mức tăng trưởng tín dụng (Credit Room)', bullScenario: 'Mở rộng room tín dụng >15%, ưu tiên BĐS nhà ở', bullImpact: 'Khơi thông dòng vốn cho dự án phát triển và hỗ trợ giải ngân người mua nhà nhanh chóng.', bearScenario: 'Kiểm soát chặt tín dụng BĐS ở mức thấp', bearImpact: 'Chủ đầu tư đói vốn, dự án chậm tiến độ, người mua thiếu nguồn vay thứ cấp.', impactedSegments: ['Chung cư', 'Nhà phố', 'BĐS Công nghiệp'] }
+                ]
+            },
+            {
+                id: 'policy', title: 'Chính sách - Pháp lý', icon: 'fa-file-contract', description: 'Nền tảng thanh lọc thị trường, quyết định tiến độ bung hàng và chi phí pháp lý dự án.',
+                factors: [
+                    { name: 'Luật Đất đai / Nhà ở / Kinh doanh BĐS mới', bullScenario: 'Khai thông vướng mắc định giá đất & Tiền sử dụng đất', bullImpact: 'Hàng loạt dự án được tháo gỡ pháp lý, tăng nguồn cung chuẩn mực cho thị trường.', bearScenario: 'Bảng giá đất sát giá thị trường làm chi phí tiền sử dụng đất tăng vọt', bearImpact: 'Đẩy giá thành BĐS sơ cấp tăng cao, giảm biên lợi nhuận của nhà phát triển.', impactedSegments: ['Chung cư', 'Đất nền', 'Nhà phố'] },
+                    { name: 'Tiến độ giải ngân Đầu tư công', bullScenario: 'Đạt trên 90% kế hoạch năm, hoàn thành các tuyến cao tốc trọng điểm', bullImpact: 'Mở rộng không gian phát triển đô thị mới, kết nối vùng mạnh mẽ, tăng giá trị sử dụng đất.', bearScenario: 'Chậm giải ngân do vướng đền bù giải phóng mặt bằng', bearImpact: 'Hạ tầng dậm chân tại chỗ, các cơn sóng đất theo hạ tầng bị xẹp lép nhanh chóng.', impactedSegments: ['Đất nền', 'BĐS Công nghiệp', 'Nhà phố'] }
+                ]
+            },
+            {
+                id: 'macro', title: 'Kinh tế - Vĩ mô', icon: 'fa-chart-line', description: 'Động lực từ thu nhập thực tế, dòng vốn FDI và tốc độ đô thị hóa quốc gia.',
+                factors: [
+                    { name: 'Tăng trưởng GDP & Thu nhập bình quân đầu người', bullScenario: 'GDP tăng >6.5%, thu nhập hộ gia đình cải thiện', bullImpact: 'Tăng tích lũy tài sản thực, nâng khả năng chi trả trả góp mua nhà ở lâu dài.', bearScenario: 'Kinh tế tăng trưởng chậm <5%, doanh nghiệp thu hẹp', bearImpact: 'Nhu cầu mở rộng mặt bằng kinh doanh giảm, người dân ưu tiên nắm giữ tiền mặt.', impactedSegments: ['Chung cư', 'Nhà phố - Shophouse'] },
+                    { name: 'Dòng vốn đầu tư trực tiếp nước ngoài (FDI)', bullScenario: 'FDI thực hiện đạt mốc kỷ lục mới (>22 tỷ USD)', bullImpact: 'Tăng nhu cầu thuê đất KCN, kho bãi logistics và căn hộ dịch vụ cho chuyên gia ngoại.', bearScenario: 'Dòng vốn FDI chậm lại do bất ổn chuỗi cung ứng toàn cầu', bearImpact: 'Giá thuê và tỷ lệ lấp đầy KCN tăng chậm, dòng tiền ngoại vào BĐS chững lại.', impactedSegments: ['BĐS Công nghiệp', 'Chung cư cao cấp'] }
+                ]
+            },
+            {
+                id: 'costs', title: 'Chi phí đầu vào', icon: 'fa-hard-hat', description: 'Yếu tố thiết lập mức giá sàn cố định cho các sản phẩm hình thành trong tương lai.',
+                factors: [
+                    { name: 'Giá vật liệu xây dựng (Thép, Xi măng, Cát đá)', bullScenario: 'Giá vật liệu ổn định hoặc giảm nhẹ nhờ chuỗi cung ứng', bullImpact: 'Giảm áp lực chi phí cho nhà thầu, đảm bảo tiến độ bàn giao dự án đúng hẹn.', bearScenario: 'Giá thép, cát xây dựng tăng phi mã 25-40%', bearImpact: 'Chủ đầu tư buộc phải tăng giá bán sơ cấp hoặc giảm chất lượng hoàn thiện.', impactedSegments: ['Chung cư', 'Nhà phố - Shophouse'] },
+                    { name: 'Chi phí đền bù giải phóng mặt bằng & Tiền sử dụng đất', bullScenario: 'Chính sách đền bù thỏa đáng, quy trình tính tiền đất minh bạch', bullImpact: 'Rút ngắn thời gian chuẩn bị dự án, chi phí đầu vào hợp lý giúp giá bán dễ hấp thụ.', bearScenario: 'Chi phí bồi thường theo giá thị trường tăng quá cao', bearImpact: 'Đẩy suất đầu tư mỗi m2 đất lên mức kỷ lục, chỉ phù hợp làm sản phẩm hạng sang.', impactedSegments: ['Đất nền', 'Chung cư', 'BĐS Công nghiệp'] }
+                ]
+            }
+        ];
+
+        const SEGMENTS_DATA = [
+            { id: 'seg-land', title: 'Đất Nền Dự Án / Đất Dân', subtitle: 'Kênh đầu cơ có biên lợi nhuận cao nhất nhưng rủi ro thanh khoản lớn nhất.', icon: 'fa-tree', sensitivity: 'Cực kỳ nhạy cảm với Tin tức Quy hoạch & Lãi suất', keyDrivers: ['Tiến độ hạ tầng giao thông kết nối xung quanh', 'Mặt bằng lãi suất tiền gửi và vay tín dụng', 'Pháp lý sổ đỏ và quy định tách thửa địa phương'], riskLevel: 'Cao', summary: 'Phân khúc mang tính bùng nổ khi có sóng tiền rẻ hoặc tin quy hoạch. Khi thị trường thắt chặt, đây là phân khúc mất thanh khoản đầu tiên và lâu nhất.', strategicAdvice: 'Chỉ đầu tư đất nền bằng vốn tự có (>70%), chọn vị trí có dân cư hiện hữu và pháp lý sổ đỏ trao tay. Tránh mua đất trồng cây/đất rừng đón sóng ảo.' },
+            { id: 'seg-apartment', title: 'Căn Hộ Chung Cư', subtitle: 'Phân khúc đáp ứng nhu cầu ở thực hàng đầu, tạo dòng tiền thuê ổn định.', icon: 'fa-building-user', sensitivity: 'Phụ thuộc trực tiếp vào Lãi suất vay & Thu nhập gia đình', keyDrivers: ['Gói vay ưu đãi tài trợ của ngân hàng liên kết', 'Uy tín và năng lực bàn giao của chủ đầu tư', 'Vị trí kết nối trung tâm & Tiện ích nội khu'], riskLevel: 'Trung bình', summary: 'Giữ giá tốt trong chu kỳ suy thoái nhờ cầu ở thực cao tại các đô thị lớn. Tỷ suất dòng tiền cho thuê trung bình từ 3.5% - 5.5%/năm.', strategicAdvice: 'Ưu tiên các dự án đã hoàn thiện pháp lý, bàn giao đúng tiến độ, mật độ cư dân về ở đông đúc. Tận dụng gói vay lãi suất cố định 2-3 năm đầu.' },
+            { id: 'seg-townhouse', title: 'Nhà Phố - Shophouse', subtitle: 'Tài sản trú ẩn giá trị cao, kết hợp nhu cầu ở và khai thác kinh doanh.', icon: 'fa-house-chimney', sensitivity: 'Nhạy cảm với Sức mua tiêu dùng & Tăng trưởng bán lẻ', keyDrivers: ['Lưu lượng giao thông và vị trí mặt tiền kinh doanh', 'Hiệu quả khai thác dòng tiền cho thuê thực tế', 'Tính khan hiếm tại các lõi trung tâm thành phố'], riskLevel: 'Thấp', summary: 'Là kênh tích sản an toàn của nhà đầu tư có tài chính mạnh. Giá trị nhà phố nội thành ít khi giảm sâu, tăng trưởng bền vững theo thời gian.', strategicAdvice: 'Tính toán kỹ tỷ suất dòng tiền cho thuê thực tế (tối thiểu >3%/năm). Tránh mua Shophouse tại các dự án nghỉ dưỡng/đô thị ma thiếu cư dân.' },
+            { id: 'seg-industrial', title: 'BĐS Công Nghiệp & Kho Bãi', subtitle: 'Phân khúc tăng trưởng theo làn sóng dịch chuyển FDI toàn cầu.', icon: 'fa-industry', sensitivity: 'Gắn liền với Dòng vốn FDI, Xuất nhập khẩu & Logistics', keyDrivers: ['Hạ tầng cảng biển, sân bay và đường cao tốc kết nối', 'Quỹ đất sạch lớn & Chi phí đền bù giải phóng mặt bằng', 'Chính sách ưu đãi thuế của địa phương đối với doanh nghiệp FDI'], riskLevel: 'Thấp', summary: 'Hưởng lợi lớn từ xu hướng chuyển dịch sản xuất China+1. Giá thuê đất KCN duy trì đà tăng ổn định 5-10%/năm tại các thủ phủ công nghiệp.', strategicAdvice: 'Theo dõi sát tiến độ hoàn thiện hạ tầng kết nối liên vùng và danh sách các tập đoàn đa quốc gia đăng ký cấp phép đầu tư mới.' }
+        ];
+
+        const FORMULA_PRINCIPLES_DATA = [
+            { id: 'pr-1', title: 'Độ Trễ Chu Kỳ Tiền Tệ (6 - 12 Tháng)', subtitle: 'BĐS không phản ứng ngay tức thì với chính sách tiền tệ', description: 'Khi Ngân hàng Nhà nước bắt đầu hạ lãi suất, cần ít nhất 6 đến 12 tháng để dòng tiền ngấm sâu vào nền kinh tế, giải tỏa áp lực tâm lý và tạo thành làn sóng mua nhà thực sự.', bulletPoints: ['Tháng 1 - 3: Lãi suất hạ ➔ Tâm lý nhà đầu tư bắt đầu thăm dò.', 'Tháng 6 - 9: Các gói vay rẻ được giải ngân ➔ Thanh khoản chung cư tăng.', 'Tháng 12+: Dòng tiền lan tỏa sang đất nền và bất động sản đầu cơ.'] },
+            { id: 'pr-2', title: 'Bản Chất Khác Biệt Giữa Các Phân Khúc', subtitle: 'Phân biệt rõ Động lực tăng giá của Tiêu dùng vs Đầu cơ', description: 'Nhà ở/Chung cư chạy theo Mặt bằng lãi suất vay và Thu nhập người dân. Trong khi Đất nền/BĐS nghỉ dưỡng lại chạy hoàn toàn theo Tin tức quy hoạch và Kỳ vọng đòn bẩy.', bulletPoints: ['Chung cư/Nhà ở: Cầu ổn định, dòng tiền thuê thực tế làm giá sàn vững chắc.', 'Đất nền xa trung tâm: Tăng nhanh nhờ sóng truyền thông nhưng sụt giảm mạnh khi thắt chặt tín dụng.'] },
+            { id: 'pr-3', title: 'Tính Ì Tài Sản & Thanh Khoản Cứng', subtitle: 'Không thể thoát hàng trong 1 ngày như Cổ phiếu hay Vàng', description: 'Bất động sản có tính ìm giao dịch cao. Khi thị trường suy thoái, giá niêm yết có thể không giảm ngay nhưng thanh khoản sẽ rớt về 0. Để bán nhanh buộc phải chiết khấu sâu 20-30%.', bulletPoints: ['Biên độ điều chỉnh chậm: Cần 3-6 tháng thắt chặt tiền tệ giá mới bắt đầu giảm.', 'Rủi ro chôn vốn: Không dành cho dòng tiền cần dự phòng khẩn cấp.'] },
+            { id: 'pr-4', title: 'Tính Phân Hóa Đô Thị & Vùng Miền', subtitle: 'Thị trường không bao giờ tăng hoặc giảm đồng loạt 100%', description: 'Trong cùng một giai đoạn trầm lắng, những bất động sản trung tâm có hạ tầng tốt vẫn tăng giá nhẹ, trong khi đất nền ăn theo quy hoạch ảo ở tỉnh xa lại lao dốc.', bulletPoints: ['Vị trí lõi trung tâm: Luôn giữ giá và chống chịu lạm phát tốt nhất.', 'Vùng ven chưa có hạ tầng: Chịu biến động mạnh và rủi ro chôn vốn kéo dài.'] }
+        ];
+
+        const GLOBAL_CRISIS_DATA = {
+            principleBanner: { title: '7.1 NGUYÊN LÝ KÍCH HOẠT KHỦNG HOẢNG KINH TẾ TOÀN CẦU', description: 'Khủng hoảng kinh tế toàn cầu hiếm khi xảy ra do một chỉ số đơn lẻ. Nó là kết quả của chuỗi phản ứng dây chuyền khi nhiều yếu tố rủi ro tích tụ đến mốc bùng nổ: Bong bóng tài sản vỡ ➔ Ngân hàng trung ương thắt chặt quá mức ➔ Đứt gãy chuỗi cung ứng ➔ Rút vốn tháo chạy khỏi thị trường mới nổi.' },
+            indicatorMetrics: [
+                { id: 'ind-vix', name: 'Chỉ số Sợ hãi VIX (Volatility Index)', normalVal: '< 20 điểm', warningVal: '25 – 35 điểm', dangerVal: '> 40 điểm (Hoảng loạn)', realEstateImpact: 'VIX vọt cao phản ánh hoảng loạn toàn cầu. Khối ngoại bán ròng tài sản thị trường mới nổi, tiền tháo chạy về USD/Trái phiếu Mỹ.' },
+                { id: 'ind-yield-curve', name: 'Đường cong Lãi suất Mỹ (10Y - 2Y Yield)', normalVal: 'Dương (> 0.5%)', warningVal: 'Đảo ngược (< -0.3%)', dangerVal: 'Đảo ngược kéo dài >3 tháng', realEstateImpact: 'Dấu hiệu dự báo suy thoái kinh tế Mỹ sau 12-18 tháng với độ chính xác >90%. Xuất khẩu VN suy giảm ➔ dòng tiền BĐS thu hẹp.' },
+                { id: 'ind-us10y', name: 'Lãi suất Trái phiếu Chính phủ Mỹ 10Y', normalVal: '3.0% – 4.0%', warningVal: '4.5% – 5.0%', dangerVal: '> 5.5% (Chi phí vốn đắt)', realEstateImpact: 'Lãi suất Mỹ quá cao buộc SBV phải duy trì lãi suất VND ở mức cao để chống mất giá tỷ giá ➔ Lãi suất vay BĐS VN không thể hạ sâu.' },
+                { id: 'ind-wti', name: 'Giá Dầu Thô Thế Giới (WTI / Brent)', normalVal: '60 – 85 USD/thùng', warningVal: '90 – 110 USD/thùng', dangerVal: '> 110 USD kéo dài (>2 tháng)', realEstateImpact: 'Giá dầu cao bùng nổ lạm phát nhập khẩu ➔ Chi phí vật liệu xây dựng (thép, xi măng, nhựa, vận tải) tăng phi mã đẩy giá nhà sơ cấp.' },
+                { id: 'ind-dxy', name: 'Chỉ số Sức mạnh Đồng USD (DXY)', normalVal: '95 – 100', warningVal: '102 – 105', dangerVal: '> 106 (USD siêu mạnh)', realEstateImpact: 'DXY tăng vọt gây áp lực mất giá lớn lên VND. NHNN phải bán ngoại tệ hút tiền ròng ➔ Thắt chặt thanh khoản hệ thống ngân hàng.' },
+                { id: 'ind-gdp-global', name: 'Tăng trưởng GDP Toàn cầu (IMF)', normalVal: '3.0% – 3.5%', warningVal: '2.0% – 2.5%', dangerVal: '< 1.5% (Suy thoái toàn cầu)', realEstateImpact: 'Suy thoái toàn cầu làm suy giảm cầu du lịch, dịch vụ thương mại, FDI chững lại ➔ BĐS nghỉ dưỡng & công nghiệp chịu đòn.' },
+                { id: 'ind-forex-vn', name: 'Dự trữ Ngoại hối Việt Nam (SBV)', normalVal: 'Ổn định (>3.5 tháng NK)', warningVal: 'Giảm 5 – 10%/quý', dangerVal: 'Giảm >15% (Cực kỳ căng thẳng)', realEstateImpact: 'Dự trữ ngoại hối cạn làm giảm dư địa can thiệp tỷ giá. Nguy cơ SBV phải nâng lãi suất đột ngột ➔ Ép giá BĐS điều chỉnh.' }
+            ],
+            stages: [
+                { stageNumber: 1, stageTitle: 'Giai Đoạn 1: Cú Sốc Ban Đầu & Tích Tụ Bất Ổn', timeHorizon: 'Tháng 1 - 6', description: 'Xung đột địa chính trị hoặc giá năng lượng tăng vọt gây bùng nổ lạm phát toàn cầu. Thị trường chứng khoán chao đảo, chỉ số VIX nhảy vọt.', keySignals: ['VIX > 30', 'Giá dầu WTI > 100 USD', 'DXY vượt mốc 104'] },
+                { stageNumber: 2, stageTitle: 'Giai Đoạn 2: Ngân Hàng Trung Ương Thắt Chặt Quá Mức', timeHorizon: 'Tháng 6 - 12', description: 'Fed và ECB liên tục nâng lãi suất đột ngột để dập lạm phát. Đường cong lãi suất đảo ngược sâu, tín dụng doanh nghiệp bị thắt chặt.', keySignals: ['Lãi suất Mỹ > 5.5%', 'Đường cong 10Y-2Y đảo ngược', 'Tín dụng BĐS đóng băng'] },
+                { stageNumber: 3, stageTitle: 'Giai Đoạn 3: Lan Tỏa & Vỡ Trận Tỷ Giá Thị Trường Mới Nổi', timeHorizon: 'Tháng 12 - 18', description: 'Dòng vốn ngoại tháo chạy khỏi các nước đang phát triển. SBV buộc phải bán dự trữ ngoại hối và nâng lãi suất VND để giữ tỷ giá.', keySignals: ['VND mất giá > 4%', 'Lãi suất vay BĐS > 13%', 'Dự trữ ngoại hối giảm mạnh'] },
+                { stageNumber: 4, stageTitle: 'Giai Đoạn 4: Khủng Hoảng Toàn Diện & Thanh Lọc BĐS', timeHorizon: 'Tháng 18 - 36', description: 'Kinh tế suy thoái đa trung tâm. Thanh khoản BĐS rơi về 0, áp lực giải chấp tài sản nợ xấu. Thị trường bắt đầu giai đoạn tạo đáy và thanh lọc 2-4 năm.', keySignals: ['Giá BĐS đầu cơ giảm 25-40%', 'Nợ xấu ngân hàng tăng', 'Giao dịch đứng yên'] }
+            ],
+            actionLevels: [
+                { level: 'normal', levelName: 'CẤP ĐỘ 1: BÌNH THƯỜNG (MÀU XANH)', badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40', bgClass: 'bg-emerald-950/20', borderClass: 'border-emerald-800/50', textClass: 'text-emerald-400', description: 'Các chỉ số vĩ mô thế giới và trong nước nằm trong vùng an toàn.', actionStrategy: ['Đầu tư bình thường theo kế hoạch dài hạn.', 'Sử dụng đòn bẩy tài chính hợp lý (dưới 30-40% giá trị tài sản).', 'Tập trung tích lũy các bất động sản có pháp lý chuẩn và dòng tiền tốt.'] },
+                { level: 'warning', levelName: 'CẤP ĐỘ 2: CẢNH BÁO (MÀU VÀNG)', badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/40', bgClass: 'bg-amber-950/20', borderClass: 'border-amber-800/50', textClass: 'text-amber-400', description: 'VIX nhích cao (25-35), DXY tăng và giá dầu vượt 90 USD/thùng.', actionStrategy: ['Ngừng mua đuổi tại các cơn sóng đất nền quy hoạch ảo.', 'Rà soát và giảm tỷ lệ nợ vay ngân hàng về mức an toàn (<25%).', 'Tăng tỷ lệ nắm giữ tiền mặt lên 30-40% danh mục đầu tư.'] },
+                { level: 'high', levelName: 'CẤP ĐỘ 3: NGUY CƠ CAO (MÀU CAM)', badgeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/40', bgClass: 'bg-orange-950/20', borderClass: 'border-orange-800/50', textClass: 'text-orange-400', description: 'Đường cong lãi suất đảo ngược kéo dài, SBV nâng lãi suất thắt chặt.', actionStrategy: ['Bán giảm tỷ trọng các tài sản rủi ro cao, kém thanh khoản (đất xa, đất nông nghiệp).', 'Tuyệt đối không dùng đòn bẩy tài chính vay mua mới.', 'Chuẩn bị lượng tiền mặt dồi dào sẵn sàng cho kịch bản mua chiết khấu sâu.'] },
+                { level: 'crisis', levelName: 'CẤP ĐỘ 4: KHỦNG HOẢNG (MÀU ĐỎ)', badgeColor: 'bg-rose-500/20 text-rose-400 border-rose-500/40', bgClass: 'bg-rose-950/20', borderClass: 'border-rose-800/50', textClass: 'text-rose-400', description: 'VIX > 40, suy thoái toàn cầu bùng nổ, thị trường BĐS đóng băng.', actionStrategy: ['Giữ tiền mặt phòng thủ an toàn tuyệt đối.', 'Kiên nhẫn quan sát và chờ đợi thị trường xác nhận tín hiệu tạo đáy.', 'Tập trung săn lùng các BĐS cốt lõi trung tâm bị ngợp nợ chiết khấu 30-50%.'] }
+            ],
+            transmissionChannels: [
+                { id: 'tc-fdi', channelTitle: '1. Kênh FDI & Đầu Tư Trực Tiếp', description: 'Khi kinh tế toàn cầu suy thoái, các tập đoàn đa quốc gia cắt giảm ngân sách mở rộng nhà máy.', realEstateConsequence: 'Tốc độ lấp đầy KCN chậm lại, cầu thuê kho bãi logistics suy giảm, ảnh hưởng trực tiếp BĐS công nghiệp.' },
+                { id: 'tc-export', channelTitle: '2. Kênh Xuất Nhập Khẩu & Thu Nhập', description: 'Sức mua tại Mỹ & EU sụt giảm mạnh làm các doanh nghiệp xuất khẩu (dệt may, da giày, gỗ, điện tử) thiếu đơn hàng.', realEstateConsequence: 'Công nhân và người lao động bị giảm giờ làm/sa thải ➔ Sức mua nhà ở bình dân & nhu cầu thuê trọ sụt giảm.' },
+                { id: 'tc-fx', channelTitle: '3. Kênh Tỷ Giá & Lãi Suất SBV', description: 'USD tăng giá kỷ lục khiến áp lực mất giá VND tăng cao, buộc SBV phải can thiệp bằng chính sách tiền tệ.', realEstateConsequence: 'Lãi suất điều hành VND tăng lên ➔ Lãi suất vay mua nhà vọt cao ➔ Ép giá BĐS thứ cấp phải điều chỉnh.' },
+                { id: 'tc-credit', channelTitle: '4. Kênh Tín Dụng & Thanh Khoản Ngân Hàng', description: 'Thanh khoản hệ thống ngân hàng bị thắt chặt do chi phí huy động vốn tăng và nợ xấu gia tăng.', realEstateConsequence: 'Hạn mức cho vay BĐS bị siết chặt ➔ Chủ đầu tư khó ra hàng, người mua không tiếp cận được vốn.' }
+            ],
+            defaultChecklist: [
+                { id: 'chk-1', label: 'Fed tăng lãi suất mạnh hơn hoặc kéo dài lãi suất đỉnh lâu hơn dự kiến', checked: true },
+                { id: 'chk-2', label: 'Giá dầu thô thế giới bùng nổ vượt mốc 100 USD/thùng trong hơn 1 tháng', checked: true },
+                { id: 'chk-3', label: 'Chỉ số sợ hãi VIX biến động mạnh vọt trên mốc 30 điểm', checked: false },
+                { id: 'chk-4', label: 'Khối ngoại liên tục bán ròng quy mô lớn trên TTCK Việt Nam > 5 phiên', checked: true },
+                { id: 'chk-5', label: 'Tỷ giá USD/VND ngân hàng tăng nhanh bất thường vượt mốc 3.5% từ đầu năm', checked: true },
+                { id: 'chk-6', label: 'Các chỉ số chứng khoán chính toàn cầu (S&P 500, Nikkei) giảm > 15% từ đỉnh', checked: false }
+            ]
+        };
+
+        const INITIAL_MONITOR_METRICS = [
+            { id: 'mon-1', name: '1. Lãi suất vay mua nhà thả nổi (Trung bình Big4 & TMCP)', currentValue: '9.8% / năm', trend: 'down', riskLevel: 'yellow', macroConclusion: 'Lãi suất đã giảm đáng kể so với đỉnh 13-14% năm 2023 nhưng vẫn ở mức vừa phải với người vay đòn bẩy.', actionSuggestion: 'Ưu tiên các gói vay cố định lãi suất 2-3 năm đầu. Tránh vay thả nổi quá 40% thu nhập hàng tháng.', lastUpdated: '17/09/2026' },
+            { id: 'mon-2', name: '2. Tốc độ giải ngân Đầu tư công quốc gia', currentValue: '58.2% kế hoạch năm', trend: 'up', riskLevel: 'green', macroConclusion: 'Tiến độ giải ngân các tuyến cao tốc Bắc - Nam và hạ tầng cảng biển được đẩy nhanh tích cực.', actionSuggestion: 'Tập trung khảo sát các khu vực hưởng lợi trực tiếp từ các nút giao cao tốc mới sắp khánh thành.', lastUpdated: '17/09/2026' },
+            { id: 'mon-3', name: '3. Tỷ giá USD / VND thị trường tự do & Ngân hàng', currentValue: '25,480 VND / USD', trend: 'up', riskLevel: 'orange', macroConclusion: 'Áp lực tỷ giá neo cao do chênh lệch lãi suất USD-VND làm thu hẹp dư địa hạ lãi suất thêm của SBV.', actionSuggestion: 'Theo dõi sát động thái can thiệp OMO của NHNN. Hạn chế lướt sóng đòn bẩy rủi ro cao.', lastUpdated: '17/09/2026' },
+            { id: 'mon-4', name: '4. Biến động giá vật liệu xây dựng (Thép & Xi măng)', currentValue: '14,200 VNĐ / kg (Thép CB300)', trend: 'flat', riskLevel: 'green', macroConclusion: 'Giá vật liệu xây dựng đi ngang ổn định giúp nhà thầu kiểm soát tốt chi phí xây dựng dự án mới.', actionSuggestion: 'Phù hợp để triển khai xây dựng nhà ở thực hoặc khởi công các công trình thương mại.', lastUpdated: '17/09/2026' },
+            { id: 'mon-5', name: '5. Thanh khoản giao dịch thị trường sơ cấp & thứ cấp', currentValue: 'Hồi phục 35% YoY', trend: 'up', riskLevel: 'yellow', macroConclusion: 'Dòng tiền ở thực quay trở lại mạnh mẽ ở phân khúc căn hộ chung cư và nhà phố tiệm cận trung tâm.', actionSuggestion: 'Nếu bán tài sản, nên niêm yết đúng giá thị trường để thu hồi tiền mặt nhanh chóng.', lastUpdated: '17/09/2026' },
+            { id: 'mon-6', name: '6. Xu hướng giá trung bình phân khúc Căn hộ Đô thị', currentValue: 'Tăng 4.2% theo quý', trend: 'up', riskLevel: 'green', macroConclusion: 'Nguồn cung chung cư mới hạn chế trong khi cầu ở thực liên tục tăng đẩy mặt bằng giá sơ cấp lên cao.', actionSuggestion: 'Người mua ở thực nên quyết định sớm khi chọn được căn hộ có pháp lý đầy đủ và giá hợp lý.', lastUpdated: '17/09/2026' }
+        ];
+
+        // Component App
+        function App() {
+            const [activeSection, setActiveSection] = useState('cause-effect');
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedImpact, setSelectedImpact] = useState('all');
+            const [activeTabId, setActiveTabId] = useState('financial');
+            const [checklist, setChecklist] = useState(GLOBAL_CRISIS_DATA.defaultChecklist);
+            const [metrics, setMetrics] = useState(INITIAL_MONITOR_METRICS);
+            const [editingItem, setEditingItem] = useState(null);
+            const [toastMsg, setToastMsg] = useState('');
+
+            useEffect(() => {
+                try {
+                    const savedChk = localStorage.getItem('bds_global_crisis_checklist_v1');
+                    if (savedChk) setChecklist(JSON.parse(savedChk));
+                    const savedMon = localStorage.getItem('bds_live_monitor_metrics_v1');
+                    if (savedMon) setMetrics(JSON.parse(savedMon));
+                } catch(e){}
+            }, []);
+
+            const showToast = (msg) => {
+                setToastMsg(msg);
+                setTimeout(() => setToastMsg(''), 3000);
+            };
+
+            const toggleCheck = (id) => {
+                const updated = checklist.map(c => c.id === id ? { ...c, checked: !c.checked } : c);
+                setChecklist(updated);
+                localStorage.setItem('bds_global_crisis_checklist_v1', JSON.stringify(updated));
+            };
+
+            const resetChecklist = () => {
+                setChecklist(GLOBAL_CRISIS_DATA.defaultChecklist);
+                localStorage.setItem('bds_global_crisis_checklist_v1', JSON.stringify(GLOBAL_CRISIS_DATA.defaultChecklist));
+                showToast('Đã khôi phục checklist về mặc định!');
+            };
+
+            const saveMetrics = (newM) => {
+                setMetrics(newM);
+                localStorage.setItem('bds_live_monitor_metrics_v1', JSON.stringify(newM));
+                showToast('Đã lưu dữ liệu vào LocalStorage thành công!');
+            };
+
+            const exportCSV = () => {
+                const headers = ['ID', 'Ten_Chi_So', 'Gia_Tri_Hien_Tai', 'Xu_Huong', 'Muc_Rui_Ro', 'Ket_Luan', 'Go_Y', 'Ngay_Cap_Nhat'];
+                const rows = metrics.map(m => [
+                    `"${m.id}"`, `"${m.name}"`, `"${m.currentValue}"`, `"${m.trend}"`, `"${m.riskLevel}"`, `"${m.macroConclusion}"`, `"${m.actionSuggestion}"`, `"${m.lastUpdated}"`
+                ]);
+                const csv = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Bang_Theo_Doi_BDS_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                showToast('Đã xuất file CSV thành công!');
+            };
+
+            const filteredCE = useMemo(() => {
+                return CAUSE_EFFECT_DATA.filter(item => {
+                    const matchSearch = item.cause.toLowerCase().includes(searchTerm.toLowerCase()) || item.effect.toLowerCase().includes(searchTerm.toLowerCase()) || item.detail.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchType = selectedImpact === 'all' || item.impactType === selectedImpact;
+                    return matchSearch && matchType;
+                });
+            }, [searchTerm, selectedImpact]);
+
+            const checkedCount = checklist.filter(c => c.checked).length;
+            const riskPct = Math.round((checkedCount / checklist.length) * 100);
+
+            const activeFactorGroup = FACTOR_TABS_DATA.find(f => f.id === activeTabId) || FACTOR_TABS_DATA[0];
+
+            return (
+                <div className="space-y-4">
+                    {/* Header */}
+                    <header className="bg-slate-900 border-b border-slate-800 py-10 px-4 sm:px-6 lg:px-8">
+                        <div className="max-w-7xl mx-auto space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-2xl">
+                                    🏢
+                                </div>
+                                <div>
+                                    <div className="text-xs font-extrabold uppercase tracking-widest text-amber-400">
+                                        CHUYÊN NGHÀNH VĨ MÔ & BẤT ĐỘNG SẢN VIỆT NAM
+                                    </div>
+                                    <h1 className="text-2xl sm:text-4xl font-black text-slate-100 tracking-tight leading-tight">
+                                        Tư Duy Thị Trường Bất Động Sản — Nhìn Nhận & Phân Tích
+                                    </h1>
+                                </div>
+                            </div>
+                            <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-4xl">
+                                Hệ thống hóa mối liên hệ nhân - quả giữa vĩ mô, lãi suất, chu kỳ khủng hoảng kinh tế toàn cầu và vận hành thực tế của từng phân khúc tài sản bất động sản.
+                            </p>
+                        </div>
+                    </header>
+
+                    {/* Navigation */}
+                    <nav className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+                        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar">
+                            {[
+                                { id: 'cause-effect', label: '1. Khung Tư Duy' },
+                                { id: 'factors', label: '2. Nhóm Yếu Tố' },
+                                { id: 'segments', label: '3. Phân Khúc BĐS' },
+                                { id: 'principles', label: '4. Công Thức Vàng' },
+                                { id: 'global-risk', label: '5. 🌍 Rủi Ro Toàn Cầu' },
+                                { id: 'live-monitor', label: '6. Bảng Theo Dõi' }
+                            ].map(nav => (
+                                <button
+                                    key={nav.id}
+                                    onClick={() => {
+                                        setActiveSection(nav.id);
+                                        const el = document.getElementById(nav.id);
+                                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    className={`px-4 py-2 rounded-xl text-base font-bold whitespace-nowrap transition-colors ${
+                                        activeSection === nav.id ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-300 hover:bg-slate-800'
+                                    }`}
+                                >
+                                    {nav.label}
+                                </button>
+                            ))}
+                        </div>
+                    </nav>
+
+                    {/* Main Body */}
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 py-8">
+                        {/* Section 1: Cause-Effect */}
+                        <section id="cause-effect" className="space-y-8">
+                            <div className="space-y-2">
+                                <span className="px-3 py-1 rounded-md text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">1. KHUNG TƯ DUY NGUYÊN NHÂN - KẾT QUẢ</span>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-100">Bảng Ma Trận Nhân - Quả Chi Phối Thị Trường BĐS</h2>
+                            </div>
+
+                            <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-4 justify-between">
+                                <input
+                                    type="text"
+                                    placeholder="Tìm kiếm tác động (Lãi suất, Tỷ giá, Đòn bẩy...)..."
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    className="px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 flex-1 text-base focus:outline-none focus:border-amber-500"
+                                />
+                                <div className="flex gap-2">
+                                    {['all', 'increase', 'decrease', 'freeze'].map(type => (
+                                        <button
+                                            key={type}
+                                            onClick={() => setSelectedImpact(type)}
+                                            className={`px-4 py-2 rounded-xl font-bold text-sm ${selectedImpact === type ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-300'}`}
+                                        >
+                                            {type === 'all' ? 'Tất cả' : type === 'increase' ? 'Tăng giá ⬆️' : type === 'decrease' ? 'Giảm giá ⬇️' : 'Đóng băng ❄️'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {filteredCE.map(item => (
+                                    <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-lg">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs font-bold uppercase bg-slate-800 text-slate-400 px-3 py-1 rounded-md">{item.impactGroup}</span>
+                                            <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${item.impactType === 'increase' ? 'bg-emerald-500/20 text-emerald-400' : item.impactType === 'decrease' ? 'bg-rose-500/20 text-rose-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
+                                                {item.impactType === 'increase' ? 'Tăng giá ⬆️' : item.impactType === 'decrease' ? 'Giảm giá ⬇️' : 'Đóng băng ❄️'}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-100">⚡ {item.cause}</h3>
+                                        <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-amber-400 font-bold text-base">🎯 {item.effect}</div>
+                                        <p className="text-slate-300 text-base leading-relaxed">{item.detail}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Section 2: Factor Tabs */}
+                        <section id="factors" className="space-y-8">
+                            <div className="space-y-2">
+                                <span className="px-3 py-1 rounded-md text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">2. 4 TRỤ CỘT ẢNH HƯỞNG VĨ MÔ</span>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-100">Phân Tích Chi Tiết 4 Nhóm Yếu Tố Ảnh Hưởng</h2>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {FACTOR_TABS_DATA.map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTabId(tab.id)}
+                                        className={`p-4 rounded-xl font-extrabold text-base transition-all ${activeTabId === tab.id ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'}`}
+                                    >
+                                        {tab.title}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="space-y-6">
+                                {activeFactorGroup.factors.map((f, idx) => (
+                                    <div key={idx} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                                        <h4 className="text-xl font-bold text-slate-100">{f.name}</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="p-5 bg-emerald-950/20 border border-emerald-800/40 rounded-xl space-y-2">
+                                                <div className="text-emerald-400 font-bold text-sm">KỊCH BẢN TÍCH CỰC: {f.bullScenario}</div>
+                                                <p className="text-slate-300 text-base">{f.bullImpact}</p>
+                                            </div>
+                                            <div className="p-5 bg-rose-950/20 border border-rose-800/40 rounded-xl space-y-2">
+                                                <div className="text-rose-400 font-bold text-sm">KỊCH BẢN TIÊU CỰC: {f.bearScenario}</div>
+                                                <p className="text-slate-300 text-base">{f.bearImpact}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Section 3: Segment Cards */}
+                        <section id="segments" className="space-y-8">
+                            <div className="space-y-2">
+                                <span className="px-3 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">3. PHÂN TÍCH PHÂN KHÚC</span>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-100">Đặc Tính Vận Hành 4 Phân Khúc BĐS Cốt Lõi</h2>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {SEGMENTS_DATA.map(seg => (
+                                    <div key={seg.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                                        <div className="flex justify-between items-start border-b border-slate-800 pb-3">
+                                            <div>
+                                                <h3 className="text-xl font-extrabold text-slate-100">{seg.title}</h3>
+                                                <p className="text-sm text-slate-400">{seg.subtitle}</p>
+                                            </div>
+                                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400">Rủi ro: {seg.riskLevel}</span>
+                                        </div>
+                                        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 font-bold text-sm">⚡ {seg.sensitivity}</div>
+                                        <p className="text-slate-300 text-base">{seg.summary}</p>
+                                        <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-emerald-400 font-medium text-sm">💡 LỜI KHUYÊN: {seg.strategicAdvice}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Section 4: Formula & Principles */}
+                        <section id="principles" className="space-y-8">
+                            <div className="space-y-2">
+                                <span className="px-3 py-1 rounded-md text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">4. ĐỊNH GIÁ & THỰC CHIẾN</span>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-100">Công Thức Định Giá & 4 Nguyên Tắc Vàng</h2>
+                            </div>
+
+                            <div className="p-8 bg-slate-900 border border-amber-500/40 rounded-3xl text-center space-y-4">
+                                <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">CÔNG THỨC ĐỊNH GIÁ CỐT LÕI</div>
+                                <div className="text-xl sm:text-3xl font-black text-amber-300 font-mono">GIÁ BĐS = GIÁ TRỊ SỬ DỤNG + KỲ VỌNG TƯƠNG LAI + CHI PHÍ TÀI CHÍNH</div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {FORMULA_PRINCIPLES_DATA.map(pr => (
+                                    <div key={pr.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
+                                        <h4 className="text-lg font-bold text-amber-400">{pr.title}</h4>
+                                        <p className="text-slate-300 text-base">{pr.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Section 5: Global Risk */}
+                        <section id="global-risk" className="space-y-8">
+                            <div className="space-y-2">
+                                <span className="px-3 py-1 rounded-md text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">5. KHỦNG HOẢNG KINH TẾ TOÀN CẦU</span>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-100">🌍 6 Khối Phân Tích Dấu Hiệu Khủng Hoảng Toàn Cầu</h2>
+                            </div>
+
+                            <div className="p-6 bg-rose-950/30 border border-rose-800/50 rounded-2xl space-y-2">
+                                <h3 className="text-lg font-bold text-rose-400">{GLOBAL_CRISIS_DATA.principleBanner.title}</h3>
+                                <p className="text-slate-200 text-base">{GLOBAL_CRISIS_DATA.principleBanner.description}</p>
+                            </div>
+
+                            <div className="bg-slate-900 p-6 border border-slate-800 rounded-2xl space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-xl font-bold text-slate-100">7.6 Checklist Dấu Hiệu Báo Động</h3>
+                                    <button onClick={resetChecklist} className="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs font-bold rounded-lg">Khôi phục</button>
+                                </div>
+                                <div className="text-sm text-amber-400 font-bold">Cảnh báo: {checkedCount} / {checklist.length} tín hiệu ({riskPct}%)</div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {checklist.map(c => (
+                                        <div key={c.id} onClick={() => toggleCheck(c.id)} className={`p-4 rounded-xl border cursor-pointer ${c.checked ? 'bg-amber-950/40 border-amber-500 text-slate-100 font-semibold' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>
+                                            {c.checked ? '☑ ' : '☐ '} {c.label}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Section 6: Live Monitor */}
+                        <section id="live-monitor" className="space-y-8">
+                            <div className="space-y-2">
+                                <span className="px-3 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">6. BẢNG THEO DÕI THỰC TẾ</span>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-100">Live Monitor — Theo Dõi Chỉ Số Thị Trường</h2>
+                            </div>
+
+                            {toastMsg && <div className="p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold rounded-xl">{toastMsg}</div>}
+
+                            <div className="flex gap-3 justify-end">
+                                <button onClick={exportCSV} className="px-4 py-2.5 bg-cyan-600 text-white font-bold text-sm rounded-xl">Xuất CSV 📥</button>
+                                <button onClick={() => saveMetrics(INITIAL_MONITOR_METRICS)} className="px-4 py-2.5 bg-slate-800 text-slate-300 font-bold text-sm rounded-xl">Khôi phục</button>
+                            </div>
+
+                            <div className="overflow-x-auto bg-slate-900 border border-slate-800 rounded-2xl">
+                                <table className="w-full text-left min-w-[800px]">
+                                    <thead>
+                                        <tr className="bg-slate-950 text-slate-400 text-xs font-bold uppercase border-b border-slate-800">
+                                            <th className="p-4">Chỉ số</th>
+                                            <th className="p-4">Giá trị</th>
+                                            <th className="p-4">Xu hướng</th>
+                                            <th className="p-4">Rủi ro</th>
+                                            <th className="p-4">Kết luận vĩ mô</th>
+                                            <th className="p-4">Gợi ý hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-800 text-sm">
+                                        {metrics.map(m => (
+                                            <tr key={m.id} className="hover:bg-slate-800/40">
+                                                <td className="p-4 font-bold text-slate-100">{m.name}</td>
+                                                <td className="p-4 font-bold text-amber-300 font-mono">{m.currentValue}</td>
+                                                <td className="p-4 font-bold">{m.trend === 'up' ? 'Tăng ⬆️' : m.trend === 'down' ? 'Giảm ⬇️' : 'Đi ngang ➡️'}</td>
+                                                <td className="p-4 font-bold text-amber-400">{m.riskLevel.toUpperCase()}</td>
+                                                <td className="p-4 text-slate-300">{m.macroConclusion}</td>
+                                                <td className="p-4 text-slate-300">{m.actionSuggestion}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-slate-900 border-t border-slate-800 py-8 text-center text-slate-400 text-sm">
+                        <p>© 2026 Antigravity Real Estate Architecture Terminal. All rights reserved.</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>

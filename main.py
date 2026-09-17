@@ -227,6 +227,15 @@ def read_root():
         return FileResponse(html_path)
     return HTMLResponse("<h3>Frontend file template/index.html not found!</h3>")
 
+@app.get("/batdongsan-analysis")
+def read_batdongsan_analysis():
+    """Serves the Real Estate Market Analysis page."""
+    html_path = os.path.join(os.path.dirname(__file__), "templates", "batdongsan_analysis.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return HTMLResponse("<h3>Real Estate Analysis template file not found!</h3>")
+
+
 @app.get("/static/favicon.ico")
 def get_favicon():
     """Serves the custom dashboard favicon."""
