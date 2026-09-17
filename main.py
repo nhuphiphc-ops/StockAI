@@ -1,9 +1,8 @@
 import os
 import sys
 import json
-
-import json
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 # vnstock kéo theo gói vnai (đo lường sử dụng/license) ghi vào Path.home()/".vnstock".
 # Trên Vercel, Path.home() trỏ vào một thư mục chỉ đọc (/home/sbx_user...) - chỉ /tmp
@@ -339,6 +338,7 @@ def get_price_depth(
             data = ssi_client.get_price_depth(symbol)
             if not data or data.get("last_price", 0) == 0:
                 data = ssi_client._generate_mock_price_depth(symbol)
+                data["_mock"] = True  # dữ liệu giả — SSI và vnstock đều không trả về
     return data
 
 
@@ -2178,6 +2178,69 @@ def get_derivatives_history_log(date: str = Query(None, description="YYYY-MM-DD,
     target_date = date or vn_now().strftime("%Y-%m-%d")
     signals, warning = supabase_client.get_signals(target_date)
     return {"date": target_date, "signals": signals, "warning": warning}
+
+
+# ---------------------------------------------------------------------------
+# MODULE: QUẢN LÝ THÀNH VIÊN
+# ---------------------------------------------------------------------------
+_MEMBERS_FILE = Path(__file__).parent / "data" / "members.json"
+
+
+@app.get("/api/members")
+def get_members():
+    """Danh sách thành viên có quyền truy cập hệ thống (đọc từ data/members.json)."""
+    if not _MEMBERS_FILE.exists():
+        return {"members": [], "total": 0, "warning": "Chưa có file data/members.json"}
+    with open(_MEMBERS_FILE, encoding="utf-8") as f:
+        data = json.load(f)
+    members = data.get("members", [])
+    return {
+        "members": members,
+        "total": len(members),
+        "admins": sum(1 for m in members if m.get("role") == "admin"),
+        "updated_at": vn_now().strftime("%H:%M %d/%m/%Y"),
+    }
+
+
+@app.post("/api/members")
+def add_member(body: dict):
+    """Thêm thành viên mới. Chỉ hoạt động trên local — Vercel filesystem chỉ đọc."""
+    if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
+        raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
+    if not _MEMBERS_FILE.exists():
+        _MEMBERS_FILE.write_text(json.dumps({"members": []}, ensure_ascii=False, indent=2), encoding="utf-8")
+    with open(_MEMBERS_FILE, encoding="utf-8") as f:
+        data = json.load(f)
+    members = data.get("members", [])
+    new_id = str(max((int(m.get("id", 0)) for m in members), default=0) + 1)
+    member = {
+        "id": new_id,
+        "name": body.get("name", ""),
+        "email": body.get("email", ""),
+        "role": body.get("role", "member"),
+        "department": body.get("department", ""),
+        "joined": vn_now().strftime("%Y-%m-%d"),
+        "note": body.get("note", ""),
+    }
+    members.append(member)
+    with open(_MEMBERS_FILE, "w", encoding="utf-8") as f:
+        json.dump({"members": members}, f, ensure_ascii=False, indent=2)
+    return {"success": True, "member": member}
+
+
+@app.delete("/api/members/{member_id}")
+def delete_member(member_id: str):
+    """Xóa thành viên theo id. Chỉ hoạt động trên local."""
+    if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
+        raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
+    if not _MEMBERS_FILE.exists():
+        raise HTTPException(404, detail="Không tìm thấy file members.json")
+    with open(_MEMBERS_FILE, encoding="utf-8") as f:
+        data = json.load(f)
+    members = [m for m in data.get("members", []) if m.get("id") != member_id]
+    with open(_MEMBERS_FILE, "w", encoding="utf-8") as f:
+        json.dump({"members": members}, f, ensure_ascii=False, indent=2)
+    return {"success": True, "deleted_id": member_id}
 
 
 if __name__ == "__main__":

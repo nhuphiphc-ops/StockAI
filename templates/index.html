@@ -1543,6 +1543,10 @@
             <i class="fa-solid fa-magnifying-glass-chart"></i>
             <span>Lướt T+3</span>
         </button>
+        <button class="bottom-nav-item" onclick="switchView(this,'members')">
+            <i class="fa-solid fa-users"></i>
+            <span>Thành Viên</span>
+        </button>
     </div>
 
     <div class="loading-overlay" id="loading-overlay">
@@ -1568,6 +1572,7 @@
                 <button class="nav-btn" onclick="switchView(this,'builders')"><i class="fa-solid fa-arrow-trend-up"></i> Cổ Phiếu Xu Hướng Tăng</button>
                 <button class="nav-btn" onclick="switchView(this,'macro')"><i class="fa-solid fa-globe"></i> Vĩ Mô & Địa Trị</button>
                 <button class="nav-btn" onclick="switchView(this,'surfing')"><i class="fa-solid fa-magnifying-glass-chart"></i> Lướt T+3</button>
+                <button class="nav-btn" onclick="switchView(this,'members')"><i class="fa-solid fa-users"></i> Thành Viên</button>
             </nav>
 
             <div class="header-actions">
@@ -2398,6 +2403,77 @@
             </div>
         </div>
 
+        <!-- =========================================================================
+             VIEW 8: Quản Lý Thành Viên
+             ========================================================================= -->
+        <div class="view-content" id="view-members">
+            <div class="glass-card" style="padding:20px; display:flex; flex-direction:column; gap:16px; height:100%; overflow-y:auto;">
+                <!-- Header -->
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h2 style="margin:0; font-size:20px;"><i class="fa-solid fa-users"></i> Quản Lý Thành Viên</h2>
+                        <p style="margin:6px 0 0; font-size:13px; color:var(--color-text-secondary);">
+                            Danh sách thành viên có quyền truy cập hệ thống phân tích chứng khoán.
+                        </p>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span id="members-last-update" style="font-size:11px; color:var(--color-text-muted);"></span>
+                        <button onclick="loadMembersTab(true)" class="btn-calc" style="font-size:12px; padding:6px 14px;">
+                            <i class="fa-solid fa-rotate-right"></i> Làm mới
+                        </button>
+                        <button onclick="showAddMemberForm()" style="background:linear-gradient(135deg,#00e5ff22,#00ff8822); border:1px solid #00e5ff44; color:#00e5ff; font-size:12px; padding:6px 14px; border-radius:8px; cursor:pointer; font-weight:600;">
+                            <i class="fa-solid fa-plus"></i> Thêm thành viên
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats row -->
+                <div id="members-stats" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px;"></div>
+
+                <!-- Add member form (hidden by default) -->
+                <div id="members-add-form" style="display:none; background:rgba(0,229,255,.06); border:1px solid rgba(0,229,255,.2); border-radius:12px; padding:16px;">
+                    <h3 style="margin:0 0 12px; font-size:14px; color:#00e5ff;"><i class="fa-solid fa-user-plus"></i> Thêm thành viên mới</h3>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px;">
+                        <div><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Họ và tên *</label>
+                            <input id="mf-name" type="text" placeholder="Nguyễn Văn A" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;"/></div>
+                        <div><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Email *</label>
+                            <input id="mf-email" type="email" placeholder="user@company.com" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;"/></div>
+                        <div><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Phòng ban</label>
+                            <input id="mf-dept" type="text" placeholder="Đầu tư / Phân tích / IT" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;"/></div>
+                        <div><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Vai trò</label>
+                            <select id="mf-role" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;">
+                                <option value="member">Thành viên</option>
+                                <option value="analyst">Phân tích viên</option>
+                                <option value="trader">Trader</option>
+                                <option value="admin">Admin</option>
+                            </select></div>
+                        <div style="grid-column:1/-1"><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Ghi chú</label>
+                            <input id="mf-note" type="text" placeholder="Ghi chú tùy chọn..." style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;"/></div>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:12px;">
+                        <button onclick="submitAddMember()" style="background:#00e5ff; color:#000; border:none; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer;">Lưu thành viên</button>
+                        <button onclick="document.getElementById('members-add-form').style.display='none'" style="background:rgba(255,255,255,.08); color:var(--color-text-secondary); border:1px solid rgba(255,255,255,.15); border-radius:8px; padding:8px 16px; font-size:13px; cursor:pointer;">Hủy</button>
+                        <span style="font-size:11px; color:#ffc107; align-self:center; margin-left:4px;">
+                            <i class="fa-solid fa-circle-info"></i> Thêm trực tiếp vào data/members.json khi deploy trên Vercel
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Members grid -->
+                <div id="members-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px;">
+                    <div style="grid-column:1/-1; text-align:center; padding:60px 0; color:var(--color-text-muted);">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size:28px; margin-bottom:10px; display:block;"></i>
+                        Đang tải danh sách thành viên...
+                    </div>
+                </div>
+
+                <p style="font-size:11px; color:#666; border-top:1px solid var(--border-color); padding-top:10px; margin:0;">
+                    <i class="fa-solid fa-info-circle"></i> Để thêm/xóa thành viên trên Vercel, chỉnh trực tiếp <code>data/members.json</code> và push lên GitHub.
+                    Trên local (uvicorn), nút <strong>Thêm thành viên</strong> ghi trực tiếp vào file.
+                </p>
+            </div>
+        </div><!-- /view-members -->
+
     </div>
 
     <!-- CLIENT INTERACTION SCRIPTS -->
@@ -2606,6 +2682,8 @@
                     loadDerivativesHistoryFromServer();
                 } else if (viewId === 'surfing') {
                     loadSurfingTab();
+                } else if (viewId === 'members') {
+                    loadMembersTab();
                 }
             } catch (err) {
                 console.error("Error loading tab data for " + viewId + ":", err);
@@ -4687,6 +4765,116 @@
 
         function loadUptrendStocks(force) {
             loadBuildersTab(force);
+        }
+
+        // -------------------------------------------------------------------------
+        // View 8 Handlers: Quản Lý Thành Viên
+        // -------------------------------------------------------------------------
+        const ROLE_META = {
+            admin:    { label: 'Admin',           color: '#ff6b35', bg: 'rgba(255,107,53,.12)' },
+            analyst:  { label: 'Phân tích viên',  color: '#00e5ff', bg: 'rgba(0,229,255,.10)' },
+            trader:   { label: 'Trader',           color: '#00ff88', bg: 'rgba(0,255,136,.10)' },
+            member:   { label: 'Thành viên',       color: '#b0bec5', bg: 'rgba(176,190,197,.10)' },
+        };
+
+        async function loadMembersTab(forceRefresh = false) {
+            const grid   = document.getElementById('members-grid');
+            const stats  = document.getElementById('members-stats');
+            const update = document.getElementById('members-last-update');
+            if (!grid) return;
+            if (forceRefresh || grid.dataset.loaded !== '1') {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--color-text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size:28px;display:block;margin-bottom:10px;"></i>Đang tải...</div>';
+            }
+            try {
+                const resp = await fetch(`${HOST}/api/members`);
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const json = await resp.json();
+                const members = json.members || [];
+                const depts = [...new Set(members.map(m => m.department).filter(Boolean))];
+                if (stats) stats.innerHTML = [
+                    { label: 'Tổng thành viên', val: json.total || 0,  color: '#00e5ff', icon: 'fa-users' },
+                    { label: 'Admin',            val: json.admins || 0, color: '#ff6b35', icon: 'fa-shield-halved' },
+                    { label: 'Phòng ban',        val: depts.length,     color: '#00ff88', icon: 'fa-building' },
+                ].map(s => `<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
+                    <i class="fa-solid ${s.icon}" style="color:${s.color};font-size:20px;"></i>
+                    <div><div style="font-size:22px;font-weight:800;color:${s.color};font-family:'JetBrains Mono',monospace;">${s.val}</div>
+                    <div style="font-size:11px;color:var(--color-text-muted);">${s.label}</div></div></div>`).join('');
+                if (members.length === 0) {
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--color-text-muted);">Chưa có thành viên. Thêm vào data/members.json.</div>';
+                } else {
+                    grid.innerHTML = members.map(m => {
+                        const rm = ROLE_META[m.role] || ROLE_META.member;
+                        const initials = (m.name || '?').split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
+                        return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;">
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div style="width:44px;height:44px;border-radius:50%;background:${rm.bg};border:2px solid ${rm.color}44;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:${rm.color};flex-shrink:0;">${initials}</div>
+                                <div style="min-width:0;">
+                                    <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name || '—'}</div>
+                                    <div style="font-size:11px;color:var(--color-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.email || ''}</div>
+                                </div>
+                                <span style="margin-left:auto;flex-shrink:0;font-size:10px;font-weight:700;background:${rm.bg};color:${rm.color};border:1px solid ${rm.color}44;border-radius:20px;padding:3px 9px;">${rm.label}</span>
+                            </div>
+                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                ${m.department ? '<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:6px;padding:3px 8px;color:var(--color-text-secondary);"><i class="fa-solid fa-building" style="margin-right:4px;opacity:.6;"></i>' + m.department + '</span>' : ''}
+                                ${m.joined ? '<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:6px;padding:3px 8px;color:var(--color-text-secondary);"><i class="fa-solid fa-calendar-plus" style="margin-right:4px;opacity:.6;"></i>' + m.joined + '</span>' : ''}
+                            </div>
+                            ${m.note ? '<div style="font-size:11px;color:var(--color-text-muted);border-top:1px solid rgba(255,255,255,.06);padding-top:8px;">' + m.note + '</div>' : ''}
+                            <button onclick="confirmDeleteMember(\'${m.id}\',\'${(m.name||'').replace(/'/g,'\\')}\')"
+                                style="align-self:flex-end;background:rgba(239,83,80,.1);border:1px solid rgba(239,83,80,.3);color:#ef5350;border-radius:7px;padding:4px 12px;font-size:11px;cursor:pointer;">
+                                <i class="fa-solid fa-trash-can"></i> Xóa
+                            </button>
+                        </div>`;
+                    }).join('');
+                }
+                grid.dataset.loaded = '1';
+                if (update) update.textContent = 'Cập nhật ' + (json.updated_at || '');
+            } catch (e) {
+                console.error('Members load error:', e);
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ef5350;"><i class="fa-solid fa-triangle-exclamation" style="font-size:24px;display:block;margin-bottom:8px;"></i>Lỗi tải danh sách thành viên.</div>';
+            }
+        }
+
+        function showAddMemberForm() {
+            const form = document.getElementById('members-add-form');
+            if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function submitAddMember() {
+            const name  = (document.getElementById('mf-name')  || {}).value || '';
+            const email = (document.getElementById('mf-email') || {}).value || '';
+            const dept  = (document.getElementById('mf-dept')  || {}).value || '';
+            const role  = (document.getElementById('mf-role')  || {}).value || 'member';
+            const note  = (document.getElementById('mf-note')  || {}).value || '';
+            if (!name || !email) { alert('Vui lòng nhập họ tên và email.'); return; }
+            try {
+                const resp = await fetch(HOST + '/api/members', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({name, email, role, department: dept, note}),
+                });
+                const json = await resp.json();
+                if (!resp.ok) {
+                    alert(json.detail || 'Không thể thêm. Trên Vercel hãy chỉnh data/members.json rồi deploy lại.');
+                    return;
+                }
+                document.getElementById('members-add-form').style.display = 'none';
+                ['mf-name','mf-email','mf-dept','mf-note'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+                const grid = document.getElementById('members-grid');
+                if (grid) grid.dataset.loaded = '0';
+                loadMembersTab(true);
+            } catch (e) { alert('Lỗi: ' + e.message); }
+        }
+
+        async function confirmDeleteMember(id, name) {
+            if (!confirm('Xóa thành viên "' + name + '"?\nTrên Vercel cần deploy lại để có hiệu lực.')) return;
+            try {
+                const resp = await fetch(HOST + '/api/members/' + id, {method: 'DELETE'});
+                const json = await resp.json();
+                if (!resp.ok) { alert(json.detail || 'Không thể xóa trên Vercel.'); return; }
+                const grid = document.getElementById('members-grid');
+                if (grid) grid.dataset.loaded = '0';
+                loadMembersTab(true);
+            } catch (e) { alert('Lỗi: ' + e.message); }
         }
 
         // -------------------------------------------------------------------------

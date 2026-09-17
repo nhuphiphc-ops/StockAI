@@ -1,0 +1,13 @@
+{
+  "members": [
+    {
+      "id": "1",
+      "name": "Nguyễn Như Phi",
+      "email": "phi.nn@phuchung.com.vn",
+      "role": "admin",
+      "department": "Đầu tư",
+      "joined": "2026-01-01",
+      "note": "Admin hệ thống · Người lập"
+    }
+  ]
+}

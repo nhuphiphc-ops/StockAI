@@ -9,3 +9,7 @@ config.json
 # Python
 __pycache__/
 *.pyc
+
+# Local runtime data (không cần thiết trong repo, ghi đè bởi Vercel read-only)
+data.db
+*.db-journal
