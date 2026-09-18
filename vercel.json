@@ -13,6 +13,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "templates/batdongsan_analysis.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "static/**",
       "use": "@vercel/static"
     }
@@ -25,6 +29,10 @@
     {
       "src": "/api/(.*)",
       "dest": "main.py"
+    },
+    {
+      "src": "/batdongsan-analysis",
+      "dest": "/templates/batdongsan_analysis.html"
     },
     {
       "src": "/(.*)",

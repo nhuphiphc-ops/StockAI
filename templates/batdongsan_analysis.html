@@ -414,6 +414,89 @@
                                 <p className="text-slate-200 text-base">{GLOBAL_CRISIS_DATA.principleBanner.description}</p>
                             </div>
 
+                            {/* 7.2 Bảng Chỉ Số Báo Động Sớm */}
+                            <div className="space-y-4">
+                                <h3 className="text-xl font-bold text-slate-100">7.2 Bảng Chỉ Số Báo Động Sớm</h3>
+                                <div className="overflow-x-auto bg-slate-900 border border-slate-800 rounded-2xl">
+                                    <table className="w-full text-left min-w-[800px]">
+                                        <thead>
+                                            <tr className="bg-slate-950 text-slate-400 text-xs font-bold uppercase border-b border-slate-800">
+                                                <th className="p-4">Chỉ số</th>
+                                                <th className="p-4 text-emerald-400">Bình thường</th>
+                                                <th className="p-4 text-amber-400">Cảnh báo</th>
+                                                <th className="p-4 text-rose-400">Nguy hiểm</th>
+                                                <th className="p-4">Tác động BĐS Việt Nam</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800 text-sm">
+                                            {GLOBAL_CRISIS_DATA.indicatorMetrics.map(ind => (
+                                                <tr key={ind.id} className="hover:bg-slate-800/40">
+                                                    <td className="p-4 font-bold text-slate-100">{ind.name}</td>
+                                                    <td className="p-4 text-emerald-400 font-mono text-xs">{ind.normalVal}</td>
+                                                    <td className="p-4 text-amber-400 font-mono text-xs">{ind.warningVal}</td>
+                                                    <td className="p-4 text-rose-400 font-mono text-xs">{ind.dangerVal}</td>
+                                                    <td className="p-4 text-slate-300 text-xs">{ind.realEstateImpact}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* 7.3 Chuỗi 4 Giai Đoạn Khủng Hoảng */}
+                            <div className="space-y-4">
+                                <h3 className="text-xl font-bold text-slate-100">7.3 Chuỗi Diễn Biến 4 Giai Đoạn Khủng Hoảng</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {GLOBAL_CRISIS_DATA.stages.map(stage => (
+                                        <div key={stage.stageNumber} className="bg-slate-900 border border-rose-800/40 rounded-2xl p-5 space-y-3">
+                                            <span className="inline-block px-2.5 py-1 bg-rose-500/20 text-rose-400 border border-rose-500/40 rounded-lg text-xs font-bold">{stage.timeHorizon}</span>
+                                            <h4 className="text-base font-bold text-slate-100">{stage.stageTitle}</h4>
+                                            <p className="text-slate-300 text-sm">{stage.description}</p>
+                                            <div className="space-y-1">
+                                                {stage.keySignals.map((sig, i) => (
+                                                    <div key={i} className="text-xs text-rose-300 font-mono bg-rose-950/30 px-3 py-1 rounded-lg">🔴 {sig}</div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* 7.4 Ma Trận Hành Động */}
+                            <div className="space-y-4">
+                                <h3 className="text-xl font-bold text-slate-100">7.4 Ma Trận Hành Động Theo Cấp Độ Rủi Ro</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {GLOBAL_CRISIS_DATA.actionLevels.map(lvl => (
+                                        <div key={lvl.level} className={`${lvl.bgClass} border ${lvl.borderClass} rounded-2xl p-5 space-y-3`}>
+                                            <span className={`inline-block px-3 py-1 rounded-lg text-xs font-bold border ${lvl.badgeColor}`}>{lvl.levelName}</span>
+                                            <p className={`text-sm ${lvl.textClass}`}>{lvl.description}</p>
+                                            <ul className="space-y-1.5">
+                                                {lvl.actionStrategy.map((act, i) => (
+                                                    <li key={i} className="text-slate-300 text-sm flex gap-2"><span>→</span>{act}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* 7.5 Kênh Truyền Dẫn */}
+                            <div className="space-y-4">
+                                <h3 className="text-xl font-bold text-slate-100">7.5 Kênh Truyền Dẫn Rủi Ro Toàn Cầu → Thị Trường BĐS Việt Nam</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {GLOBAL_CRISIS_DATA.transmissionChannels.map(ch => (
+                                        <div key={ch.id} className="bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-3">
+                                            <h4 className="text-base font-bold text-amber-400">{ch.channelTitle}</h4>
+                                            <p className="text-slate-300 text-sm">{ch.description}</p>
+                                            <div className="bg-slate-950 border border-slate-700 rounded-xl p-3">
+                                                <span className="text-xs font-bold text-rose-400">Hệ quả BĐS: </span>
+                                                <span className="text-xs text-slate-300">{ch.realEstateConsequence}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="bg-slate-900 p-6 border border-slate-800 rounded-2xl space-y-4">
                                 <div className="flex justify-between items-center">
                                     <h3 className="text-xl font-bold text-slate-100">7.6 Checklist Dấu Hiệu Báo Động</h3>
