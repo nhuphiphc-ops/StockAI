@@ -4987,7 +4987,7 @@
                                     <button onclick="openResetPasswordModal('${m.id}')" title="Đặt lại mật khẩu" style="background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.3); color:#a855f7; border-radius:7px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">
                                         <i class="fa-solid fa-key"></i>
                                     </button>
-                                    <button onclick="confirmDeleteMember('${m.id}', '${(m.name||'').replace(/'/g,'\\'')}')" title="Xóa tài khoản" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ef4444; border-radius:7px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">
+                                    <button onclick="confirmDeleteMember('${m.id}')" title="Xóa tài khoản" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ef4444; border-radius:7px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
@@ -5200,38 +5200,9 @@
             return String(a) === String(b);
         }
 
-                function showAddMemberForm() {
-            const form = document.getElementById('members-add-form');
-            if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
-        }
-
-        async function submitAddMember() {
-            const name  = (document.getElementById('mf-name')  || {}).value || '';
-            const email = (document.getElementById('mf-email') || {}).value || '';
-            const dept  = (document.getElementById('mf-dept')  || {}).value || '';
-            const role  = (document.getElementById('mf-role')  || {}).value || 'member';
-            const note  = (document.getElementById('mf-note')  || {}).value || '';
-            if (!name || !email) { alert('Vui lòng nhập họ tên và email.'); return; }
-            try {
-                const resp = await fetch(HOST + '/api/members', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({name, email, role, department: dept, note}),
-                });
-                const json = await resp.json();
-                if (!resp.ok) {
-                    alert(json.detail || 'Không thể thêm. Trên Vercel hãy chỉnh data/members.json rồi deploy lại.');
-                    return;
-                }
-                document.getElementById('members-add-form').style.display = 'none';
-                ['mf-name','mf-email','mf-dept','mf-note'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-                const grid = document.getElementById('members-grid');
-                if (grid) grid.dataset.loaded = '0';
-                loadMembersTab(true);
-            } catch (e) { alert('Lỗi: ' + e.message); }
-        }
-
-        async function confirmDeleteMember(id, name) {
+        async function confirmDeleteMember(id) {
+            const member = currentMembersList.find(m => String(m.id) === String(id));
+            const name = member ? member.name : id;
             if (!confirm('Xóa thành viên "' + name + '"?\nTrên Vercel cần deploy lại để có hiệu lực.')) return;
             try {
                 const resp = await fetch(HOST + '/api/members/' + id, {method: 'DELETE'});
