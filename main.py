@@ -34,7 +34,7 @@ import re
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Header, Depends
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -2190,6 +2190,90 @@ def get_derivatives_history_log(date: str = Query(None, description="YYYY-MM-DD,
 
 
 # ---------------------------------------------------------------------------
+# AUTH: JWT + BCRYPT
+# ---------------------------------------------------------------------------
+import bcrypt as _bcrypt
+import jwt as _pyjwt
+
+_JWT_SECRET = os.environ.get("JWT_SECRET", "")
+_JWT_ALGORITHM = "HS256"
+_JWT_HOURS = 8
+
+
+def _hash_password(plain: str) -> str:
+    return _bcrypt.hashpw(plain.encode("utf-8"), _bcrypt.gensalt(rounds=12)).decode("utf-8")
+
+
+def _verify_password(plain: str, hashed: str) -> bool:
+    try:
+        return _bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    except Exception:
+        return False
+
+
+def _create_token(email: str, role: str, name: str) -> str:
+    payload = {
+        "sub": email,
+        "role": role,
+        "name": name,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=_JWT_HOURS),
+    }
+    return _pyjwt.encode(payload, _JWT_SECRET or "dev-insecure", algorithm=_JWT_ALGORITHM)
+
+
+def _require_auth(authorization: str = Header(default=None)):
+    """FastAPI dependency — yêu cầu JWT hợp lệ. Dev-mode (JWT_SECRET chưa set): bỏ qua."""
+    if not _JWT_SECRET:
+        return {"sub": "dev", "role": "admin", "name": "Dev"}
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Vui lòng đăng nhập để tiếp tục")
+    try:
+        return _pyjwt.decode(authorization[7:], _JWT_SECRET, algorithms=[_JWT_ALGORITHM])
+    except _pyjwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Token không hợp lệ")
+
+
+@app.post("/api/auth/login")
+def auth_login(body: dict):
+    """Đăng nhập — trả JWT 8 tiếng. Password verify bằng bcrypt."""
+    email = (body.get("email") or "").strip().lower()
+    password = body.get("password") or ""
+    if not email or not password:
+        raise HTTPException(400, detail="Vui lòng nhập email và mật khẩu")
+    if not _MEMBERS_FILE.exists():
+        raise HTTPException(503, detail="Chưa có danh sách thành viên")
+    with open(_MEMBERS_FILE, encoding="utf-8") as f:
+        data = json.load(f)
+    member = next(
+        (m for m in data.get("members", []) if (m.get("email") or "").strip().lower() == email),
+        None,
+    )
+    if not member:
+        raise HTTPException(401, detail="Email hoặc mật khẩu không đúng")
+    stored = member.get("password", "")
+    if stored.startswith("$2"):
+        ok = _verify_password(password, stored)
+    else:
+        # Plaintext legacy — so sánh trực tiếp rồi nâng cấp lên bcrypt nếu được
+        ok = stored == password
+        if ok and os.access(str(_MEMBERS_FILE.parent), os.W_OK):
+            member["password"] = _hash_password(password)
+            with open(_MEMBERS_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+    if not ok:
+        raise HTTPException(401, detail="Email hoặc mật khẩu không đúng")
+    return {
+        "token": _create_token(member["email"], member.get("role", "member"), member.get("name", "")),
+        "name": member.get("name", ""),
+        "email": member.get("email", ""),
+        "role": member.get("role", "member"),
+        "expires_hours": _JWT_HOURS,
+    }
+
+
+# ---------------------------------------------------------------------------
 # MODULE: QUẢN LÝ THÀNH VIÊN & PHÂN QUYỀN TRUY CẬP (19 PHÂN HỆ)
 # ---------------------------------------------------------------------------
 _MEMBERS_FILE = Path(__file__).parent / "data" / "members.json"
@@ -2214,33 +2298,35 @@ DEFAULT_MODULE_PERMISSIONS = {
 }
 
 @app.get("/api/members")
-def get_members():
+def get_members(user=Depends(_require_auth)):
     """Danh sách thành viên có quyền truy cập hệ thống và chi tiết 19 phân hệ."""
     if not _MEMBERS_FILE.exists():
         return {"members": [], "total": 0, "warning": "Chưa có file data/members.json"}
     with open(_MEMBERS_FILE, encoding="utf-8") as f:
         data = json.load(f)
     members = data.get("members", [])
-    
-    # Process permissions format & summary
+
+    safe = []
     for m in members:
         perms = m.get("permissions") or dict(DEFAULT_MODULE_PERMISSIONS)
         view_cnt = sum(1 for v in perms.values() if v in ["view", "edit"])
         edit_cnt = sum(1 for v in perms.values() if v == "edit")
-        m["permissions"] = perms
-        m["permission_summary"] = f"{view_cnt}/19 xem · {edit_cnt} sửa theo mẫu vai trò"
-        m["roleLabel"] = ROLE_LABELS.get(m.get("role"), m.get("role", "Thành viên"))
+        row = {k: v for k, v in m.items() if k != "password"}  # không trả hash ra client
+        row["permissions"] = perms
+        row["permission_summary"] = f"{view_cnt}/19 xem · {edit_cnt} sửa theo mẫu vai trò"
+        row["roleLabel"] = ROLE_LABELS.get(m.get("role"), m.get("role", "Thành viên"))
+        safe.append(row)
 
     return {
-        "members": members,
-        "total": len(members),
-        "admins": sum(1 for m in members if m.get("role") in ["admin", "truong_bks"]),
+        "members": safe,
+        "total": len(safe),
+        "admins": sum(1 for m in safe if m.get("role") in ["admin", "truong_bks"]),
         "updated_at": vn_now().strftime("%H:%M %d/%m/%Y"),
     }
 
 
 @app.post("/api/members")
-def add_member(body: dict):
+def add_member(body: dict, user=Depends(_require_auth)):
     """Thêm thành viên mới kèm mật khẩu và mẫu vai trò ban đầu."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
@@ -2259,11 +2345,12 @@ def add_member(body: dict):
     elif role == "guest":
         perms = {f"M{i}": "view" if i <= 18 else "hidden" for i in range(1, 20)}
 
+    plain_pw = body.get("password") or "123456"
     member = {
         "id": new_id,
         "name": body.get("name", ""),
         "email": body.get("email", ""),
-        "password": body.get("password", "123456"),
+        "password": _hash_password(plain_pw),
         "role": role,
         "roleLabel": ROLE_LABELS.get(role, "Thành viên"),
         "department": body.get("department", "Phát triển"),
@@ -2274,11 +2361,12 @@ def add_member(body: dict):
     members.append(member)
     with open(_MEMBERS_FILE, "w", encoding="utf-8") as f:
         json.dump({"members": members}, f, ensure_ascii=False, indent=2)
-    return {"success": True, "member": member}
+    safe = {k: v for k, v in member.items() if k != "password"}
+    return {"success": True, "member": safe}
 
 
 @app.put("/api/members/{member_id}/permissions")
-def update_member_permissions(member_id: str, body: dict):
+def update_member_permissions(member_id: str, body: dict, user=Depends(_require_auth)):
     """Cập nhật phân quyền 19 phân hệ cho thành viên."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
@@ -2302,8 +2390,8 @@ def update_member_permissions(member_id: str, body: dict):
 
 
 @app.put("/api/members/{member_id}/password")
-def reset_member_password(member_id: str, body: dict):
-    """Đặt lại mật khẩu cho thành viên."""
+def reset_member_password(member_id: str, body: dict, user=Depends(_require_auth)):
+    """Đặt lại mật khẩu cho thành viên (hash bcrypt trước khi lưu)."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
     new_pw = body.get("password")
@@ -2315,7 +2403,7 @@ def reset_member_password(member_id: str, body: dict):
     target = None
     for m in members:
         if str(m.get("id")) == str(member_id):
-            m["password"] = new_pw
+            m["password"] = _hash_password(new_pw)
             target = m
             break
     if not target:
@@ -2326,7 +2414,7 @@ def reset_member_password(member_id: str, body: dict):
 
 
 @app.delete("/api/members/{member_id}")
-def delete_member(member_id: str):
+def delete_member(member_id: str, user=Depends(_require_auth)):
     """Xóa thành viên theo id."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
