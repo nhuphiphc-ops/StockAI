@@ -2552,12 +2552,7 @@
                                     <i class="fa-solid fa-user-gear" style="margin-right:4px;"></i> VAI TRÒ TRUY CẬP
                                 </label>
                                 <select id="mf-role" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none;">
-                                    <option value="thanh_vien_bks">Thành viên BKS</option>
-                                    <option value="truong_bks">Trưởng Ban Kiểm soát</option>
-                                    <option value="tong_giam_doc">Tổng Giám Đốc</option>
-                                    <option value="giam_doc_phc_land">Giám đốc PHC-Land</option>
-                                    <option value="guest">Khách (Chỉ xem báo cáo, ẩn nút vận hành)</option>
-                                    <option value="analyst">Chuyên viên Phân tích</option>
+                                    <option value="member">Thành viên</option>
                                     <option value="admin">Quản trị viên (Admin)</option>
                                 </select>
                             </div>
@@ -4956,13 +4951,15 @@
         ];
 
         const ROLE_BADGES = {
-            "truong_bks": { label: "Trưởng BKS", color: "#a855f7", bg: "rgba(168,85,247,0.15)", icon: "fa-user-shield" },
-            "thanh_vien_bks": { label: "Thành viên BKS", color: "#00e5ff", bg: "rgba(0,229,255,0.15)", icon: "fa-user-gear" },
-            "tong_giam_doc": { label: "Tổng Giám Đốc", color: "#fbbf24", bg: "rgba(251,191,36,0.15)", icon: "fa-user-tie" },
-            "giam_doc_phc_land": { label: "Giám đốc PHC-Land", color: "#38bdf8", bg: "rgba(56,189,248,0.15)", icon: "fa-building" },
-            "analyst": { label: "Chuyên viên Phân tích", color: "#00ff88", bg: "rgba(0,255,136,0.15)", icon: "fa-chart-pie" },
-            "guest": { label: "Khách (Chỉ xem)", color: "#94a3b8", bg: "rgba(148,163,184,0.15)", icon: "fa-user" },
-            "admin": { label: "Admin", color: "#ef4444", bg: "rgba(239,68,68,0.15)", icon: "fa-shield-halved" }
+            "member":   { label: "Thành viên",          color: "#00e5ff", bg: "rgba(0,229,255,0.15)",   icon: "fa-user" },
+            "admin":    { label: "Quản trị viên",        color: "#ef4444", bg: "rgba(239,68,68,0.15)",   icon: "fa-shield-halved" },
+            // Legacy labels — kept for existing data display
+            "truong_bks":       { label: "Thành viên",   color: "#00e5ff", bg: "rgba(0,229,255,0.15)", icon: "fa-user" },
+            "thanh_vien_bks":   { label: "Thành viên",   color: "#00e5ff", bg: "rgba(0,229,255,0.15)", icon: "fa-user" },
+            "tong_giam_doc":    { label: "Thành viên",   color: "#00e5ff", bg: "rgba(0,229,255,0.15)", icon: "fa-user" },
+            "giam_doc_phc_land":{ label: "Thành viên",   color: "#00e5ff", bg: "rgba(0,229,255,0.15)", icon: "fa-user" },
+            "analyst":          { label: "Thành viên",   color: "#00e5ff", bg: "rgba(0,229,255,0.15)", icon: "fa-user" },
+            "guest":            { label: "Thành viên",   color: "#00e5ff", bg: "rgba(0,229,255,0.15)", icon: "fa-user" },
         };
 
         async function loadMembersTab(forceRefresh = false) {
@@ -6353,12 +6350,8 @@
                 <div style="display:flex; flex-direction:column; gap:10px;">
                     <span style="font-size:11px; font-weight:700; color:var(--color-text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Chọn vai trò</span>
                     <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                        <button class="btn-preset-role" data-role="truong_bks" onclick="applyRolePreset('truong_bks')">Trưởng Ban Kiểm soát</button>
-                        <button class="btn-preset-role" data-role="thanh_vien_bks" onclick="applyRolePreset('thanh_vien_bks')">Thành viên BKS</button>
-                        <button class="btn-preset-role" data-role="tong_giam_doc" onclick="applyRolePreset('tong_giam_doc')">Tổng Giám Đốc</button>
-                        <button class="btn-preset-role" data-role="giam_doc_phc_land" onclick="applyRolePreset('giam_doc_phc_land')">Giám đốc PHC-Land</button>
-                        <button class="btn-preset-role" data-role="analyst" onclick="applyRolePreset('analyst')">Chuyên viên Phân tích</button>
-                        <button class="btn-preset-role" data-role="guest" onclick="applyRolePreset('guest')">Khách (Chỉ xem)</button>
+                        <button class="btn-preset-role" data-role="member" onclick="applyRolePreset('member')">Thành viên</button>
+                        <button class="btn-preset-role" data-role="admin" onclick="applyRolePreset('admin')">Quản trị viên (Admin)</button>
                     </div>
                 </div>
 

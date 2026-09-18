@@ -2195,13 +2195,15 @@ def get_derivatives_history_log(date: str = Query(None, description="YYYY-MM-DD,
 _MEMBERS_FILE = Path(__file__).parent / "data" / "members.json"
 
 ROLE_LABELS = {
-    "truong_bks": "Trưởng BKS",
-    "thanh_vien_bks": "Thành viên BKS",
-    "tong_giam_doc": "Tổng Giám Đốc",
-    "giam_doc_phc_land": "Giám đốc PHC-Land",
-    "analyst": "Chuyên viên Phân tích",
-    "guest": "Khách (Chỉ xem)",
-    "admin": "Quản trị viên"
+    "member": "Thành viên",
+    "admin": "Quản trị viên",
+    # Legacy — kept for existing data
+    "truong_bks": "Thành viên",
+    "thanh_vien_bks": "Thành viên",
+    "tong_giam_doc": "Thành viên",
+    "giam_doc_phc_land": "Thành viên",
+    "analyst": "Thành viên",
+    "guest": "Thành viên",
 }
 
 DEFAULT_MODULE_PERMISSIONS = {
