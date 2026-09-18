@@ -1513,6 +1513,76 @@
                 min-height: 44px !important;
             }
         }
+    
+        /* Member & Permission System Styles */
+        .members-2col-grid {
+            display: grid;
+            grid-template-columns: minmax(320px, 360px) 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 900px) {
+            .members-2col-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .btn-preset-role {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 11.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-preset-role:hover {
+            background: rgba(0, 229, 255, 0.15);
+            border-color: rgba(0, 229, 255, 0.4);
+            color: #00e5ff;
+        }
+        .btn-quick-set {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--color-text-secondary);
+            border-radius: 14px;
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-quick-set:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        .perm-toggle-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--color-text-muted);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .perm-toggle-btn.active-hidden {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #888;
+        }
+        .perm-toggle-btn.active-view {
+            background: rgba(0, 229, 255, 0.15);
+            border-color: rgba(0, 229, 255, 0.4);
+            color: #00e5ff;
+            font-weight: 700;
+        }
+        .perm-toggle-btn.active-edit {
+            background: rgba(249, 115, 22, 0.2);
+            border-color: rgba(249, 115, 22, 0.5);
+            color: #f97316;
+            font-weight: 800;
+        }
+
     </style>
 </head>
 <body>
@@ -2405,73 +2475,124 @@
         </div>
 
         <!-- =========================================================================
-             VIEW 8: Quản Lý Thành Viên
+             VIEW 8: Quản Lý Thành Viên (Giao diện 2 cột & Modal Phân Quyền 19 Phân Hệ)
              ========================================================================= -->
         <div class="view-content" id="view-members">
-            <div class="glass-card" style="padding:20px; display:flex; flex-direction:column; gap:16px; height:100%; overflow-y:auto;">
-                <!-- Header -->
-                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <h2 style="margin:0; font-size:20px;"><i class="fa-solid fa-users"></i> Quản Lý Thành Viên</h2>
-                        <p style="margin:6px 0 0; font-size:13px; color:var(--color-text-secondary);">
-                            Danh sách thành viên có quyền truy cập hệ thống phân tích chứng khoán.
-                        </p>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span id="members-last-update" style="font-size:11px; color:var(--color-text-muted);"></span>
-                        <button onclick="loadMembersTab(true)" class="btn-calc" style="font-size:12px; padding:6px 14px;">
-                            <i class="fa-solid fa-rotate-right"></i> Làm mới
-                        </button>
-                        <button onclick="showAddMemberForm()" style="background:linear-gradient(135deg,#00e5ff22,#00ff8822); border:1px solid #00e5ff44; color:#00e5ff; font-size:12px; padding:6px 14px; border-radius:8px; cursor:pointer; font-weight:600;">
-                            <i class="fa-solid fa-plus"></i> Thêm thành viên
-                        </button>
+            <div style="padding:10px 16px 24px; display:flex; flex-direction:column; gap:16px; height:100%; overflow-y:auto;">
+                <!-- Header Banner -->
+                <div>
+                    <h2 style="margin:0; font-size:22px; font-weight:800; color:#fff; display:flex; align-items:center; gap:10px;">
+                        <i class="fa-solid fa-user-shield" style="color:#00e5ff;"></i> Quản Lý Thành Viên
+                    </h2>
+                    <p style="margin:4px 0 0; font-size:13px; color:var(--color-text-secondary);">
+                        Mời người dùng mới và thu hồi quyền truy cập hệ thống của họ
+                    </p>
+                    <div style="margin-top:10px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); border-radius:8px; padding:10px 14px; font-size:12.5px; color:#00ff88; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span><strong>Chế độ Firebase / Cloud Storage:</strong> Tài khoản tạo ở đây là tài khoản đăng nhập thật, mật khẩu và phân quyền được lưu an toàn trên Cloud Database.</span>
                     </div>
                 </div>
 
-                <!-- Stats row -->
-                <div id="members-stats" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px;"></div>
+                <!-- 2 Columns Grid Container -->
+                <div style="display:grid; grid-template-columns: minmax(320px, 360px) 1fr; gap:16px; flex-grow:1;" class="members-2col-grid">
+                    
+                    <!-- LEFT COLUMN: Form Mời Thành Viên Mới -->
+                    <div class="glass-card" style="padding:20px; border-radius:14px; display:flex; flex-direction:column; gap:14px; border:1px solid rgba(0,229,255,0.2);">
+                        <h3 style="margin:0; font-size:16px; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+                            <i class="fa-solid fa-user-plus" style="color:#00e5ff;"></i> Mời Thành Viên Mới
+                        </h3>
 
-                <!-- Add member form (hidden by default) -->
-                <div id="members-add-form" style="display:none; background:rgba(0,229,255,.06); border:1px solid rgba(0,229,255,.2); border-radius:12px; padding:16px;">
-                    <h3 style="margin:0 0 12px; font-size:14px; color:#00e5ff;"><i class="fa-solid fa-user-plus"></i> Thêm thành viên mới</h3>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px;">
-                        <div><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Họ và tên *</label>
-                            <input id="mf-name" type="text" placeholder="Nguyễn Văn A" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;"/></div>
-                        <div><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Email *</label>
-                            <input id="mf-email" type="email" placeholder="user@company.com" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;"/></div>
-                        <div><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Phòng ban</label>
-                            <input id="mf-dept" type="text" placeholder="Đầu tư / Phân tích / IT" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;"/></div>
-                        <div><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Vai trò</label>
-                            <select id="mf-role" style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;">
-                                <option value="member">Thành viên</option>
-                                <option value="analyst">Phân tích viên</option>
-                                <option value="trader">Trader</option>
-                                <option value="admin">Admin</option>
-                            </select></div>
-                        <div style="grid-column:1/-1"><label style="font-size:11px; color:var(--color-text-muted); display:block; margin-bottom:4px;">Ghi chú</label>
-                            <input id="mf-note" type="text" placeholder="Ghi chú tùy chọn..." style="width:100%; box-sizing:border-box; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:7px 10px; color:var(--color-text-primary); font-size:13px;"/></div>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div>
+                                <label style="font-size:11px; font-weight:700; color:var(--color-text-secondary); display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">
+                                    <i class="fa-solid fa-envelope" style="margin-right:4px;"></i> EMAIL NGƯỜI NHẬN
+                                </label>
+                                <input id="mf-email" type="email" placeholder="vd: tuyen.pt@phuchung.com.vn" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none;" />
+                            </div>
+
+                            <div>
+                                <label style="font-size:11px; font-weight:700; color:var(--color-text-secondary); display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">
+                                    <i class="fa-solid fa-user" style="margin-right:4px;"></i> HỌ VÀ TÊN
+                                </label>
+                                <input id="mf-name" type="text" placeholder="Nguyễn Văn A" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none;" />
+                            </div>
+
+                            <div>
+                                <label style="font-size:11px; font-weight:700; color:var(--color-text-secondary); display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">
+                                    <i class="fa-solid fa-lock" style="margin-right:4px;"></i> THIẾT LẬP MẬT KHẨU CẤP
+                                </label>
+                                <div style="position:relative;">
+                                    <input id="mf-password" type="password" placeholder="Nhập mật khẩu cấp cho họ" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:10px 36px 10px 12px; color:#fff; font-size:13px; outline:none;" />
+                                    <i class="fa-solid fa-eye" id="toggle-pw-eye" onclick="toggleFormPasswordVisibility()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--color-text-muted); cursor:pointer;"></i>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style="font-size:11px; font-weight:700; color:var(--color-text-secondary); display:block; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">
+                                    <i class="fa-solid fa-user-gear" style="margin-right:4px;"></i> VAI TRÒ TRUY CẬP
+                                </label>
+                                <select id="mf-role" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none;">
+                                    <option value="thanh_vien_bks">Thành viên BKS</option>
+                                    <option value="truong_bks">Trưởng Ban Kiểm soát</option>
+                                    <option value="tong_giam_doc">Tổng Giám Đốc</option>
+                                    <option value="giam_doc_phc_land">Giám đốc PHC-Land</option>
+                                    <option value="guest">Khách (Chỉ xem báo cáo, ẩn nút vận hành)</option>
+                                    <option value="analyst">Chuyên viên Phân tích</option>
+                                    <option value="admin">Quản trị viên (Admin)</option>
+                                </select>
+                            </div>
+
+                            <button onclick="submitAddMember()" style="margin-top:8px; background:linear-gradient(135deg, #00e5ff, #00b0ff); border:none; color:#000; border-radius:8px; padding:12px; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 15px rgba(0,229,255,0.3);">
+                                <i class="fa-solid fa-user-plus"></i> Tạo & Mời Thành Viên
+                            </button>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:8px; margin-top:12px;">
-                        <button onclick="submitAddMember()" style="background:#00e5ff; color:#000; border:none; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer;">Lưu thành viên</button>
-                        <button onclick="document.getElementById('members-add-form').style.display='none'" style="background:rgba(255,255,255,.08); color:var(--color-text-secondary); border:1px solid rgba(255,255,255,.15); border-radius:8px; padding:8px 16px; font-size:13px; cursor:pointer;">Hủy</button>
-                        <span style="font-size:11px; color:#ffc107; align-self:center; margin-left:4px;">
-                            <i class="fa-solid fa-circle-info"></i> Thêm trực tiếp vào data/members.json khi deploy trên Vercel
-                        </span>
+
+                    <!-- RIGHT COLUMN: Table Thành Viên Có Quyền Truy Cập -->
+                    <div class="glass-card" style="padding:20px; border-radius:14px; display:flex; flex-direction:column; gap:14px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <h3 style="margin:0; font-size:16px; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-users" style="color:#00e5ff;"></i> Thành Viên Có Quyền Truy Cập
+                                </h3>
+                                <span id="members-count-badge" style="background:rgba(0,229,255,0.2); border:1px solid rgba(0,229,255,0.4); color:#00e5ff; font-size:11px; font-weight:800; border-radius:12px; padding:2px 8px;">2</span>
+                            </div>
+                            <span style="font-size:11px; color:var(--color-text-muted); font-style:italic;">
+                                <i class="fa-solid fa-shield-halved" style="color:#fbbf24;"></i> Chỉ Admin mới xóa được tài khoản
+                            </span>
+                        </div>
+
+                        <div style="background:rgba(0,255,136,0.05); border:1px solid rgba(0,255,136,0.2); border-radius:8px; padding:8px 12px; font-size:12px; color:#00ff88; display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Danh sách và phân quyền đang ở <strong>kho chung</strong> — mọi người đăng nhập ở máy nào cũng nhận đúng quyền.</span>
+                        </div>
+
+                        <!-- Table -->
+                        <div style="overflow-x:auto; width:100%;">
+                            <table style="width:100%; border-collapse:collapse; text-align:left; font-size:12.5px;">
+                                <thead>
+                                    <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:var(--color-text-secondary); font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:0.5px; background:rgba(255,255,255,0.02);">
+                                        <th style="padding:10px 12px;">EMAIL</th>
+                                        <th style="padding:10px 12px;">HỌ TÊN</th>
+                                        <th style="padding:10px 12px;">VAI TRÒ</th>
+                                        <th style="padding:10px 12px;">QUYỀN</th>
+                                        <th style="padding:10px 12px;">NGÀY TẠO</th>
+                                        <th style="padding:10px 12px; text-align:center;">THAO TÁC</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="members-table-tbody">
+                                    <tr>
+                                        <td colspan="6" style="padding:30px; text-align:center; color:var(--color-text-muted);">
+                                            <i class="fa-solid fa-spinner fa-spin" style="font-size:24px; display:block; margin-bottom:8px;"></i>
+                                            Đang tải danh sách thành viên...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+
                 </div>
-
-                <!-- Members grid -->
-                <div id="members-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px;">
-                    <div style="grid-column:1/-1; text-align:center; padding:60px 0; color:var(--color-text-muted);">
-                        <i class="fa-solid fa-spinner fa-spin" style="font-size:28px; margin-bottom:10px; display:block;"></i>
-                        Đang tải danh sách thành viên...
-                    </div>
-                </div>
-
-                <p style="font-size:11px; color:#666; border-top:1px solid var(--border-color); padding-top:10px; margin:0;">
-                    <i class="fa-solid fa-info-circle"></i> Để thêm/xóa thành viên trên Vercel, chỉnh trực tiếp <code>data/members.json</code> và push lên GitHub.
-                    Trên local (uvicorn), nút <strong>Thêm thành viên</strong> ghi trực tiếp vào file.
-                </p>
             </div>
         </div><!-- /view-members -->
 
@@ -4778,64 +4899,308 @@
             member:   { label: 'Thành viên',       color: '#b0bec5', bg: 'rgba(176,190,197,.10)' },
         };
 
+        // -------------------------------------------------------------------------
+        // View 8 Handlers: Quản Lý Thành Viên & Phân Quyền Truy Cập (19 Phân Hệ)
+        // -------------------------------------------------------------------------
+        let currentMembersList = [];
+        let currentEditingMemberId = null;
+        let activeMemberPermissions = {};
+
+        const MODULES_LIST = [
+            { id: "M1", name: "M1. Dashboard Tổng hợp" },
+            { id: "M2", name: "M2. Chi phí QLDN-PHC" },
+            { id: "M3", name: "M3. Giám sát Tuân thủ" },
+            { id: "M4", name: "M4. Giám sát Công ty Con" },
+            { id: "M5", name: "M5. Công ty Liên kết" },
+            { id: "M6", name: "M6. Giám sát Dự án" },
+            { id: "M7", name: "M7. Giám sát Dòng tiền" },
+            { id: "M8", name: "M8. Giám sát Công nợ" },
+            { id: "M9", name: "M9. Quan hệ Cổ đông" },
+            { id: "M10", name: "M10. Công bố Thông tin" },
+            { id: "M11", name: "M11. Bảng Giá Live" },
+            { id: "M12", name: "M12. AI Overview" },
+            { id: "M13", name: "M13. Phái Sinh Trong Phiên" },
+            { id: "M14", name: "M14. Cổ Phiếu Xu Hướng Tăng" },
+            { id: "M15", name: "M15. Vĩ Mô & Địa Trị" },
+            { id: "M16", name: "M16. Lướt T+3" },
+            { id: "M17", name: "M17. Phân Tích BĐS" },
+            { id: "M18", name: "M18. Báo Cáo Tài Chính" },
+            { id: "M19", name: "M19. Cài Đặt Hệ Thống" }
+        ];
+
+        const ROLE_BADGES = {
+            "truong_bks": { label: "Trưởng BKS", color: "#a855f7", bg: "rgba(168,85,247,0.15)", icon: "fa-user-shield" },
+            "thanh_vien_bks": { label: "Thành viên BKS", color: "#00e5ff", bg: "rgba(0,229,255,0.15)", icon: "fa-user-gear" },
+            "tong_giam_doc": { label: "Tổng Giám Đốc", color: "#fbbf24", bg: "rgba(251,191,36,0.15)", icon: "fa-user-tie" },
+            "giam_doc_phc_land": { label: "Giám đốc PHC-Land", color: "#38bdf8", bg: "rgba(56,189,248,0.15)", icon: "fa-building" },
+            "analyst": { label: "Chuyên viên Phân tích", color: "#00ff88", bg: "rgba(0,255,136,0.15)", icon: "fa-chart-pie" },
+            "guest": { label: "Khách (Chỉ xem)", color: "#94a3b8", bg: "rgba(148,163,184,0.15)", icon: "fa-user" },
+            "admin": { label: "Admin", color: "#ef4444", bg: "rgba(239,68,68,0.15)", icon: "fa-shield-halved" }
+        };
+
         async function loadMembersTab(forceRefresh = false) {
-            const grid   = document.getElementById('members-grid');
-            const stats  = document.getElementById('members-stats');
-            const update = document.getElementById('members-last-update');
-            if (!grid) return;
-            if (forceRefresh || grid.dataset.loaded !== '1') {
-                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--color-text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size:28px;display:block;margin-bottom:10px;"></i>Đang tải...</div>';
-            }
+            const tbody = document.getElementById('members-table-tbody');
+            const countBadge = document.getElementById('members-count-badge');
+            if (!tbody) return;
+
             try {
                 const resp = await fetch(`${HOST}/api/members`);
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const json = await resp.json();
-                const members = json.members || [];
-                const depts = [...new Set(members.map(m => m.department).filter(Boolean))];
-                if (stats) stats.innerHTML = [
-                    { label: 'Tổng thành viên', val: json.total || 0,  color: '#00e5ff', icon: 'fa-users' },
-                    { label: 'Admin',            val: json.admins || 0, color: '#ff6b35', icon: 'fa-shield-halved' },
-                    { label: 'Phòng ban',        val: depts.length,     color: '#00ff88', icon: 'fa-building' },
-                ].map(s => `<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
-                    <i class="fa-solid ${s.icon}" style="color:${s.color};font-size:20px;"></i>
-                    <div><div style="font-size:22px;font-weight:800;color:${s.color};font-family:'JetBrains Mono',monospace;">${s.val}</div>
-                    <div style="font-size:11px;color:var(--color-text-muted);">${s.label}</div></div></div>`).join('');
-                if (members.length === 0) {
-                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--color-text-muted);">Chưa có thành viên. Thêm vào data/members.json.</div>';
+                currentMembersList = json.members || [];
+                
+                if (countBadge) countBadge.innerText = currentMembersList.length;
+
+                if (currentMembersList.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="padding:30px; text-align:center; color:var(--color-text-muted);">Chưa có thành viên nào trong danh sách.</td></tr>';
                 } else {
-                    grid.innerHTML = members.map(m => {
-                        const rm = ROLE_META[m.role] || ROLE_META.member;
-                        const initials = (m.name || '?').split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
-                        return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;">
-                            <div style="display:flex;align-items:center;gap:12px;">
-                                <div style="width:44px;height:44px;border-radius:50%;background:${rm.bg};border:2px solid ${rm.color}44;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:${rm.color};flex-shrink:0;">${initials}</div>
-                                <div style="min-width:0;">
-                                    <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name || '—'}</div>
-                                    <div style="font-size:11px;color:var(--color-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.email || ''}</div>
+                    tbody.innerHTML = currentMembersList.map(m => {
+                        const rBadge = ROLE_BADGES[m.role] || ROLE_BADGES.thanh_vien_bks;
+                        const roleTitle = m.roleLabel || rBadge.label;
+                        
+                        // Compute view & edit counts
+                        const perms = m.permissions || {};
+                        let viewCnt = 0;
+                        let editCnt = 0;
+                        MODULES_LIST.forEach(mod => {
+                            const val = perms[mod.id] || "view";
+                            if (val === "view" || val === "edit") viewCnt++;
+                            if (val === "edit") editCnt++;
+                        });
+                        const permSummary = `${viewCnt}/19 xem · ${editCnt} sửa theo mẫu vai trò`;
+
+                        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.06); transition:background 0.2s;" onmouseenter="this.style.background='rgba(255,255,255,0.02)'" onmouseleave="this.style.background='transparent'">
+                            <td style="padding:12px; font-weight:600; color:#fff; font-family:'JetBrains Mono',monospace;">${m.email || '—'}</td>
+                            <td style="padding:12px; font-weight:700; color:#fff;">${m.name || '—'}</td>
+                            <td style="padding:12px;">
+                                <span style="display:inline-flex; align-items:center; gap:6px; background:${rBadge.bg}; border:1px solid ${rBadge.color}44; color:${rBadge.color}; font-size:11px; font-weight:700; border-radius:20px; padding:4px 10px;">
+                                    <i class="fa-solid ${rBadge.icon}"></i> ${roleTitle}
+                                </span>
+                            </td>
+                            <td style="padding:12px; font-size:12px; color:#38bdf8; font-weight:600;">${permSummary}</td>
+                            <td style="padding:12px; font-size:11.5px; color:var(--color-text-muted); font-family:'JetBrains Mono',monospace;">${m.joined || '—'}</td>
+                            <td style="padding:12px; text-align:center;">
+                                <div style="display:inline-flex; align-items:center; gap:6px;">
+                                    <button onclick="openPermissionModal('${m.id}')" title="Phân quyền truy cập 19 phân hệ" style="background:rgba(0,229,255,0.15); border:1px solid rgba(0,229,255,0.3); color:#00e5ff; border-radius:7px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">
+                                        <i class="fa-solid fa-user-gear"></i>
+                                    </button>
+                                    <button onclick="openResetPasswordModal('${m.id}')" title="Đặt lại mật khẩu" style="background:rgba(168,85,247,0.15); border:1px solid rgba(168,85,247,0.3); color:#a855f7; border-radius:7px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">
+                                        <i class="fa-solid fa-key"></i>
+                                    </button>
+                                    <button onclick="confirmDeleteMember('${m.id}', '${(m.name||'').replace(/'/g,'\\'')}')" title="Xóa tài khoản" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ef4444; border-radius:7px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
                                 </div>
-                                <span style="margin-left:auto;flex-shrink:0;font-size:10px;font-weight:700;background:${rm.bg};color:${rm.color};border:1px solid ${rm.color}44;border-radius:20px;padding:3px 9px;">${rm.label}</span>
-                            </div>
-                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                                ${m.department ? '<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:6px;padding:3px 8px;color:var(--color-text-secondary);"><i class="fa-solid fa-building" style="margin-right:4px;opacity:.6;"></i>' + m.department + '</span>' : ''}
-                                ${m.joined ? '<span style="font-size:11px;background:rgba(255,255,255,.06);border-radius:6px;padding:3px 8px;color:var(--color-text-secondary);"><i class="fa-solid fa-calendar-plus" style="margin-right:4px;opacity:.6;"></i>' + m.joined + '</span>' : ''}
-                            </div>
-                            ${m.note ? '<div style="font-size:11px;color:var(--color-text-muted);border-top:1px solid rgba(255,255,255,.06);padding-top:8px;">' + m.note + '</div>' : ''}
-                            <button onclick="confirmDeleteMember(\'${m.id}\',\'${(m.name||'').replace(/'/g,'\\')}\')"
-                                style="align-self:flex-end;background:rgba(239,83,80,.1);border:1px solid rgba(239,83,80,.3);color:#ef5350;border-radius:7px;padding:4px 12px;font-size:11px;cursor:pointer;">
-                                <i class="fa-solid fa-trash-can"></i> Xóa
-                            </button>
-                        </div>`;
+                            </td>
+                        </tr>`;
                     }).join('');
                 }
-                grid.dataset.loaded = '1';
-                if (update) update.textContent = 'Cập nhật ' + (json.updated_at || '');
-            } catch (e) {
-                console.error('Members load error:', e);
-                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ef5350;"><i class="fa-solid fa-triangle-exclamation" style="font-size:24px;display:block;margin-bottom:8px;"></i>Lỗi tải danh sách thành viên.</div>';
+            } catch(e) {
+                console.error("Error loading members:", e);
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:20px; text-align:center; color:#ef4444;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>Lỗi tải danh sách thành viên.</td></tr>';
             }
         }
 
-        function showAddMemberForm() {
+        function toggleFormPasswordVisibility() {
+            const pwInput = document.getElementById('mf-password');
+            const eyeIcon = document.getElementById('toggle-pw-eye');
+            if (pwInput && eyeIcon) {
+                if (pwInput.type === 'password') {
+                    pwInput.type = 'text';
+                    eyeIcon.className = 'fa-solid fa-eye-slash';
+                } else {
+                    pwInput.type = 'password';
+                    eyeIcon.className = 'fa-solid fa-eye';
+                }
+            }
+        }
+
+        async function submitAddMember() {
+            const email = (document.getElementById('mf-email') || {}).value.trim();
+            const name  = (document.getElementById('mf-name')  || {}).value.trim();
+            const pw    = (document.getElementById('mf-password') || {}).value.trim();
+            const role  = (document.getElementById('mf-role')  || {}).value || 'thanh_vien_bks';
+
+            if (!email || !name) {
+                alert('Vui lòng điền đầy đủ Email người nhận và Họ tên!');
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${HOST}/api/members`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, email, password: pw || '123456', role })
+                });
+                const json = await resp.json();
+                if (!resp.ok) {
+                    alert(json.detail || 'Không thể tạo thành viên.');
+                    return;
+                }
+                alert('Tạo và mời thành viên thành công!');
+                ['mf-email', 'mf-name', 'mf-password'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+                loadMembersTab(true);
+            } catch(e) {
+                alert('Lỗi: ' + e.message);
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // PERMISSION MODAL HANDLERS (19 PHÂN HỆ)
+        // -------------------------------------------------------------------------
+        function openPermissionModal(memberId) {
+            const member = currentMembersList.find(m => strEqual(m.id, memberId));
+            if (!member) return;
+
+            currentEditingMemberId = memberId;
+            activeMemberPermissions = JSON.parse(JSON.stringify(member.permissions || {}));
+            
+            // Ensure all 19 modules exist
+            MODULES_LIST.forEach(mod => {
+                if (!activeMemberPermissions[mod.id]) {
+                    activeMemberPermissions[mod.id] = "view";
+                }
+            });
+
+            const nameEl = document.getElementById('perm-modal-member-name');
+            const descEl = document.getElementById('perm-modal-member-desc');
+            if (nameEl) nameEl.innerText = member.name || '—';
+            if (descEl) descEl.innerHTML = `${member.email || ''} · đang dùng <strong>mẫu quyền của vai trò ${member.roleLabel || member.role}</strong>`;
+
+            renderPermissionModulesTable();
+
+            const modal = document.getElementById('modal-permission-assignment');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closePermissionModal() {
+            const modal = document.getElementById('modal-permission-assignment');
+            if (modal) modal.style.display = 'none';
+            currentEditingMemberId = null;
+        }
+
+        function renderPermissionModulesTable() {
+            const tbody = document.getElementById('perm-modules-tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = MODULES_LIST.map(mod => {
+                const level = activeMemberPermissions[mod.id] || "view";
+                
+                const hiddenCls = level === "hidden" ? "perm-toggle-btn active-hidden" : "perm-toggle-btn";
+                const viewCls   = level === "view"   ? "perm-toggle-btn active-view"   : "perm-toggle-btn";
+                const editCls   = level === "edit"   ? "perm-toggle-btn active-edit"   : "perm-toggle-btn";
+
+                return `<tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                    <td style="padding:10px 14px; font-weight:700; color:#fff;">${mod.name}</td>
+                    <td style="padding:10px 14px; text-align:right;">
+                        <div style="display:inline-flex; items-center; gap:6px;">
+                            <button class="${hiddenCls}" onclick="setSingleModulePermission('${mod.id}', 'hidden')"><i class="fa-solid fa-eye-slash"></i> Ẩn</button>
+                            <button class="${viewCls}" onclick="setSingleModulePermission('${mod.id}', 'view')"><i class="fa-solid fa-eye"></i> Xem</button>
+                            <button class="${editCls}" onclick="setSingleModulePermission('${mod.id}', 'edit')"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function setSingleModulePermission(moduleId, level) {
+            activeMemberPermissions[moduleId] = level;
+            renderPermissionModulesTable();
+        }
+
+        function setAllModulePermissions(level) {
+            MODULES_LIST.forEach(mod => {
+                activeMemberPermissions[mod.id] = level;
+            });
+            renderPermissionModulesTable();
+        }
+
+        function applyRolePreset(roleKey) {
+            let perms = {};
+            if (roleKey === "truong_bks" || roleKey === "admin" || roleKey === "tong_giam_doc") {
+                MODULES_LIST.forEach(m => {
+                    perms[m.id] = (m.id === "M1" || m.id === "M2" || m.id === "M10") ? "edit" : "view";
+                });
+            } else if (roleKey === "thanh_vien_bks" || roleKey === "giam_doc_phc_land") {
+                MODULES_LIST.forEach(m => {
+                    perms[m.id] = (m.id === "M10") ? "edit" : (m.id === "M19" ? "hidden" : "view");
+                });
+            } else if (roleKey === "guest") {
+                MODULES_LIST.forEach(m => {
+                    perms[m.id] = (parseInt(m.id.replace("M","")) <= 18) ? "view" : "hidden";
+                });
+            }
+            activeMemberPermissions = perms;
+            renderPermissionModulesTable();
+        }
+
+        async function savePermissionModal() {
+            if (!currentEditingMemberId) return;
+            try {
+                const resp = await fetch(`${HOST}/api/members/${currentEditingMemberId}/permissions`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ permissions: activeMemberPermissions })
+                });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                closePermissionModal();
+                loadMembersTab(true);
+            } catch(e) {
+                alert("Lỗi lưu phân quyền: " + e.message);
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // RESET PASSWORD MODAL HANDLERS
+        // -------------------------------------------------------------------------
+        function openResetPasswordModal(memberId) {
+            const member = currentMembersList.find(m => strEqual(m.id, memberId));
+            if (!member) return;
+
+            currentEditingMemberId = memberId;
+            const nameEl = document.getElementById('reset-pw-name');
+            const inputEl = document.getElementById('reset-pw-input');
+            if (nameEl) nameEl.innerText = `${member.name} (${member.email})`;
+            if (inputEl) inputEl.value = '';
+
+            const modal = document.getElementById('modal-reset-password');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeResetPasswordModal() {
+            const modal = document.getElementById('modal-reset-password');
+            if (modal) modal.style.display = 'none';
+            currentEditingMemberId = null;
+        }
+
+        async function saveResetPasswordModal() {
+            if (!currentEditingMemberId) return;
+            const inputEl = document.getElementById('reset-pw-input');
+            const pw = inputEl ? inputEl.value.trim() : '';
+            if (!pw) {
+                alert('Vui lòng nhập mật khẩu mới!');
+                return;
+            }
+            try {
+                const resp = await fetch(`${HOST}/api/members/${currentEditingMemberId}/password`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ password: pw })
+                });
+                const json = await resp.json();
+                if (!resp.ok) throw new Error(json.detail || 'Không thể đổi mật khẩu');
+                alert(json.message || 'Đã đặt lại mật khẩu thành công!');
+                closeResetPasswordModal();
+            } catch(e) {
+                alert('Lỗi: ' + e.message);
+            }
+        }
+
+        function strEqual(a, b) {
+            return String(a) === String(b);
+        }
+
+                function showAddMemberForm() {
             const form = document.getElementById('members-add-form');
             if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
         }
@@ -5969,5 +6334,103 @@
         setInterval(function () { if (!viewMonth) loadMacroEvents(); }, 30 * 60 * 1000);
     })();
     </script>
+
+    <!-- =========================================================================
+         MODAL 1: PHÂN QUYỀN TRUY CẬP (19 PHÂN HỆ)
+         ========================================================================= -->
+    <div id="modal-permission-assignment" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(2, 6, 23, 0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
+        <div style="background:#0b1329; border:1px solid rgba(0,229,255,0.3); border-radius:16px; width:100%; max-width:860px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8);">
+            
+            <!-- Modal Header -->
+            <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02);">
+                <h3 style="margin:0; font-size:18px; font-weight:800; color:#fff; display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-user-gear" style="color:#00e5ff;"></i> Phân quyền truy cập
+                </h3>
+                <button onclick="closePermissionModal()" style="background:none; border:none; color:var(--color-text-muted); font-size:20px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Member Sub-Header Info -->
+            <div style="padding:14px 20px; background:rgba(0,229,255,0.04); border-bottom:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; gap:4px;">
+                <div style="font-size:16px; font-weight:800; color:#fff;" id="perm-modal-member-name">Đào Đức Tài</div>
+                <div style="font-size:12px; color:var(--color-text-secondary);" id="perm-modal-member-desc">ductaikt53a@gmail.com · đang dùng <strong>mẫu quyền của vai trò Thành viên BKS</strong></div>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div style="padding:16px 20px; overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; gap:14px;">
+                
+                <!-- Quick Preset Roles -->
+                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:12px;">
+                    <span style="color:var(--color-text-secondary); font-weight:600;">Áp nhanh theo mẫu vai trò:</span>
+                    <button class="btn-preset-role" onclick="applyRolePreset('truong_bks')">Trưởng Ban Kiểm soát</button>
+                    <button class="btn-preset-role" onclick="applyRolePreset('thanh_vien_bks')">Thành viên BKS</button>
+                    <button class="btn-preset-role" onclick="applyRolePreset('tong_giam_doc')">Tổng Giám Đốc</button>
+                    <button class="btn-preset-role" onclick="applyRolePreset('giam_doc_phc_land')">Giám đốc PHC-Land</button>
+                    <button class="btn-preset-role" onclick="applyRolePreset('guest')">Khách (Chỉ xem)</button>
+                </div>
+
+                <!-- Quick Actions All -->
+                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:12px;">
+                    <span style="color:var(--color-text-secondary); font-weight:600;">Đặt tất cả:</span>
+                    <button class="btn-quick-set" onclick="setAllModulePermissions('hidden')">Ẩn hết</button>
+                    <button class="btn-quick-set" onclick="setAllModulePermissions('view')">Cho xem hết</button>
+                    <button class="btn-quick-set" onclick="setAllModulePermissions('edit')">Cho sửa hết</button>
+                </div>
+
+                <!-- 19 Modules List Table -->
+                <div style="border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; background:rgba(0,0,0,0.2);">
+                    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
+                        <thead>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:var(--color-text-secondary); font-size:11px; font-weight:700; text-transform:uppercase; background:rgba(255,255,255,0.03);">
+                                <th style="padding:10px 14px;">PHÂN HỆ</th>
+                                <th style="padding:10px 14px; text-align:right;">MỨC QUYỀN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="perm-modules-tbody">
+                            <!-- JS Renders 19 Rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="padding:14px 20px; border-top:1px solid rgba(255,255,255,0.08); display:flex; items-center; justify-content:flex-end; gap:10px; background:rgba(255,255,255,0.02);">
+                <button onclick="closePermissionModal()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--color-text-secondary); border-radius:8px; padding:8px 18px; font-size:13px; cursor:pointer;">Hủy</button>
+                <button onclick="savePermissionModal()" style="background:linear-gradient(135deg, #00e5ff, #00b0ff); border:none; color:#000; border-radius:8px; padding:8px 22px; font-size:13px; font-weight:800; cursor:pointer;">Lưu Phân Quyền</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         MODAL 2: ĐẶT LẠI MẬT KHẨU
+         ========================================================================= -->
+    <div id="modal-reset-password" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(2, 6, 23, 0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
+        <div style="background:#0b1329; border:1px solid rgba(168,85,247,0.4); border-radius:16px; width:100%; max-width:440px; padding:20px; display:flex; flex-direction:column; gap:16px; box-shadow:0 20px 50px rgba(0,0,0,0.8);">
+            <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+                <h3 style="margin:0; font-size:16px; font-weight:800; color:#fff; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-key" style="color:#a855f7;"></i> Đặt Lại Mật Khẩu
+                </h3>
+                <button onclick="closeResetPasswordModal()" style="background:none; border:none; color:var(--color-text-muted); font-size:18px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div style="font-size:12.5px; color:var(--color-text-secondary);" id="reset-pw-member-info">
+                Đổi mật khẩu cho: <strong style="color:#fff;" id="reset-pw-name">—</strong>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="font-size:11px; font-weight:700; color:var(--color-text-secondary); display:block; margin-bottom:4px;">MẬT KHẨU MỚI</label>
+                    <input id="reset-pw-input" type="password" placeholder="Nhập mật khẩu mới..." style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; outline:none;" />
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+                <button onclick="closeResetPasswordModal()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--color-text-secondary); border-radius:8px; padding:8px 16px; font-size:13px; cursor:pointer;">Hủy</button>
+                <button onclick="saveResetPasswordModal()" style="background:linear-gradient(135deg, #a855f7, #9333ea); border:none; color:#fff; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer;">Lưu Mật Khẩu</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

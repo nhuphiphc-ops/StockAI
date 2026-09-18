@@ -2190,30 +2190,56 @@ def get_derivatives_history_log(date: str = Query(None, description="YYYY-MM-DD,
 
 
 # ---------------------------------------------------------------------------
-# MODULE: QUẢN LÝ THÀNH VIÊN
+# MODULE: QUẢN LÝ THÀNH VIÊN & PHÂN QUYỀN TRUY CẬP (19 PHÂN HỆ)
 # ---------------------------------------------------------------------------
 _MEMBERS_FILE = Path(__file__).parent / "data" / "members.json"
 
+ROLE_LABELS = {
+    "truong_bks": "Trưởng BKS",
+    "thanh_vien_bks": "Thành viên BKS",
+    "tong_giam_doc": "Tổng Giám Đốc",
+    "giam_doc_phc_land": "Giám đốc PHC-Land",
+    "analyst": "Chuyên viên Phân tích",
+    "guest": "Khách (Chỉ xem)",
+    "admin": "Quản trị viên"
+}
+
+DEFAULT_MODULE_PERMISSIONS = {
+    "M1": "view", "M2": "view", "M3": "view", "M4": "view", "M5": "view",
+    "M6": "view", "M7": "view", "M8": "view", "M9": "view", "M10": "view",
+    "M11": "view", "M12": "view", "M13": "view", "M14": "view", "M15": "view",
+    "M16": "view", "M17": "view", "M18": "view", "M19": "hidden"
+}
 
 @app.get("/api/members")
 def get_members():
-    """Danh sách thành viên có quyền truy cập hệ thống (đọc từ data/members.json)."""
+    """Danh sách thành viên có quyền truy cập hệ thống và chi tiết 19 phân hệ."""
     if not _MEMBERS_FILE.exists():
         return {"members": [], "total": 0, "warning": "Chưa có file data/members.json"}
     with open(_MEMBERS_FILE, encoding="utf-8") as f:
         data = json.load(f)
     members = data.get("members", [])
+    
+    # Process permissions format & summary
+    for m in members:
+        perms = m.get("permissions") or dict(DEFAULT_MODULE_PERMISSIONS)
+        view_cnt = sum(1 for v in perms.values() if v in ["view", "edit"])
+        edit_cnt = sum(1 for v in perms.values() if v == "edit")
+        m["permissions"] = perms
+        m["permission_summary"] = f"{view_cnt}/19 xem · {edit_cnt} sửa theo mẫu vai trò"
+        m["roleLabel"] = ROLE_LABELS.get(m.get("role"), m.get("role", "Thành viên"))
+
     return {
         "members": members,
         "total": len(members),
-        "admins": sum(1 for m in members if m.get("role") == "admin"),
+        "admins": sum(1 for m in members if m.get("role") in ["admin", "truong_bks"]),
         "updated_at": vn_now().strftime("%H:%M %d/%m/%Y"),
     }
 
 
 @app.post("/api/members")
 def add_member(body: dict):
-    """Thêm thành viên mới. Chỉ hoạt động trên local — Vercel filesystem chỉ đọc."""
+    """Thêm thành viên mới kèm mật khẩu và mẫu vai trò ban đầu."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
     if not _MEMBERS_FILE.exists():
@@ -2222,14 +2248,26 @@ def add_member(body: dict):
         data = json.load(f)
     members = data.get("members", [])
     new_id = str(max((int(m.get("id", 0)) for m in members), default=0) + 1)
+    role = body.get("role", "thanh_vien_bks")
+    
+    # Default preset perms
+    perms = dict(DEFAULT_MODULE_PERMISSIONS)
+    if role in ["admin", "truong_bks", "tong_giam_doc"]:
+        perms = {f"M{i}": "edit" if i in [1, 2, 10] else "view" for i in range(1, 20)}
+    elif role == "guest":
+        perms = {f"M{i}": "view" if i <= 18 else "hidden" for i in range(1, 20)}
+
     member = {
         "id": new_id,
         "name": body.get("name", ""),
         "email": body.get("email", ""),
-        "role": body.get("role", "member"),
-        "department": body.get("department", ""),
-        "joined": vn_now().strftime("%Y-%m-%d"),
+        "password": body.get("password", "123456"),
+        "role": role,
+        "roleLabel": ROLE_LABELS.get(role, "Thành viên"),
+        "department": body.get("department", "Phát triển"),
+        "joined": vn_now().strftime("%Y-%m-%d %H:%M"),
         "note": body.get("note", ""),
+        "permissions": perms
     }
     members.append(member)
     with open(_MEMBERS_FILE, "w", encoding="utf-8") as f:
@@ -2237,16 +2275,64 @@ def add_member(body: dict):
     return {"success": True, "member": member}
 
 
+@app.put("/api/members/{member_id}/permissions")
+def update_member_permissions(member_id: str, body: dict):
+    """Cập nhật phân quyền 19 phân hệ cho thành viên."""
+    if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
+        raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
+    with open(_MEMBERS_FILE, encoding="utf-8") as f:
+        data = json.load(f)
+    members = data.get("members", [])
+    target = None
+    for m in members:
+        if str(m.get("id")) == str(member_id):
+            m["permissions"] = body.get("permissions", m.get("permissions", {}))
+            if body.get("role"):
+                m["role"] = body["role"]
+                m["roleLabel"] = ROLE_LABELS.get(body["role"], body["role"])
+            target = m
+            break
+    if not target:
+        raise HTTPException(404, detail="Không tìm thấy thành viên")
+    with open(_MEMBERS_FILE, "w", encoding="utf-8") as f:
+        json.dump({"members": members}, f, ensure_ascii=False, indent=2)
+    return {"success": True, "member": target}
+
+
+@app.put("/api/members/{member_id}/password")
+def reset_member_password(member_id: str, body: dict):
+    """Đặt lại mật khẩu cho thành viên."""
+    if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
+        raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
+    new_pw = body.get("password")
+    if not new_pw:
+        raise HTTPException(400, detail="Vui lòng cung cấp mật khẩu mới")
+    with open(_MEMBERS_FILE, encoding="utf-8") as f:
+        data = json.load(f)
+    members = data.get("members", [])
+    target = None
+    for m in members:
+        if str(m.get("id")) == str(member_id):
+            m["password"] = new_pw
+            target = m
+            break
+    if not target:
+        raise HTTPException(404, detail="Không tìm thấy thành viên")
+    with open(_MEMBERS_FILE, "w", encoding="utf-8") as f:
+        json.dump({"members": members}, f, ensure_ascii=False, indent=2)
+    return {"success": True, "message": f"Đã đổi mật khẩu cho {target.get('name')}"}
+
+
 @app.delete("/api/members/{member_id}")
 def delete_member(member_id: str):
-    """Xóa thành viên theo id. Chỉ hoạt động trên local."""
+    """Xóa thành viên theo id."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
     if not _MEMBERS_FILE.exists():
         raise HTTPException(404, detail="Không tìm thấy file members.json")
     with open(_MEMBERS_FILE, encoding="utf-8") as f:
         data = json.load(f)
-    members = [m for m in data.get("members", []) if m.get("id") != member_id]
+    members = [m for m in data.get("members", []) if str(m.get("id")) != str(member_id)]
     with open(_MEMBERS_FILE, "w", encoding="utf-8") as f:
         json.dump({"members": members}, f, ensure_ascii=False, indent=2)
     return {"success": True, "deleted_id": member_id}
