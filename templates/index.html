@@ -1546,6 +1546,12 @@
             border-color: rgba(0, 229, 255, 0.4);
             color: #00e5ff;
         }
+        .btn-preset-role.active-preset {
+            background: rgba(0, 229, 255, 0.2);
+            border-color: rgba(0, 229, 255, 0.7);
+            color: #00e5ff;
+            font-weight: 700;
+        }
         .btn-quick-set {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -4925,6 +4931,7 @@
         let currentMembersList = [];
         let currentEditingMemberId = null;
         let activeMemberPermissions = {};
+        let selectedRolePreset = null;
 
         const MODULES_LIST = [
             { id: "M1", name: "M1. Dashboard Tổng hợp" },
@@ -5074,20 +5081,18 @@
 
             currentEditingMemberId = memberId;
             activeMemberPermissions = JSON.parse(JSON.stringify(member.permissions || {}));
-            
-            // Ensure all 19 modules exist
-            MODULES_LIST.forEach(mod => {
-                if (!activeMemberPermissions[mod.id]) {
-                    activeMemberPermissions[mod.id] = "view";
-                }
-            });
+            selectedRolePreset = member.role || null;
 
             const nameEl = document.getElementById('perm-modal-member-name');
             const descEl = document.getElementById('perm-modal-member-desc');
             if (nameEl) nameEl.innerText = member.name || '—';
-            if (descEl) descEl.innerHTML = `${member.email || ''} · đang dùng <strong>mẫu quyền của vai trò ${member.roleLabel || member.role}</strong>`;
+            if (descEl) descEl.innerHTML = `${member.email || ''} · vai trò hiện tại: <strong>${member.roleLabel || member.role || '—'}</strong>`;
 
-            renderPermissionModulesTable();
+            // Highlight current role button
+            document.querySelectorAll('.btn-preset-role').forEach(b => b.classList.remove('active-preset'));
+            if (selectedRolePreset) {
+                document.querySelectorAll(`.btn-preset-role[data-role="${selectedRolePreset}"]`).forEach(b => b.classList.add('active-preset'));
+            }
 
             const modal = document.getElementById('modal-permission-assignment');
             if (modal) modal.style.display = 'flex';
@@ -5136,37 +5141,34 @@
         }
 
         function applyRolePreset(roleKey) {
+            selectedRolePreset = roleKey;
+            // Highlight selected button
+            document.querySelectorAll('.btn-preset-role').forEach(b => b.classList.remove('active-preset'));
+            document.querySelectorAll(`.btn-preset-role[data-role="${roleKey}"]`).forEach(b => b.classList.add('active-preset'));
+            // Compute permissions
             let perms = {};
-            if (roleKey === "truong_bks" || roleKey === "admin" || roleKey === "tong_giam_doc") {
-                MODULES_LIST.forEach(m => {
-                    perms[m.id] = (m.id === "M1" || m.id === "M2" || m.id === "M10") ? "edit" : "view";
-                });
-            } else if (roleKey === "thanh_vien_bks" || roleKey === "giam_doc_phc_land") {
-                MODULES_LIST.forEach(m => {
-                    perms[m.id] = (m.id === "M10") ? "edit" : (m.id === "M19" ? "hidden" : "view");
-                });
-            } else if (roleKey === "guest") {
-                MODULES_LIST.forEach(m => {
-                    perms[m.id] = (parseInt(m.id.replace("M","")) <= 18) ? "view" : "hidden";
-                });
+            MODULES_LIST.forEach(m => { perms[m.id] = "view"; });
+            if (roleKey === "guest") {
+                perms["M19"] = "hidden";
             }
             activeMemberPermissions = perms;
-            renderPermissionModulesTable();
         }
 
         async function savePermissionModal() {
             if (!currentEditingMemberId) return;
             try {
+                const body = { permissions: activeMemberPermissions };
+                if (selectedRolePreset) body.role = selectedRolePreset;
                 const resp = await fetch(`${HOST}/api/members/${currentEditingMemberId}/permissions`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ permissions: activeMemberPermissions })
+                    body: JSON.stringify(body)
                 });
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 closePermissionModal();
                 loadMembersTab(true);
             } catch(e) {
-                alert("Lỗi lưu phân quyền: " + e.message);
+                alert("Lỗi lưu vai trò: " + e.message);
             }
         }
 
@@ -6330,64 +6332,46 @@
          MODAL 1: PHÂN QUYỀN TRUY CẬP (19 PHÂN HỆ)
          ========================================================================= -->
     <div id="modal-permission-assignment" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(2, 6, 23, 0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
-        <div style="background:#0b1329; border:1px solid rgba(0,229,255,0.3); border-radius:16px; width:100%; max-width:860px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8);">
-            
+        <div style="background:#0b1329; border:1px solid rgba(0,229,255,0.3); border-radius:16px; width:100%; max-width:500px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.8);">
+
             <!-- Modal Header -->
             <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02);">
                 <h3 style="margin:0; font-size:18px; font-weight:800; color:#fff; display:flex; align-items:center; gap:10px;">
-                    <i class="fa-solid fa-user-gear" style="color:#00e5ff;"></i> Phân quyền truy cập
+                    <i class="fa-solid fa-user-gear" style="color:#00e5ff;"></i> Đổi vai trò
                 </h3>
                 <button onclick="closePermissionModal()" style="background:none; border:none; color:var(--color-text-muted); font-size:20px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <!-- Member Sub-Header Info -->
+            <!-- Member Info -->
             <div style="padding:14px 20px; background:rgba(0,229,255,0.04); border-bottom:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; gap:4px;">
-                <div style="font-size:16px; font-weight:800; color:#fff;" id="perm-modal-member-name">Đào Đức Tài</div>
-                <div style="font-size:12px; color:var(--color-text-secondary);" id="perm-modal-member-desc">ductaikt53a@gmail.com · đang dùng <strong>mẫu quyền của vai trò Thành viên BKS</strong></div>
+                <div style="font-size:16px; font-weight:800; color:#fff;" id="perm-modal-member-name">—</div>
+                <div style="font-size:12px; color:var(--color-text-secondary);" id="perm-modal-member-desc"></div>
             </div>
 
-            <!-- Scrollable Content -->
-            <div style="padding:16px 20px; overflow-y:auto; flex-grow:1; display:flex; flex-direction:column; gap:14px;">
-                
-                <!-- Quick Preset Roles -->
-                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:12px;">
-                    <span style="color:var(--color-text-secondary); font-weight:600;">Áp nhanh theo mẫu vai trò:</span>
-                    <button class="btn-preset-role" onclick="applyRolePreset('truong_bks')">Trưởng Ban Kiểm soát</button>
-                    <button class="btn-preset-role" onclick="applyRolePreset('thanh_vien_bks')">Thành viên BKS</button>
-                    <button class="btn-preset-role" onclick="applyRolePreset('tong_giam_doc')">Tổng Giám Đốc</button>
-                    <button class="btn-preset-role" onclick="applyRolePreset('giam_doc_phc_land')">Giám đốc PHC-Land</button>
-                    <button class="btn-preset-role" onclick="applyRolePreset('guest')">Khách (Chỉ xem)</button>
+            <!-- Role Selector -->
+            <div style="padding:20px; display:flex; flex-direction:column; gap:14px;">
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <span style="font-size:11px; font-weight:700; color:var(--color-text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Chọn vai trò</span>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        <button class="btn-preset-role" data-role="truong_bks" onclick="applyRolePreset('truong_bks')">Trưởng Ban Kiểm soát</button>
+                        <button class="btn-preset-role" data-role="thanh_vien_bks" onclick="applyRolePreset('thanh_vien_bks')">Thành viên BKS</button>
+                        <button class="btn-preset-role" data-role="tong_giam_doc" onclick="applyRolePreset('tong_giam_doc')">Tổng Giám Đốc</button>
+                        <button class="btn-preset-role" data-role="giam_doc_phc_land" onclick="applyRolePreset('giam_doc_phc_land')">Giám đốc PHC-Land</button>
+                        <button class="btn-preset-role" data-role="analyst" onclick="applyRolePreset('analyst')">Chuyên viên Phân tích</button>
+                        <button class="btn-preset-role" data-role="guest" onclick="applyRolePreset('guest')">Khách (Chỉ xem)</button>
+                    </div>
                 </div>
 
-                <!-- Quick Actions All -->
-                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:12px;">
-                    <span style="color:var(--color-text-secondary); font-weight:600;">Đặt tất cả:</span>
-                    <button class="btn-quick-set" onclick="setAllModulePermissions('hidden')">Ẩn hết</button>
-                    <button class="btn-quick-set" onclick="setAllModulePermissions('view')">Cho xem hết</button>
-                    <button class="btn-quick-set" onclick="setAllModulePermissions('edit')">Cho sửa hết</button>
+                <div style="background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:8px; padding:10px 14px; font-size:12px; color:#94a3b8; display:flex; gap:8px; align-items:flex-start;">
+                    <i class="fa-solid fa-circle-info" style="color:#00e5ff; margin-top:1px; flex-shrink:0;"></i>
+                    <span>Mọi vai trò đều xem được toàn bộ module. <strong style="color:#00e5ff;">Khách</strong> ẩn M19 Cài Đặt.</span>
                 </div>
-
-                <!-- 19 Modules List Table -->
-                <div style="border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; background:rgba(0,0,0,0.2);">
-                    <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
-                        <thead>
-                            <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:var(--color-text-secondary); font-size:11px; font-weight:700; text-transform:uppercase; background:rgba(255,255,255,0.03);">
-                                <th style="padding:10px 14px;">PHÂN HỆ</th>
-                                <th style="padding:10px 14px; text-align:right;">MỨC QUYỀN</th>
-                            </tr>
-                        </thead>
-                        <tbody id="perm-modules-tbody">
-                            <!-- JS Renders 19 Rows -->
-                        </tbody>
-                    </table>
-                </div>
-
             </div>
 
-            <!-- Modal Footer -->
-            <div style="padding:14px 20px; border-top:1px solid rgba(255,255,255,0.08); display:flex; items-center; justify-content:flex-end; gap:10px; background:rgba(255,255,255,0.02);">
+            <!-- Footer -->
+            <div style="padding:14px 20px; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:flex-end; gap:10px; background:rgba(255,255,255,0.02);">
                 <button onclick="closePermissionModal()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:var(--color-text-secondary); border-radius:8px; padding:8px 18px; font-size:13px; cursor:pointer;">Hủy</button>
-                <button onclick="savePermissionModal()" style="background:linear-gradient(135deg, #00e5ff, #00b0ff); border:none; color:#000; border-radius:8px; padding:8px 22px; font-size:13px; font-weight:800; cursor:pointer;">Lưu Phân Quyền</button>
+                <button onclick="savePermissionModal()" style="background:linear-gradient(135deg, #00e5ff, #00b0ff); border:none; color:#000; border-radius:8px; padding:8px 22px; font-size:13px; font-weight:800; cursor:pointer;">Lưu</button>
             </div>
 
         </div>
