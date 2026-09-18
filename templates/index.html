@@ -1457,10 +1457,15 @@
                 -webkit-backdrop-filter: blur(20px);
                 border-top: 1px solid rgba(255, 255, 255, 0.08);
                 z-index: 999;
-                justify-content: space-around;
+                justify-content: flex-start;
                 align-items: center;
-                padding: 4px 10px;
+                padding: 4px 6px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                gap: 2px;
+                scrollbar-width: none; /* Firefox */
             }
+            .bottom-nav::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
             .bottom-nav-item {
                 display: flex;
@@ -1474,7 +1479,8 @@
                 font-weight: 500;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                min-width: 50px;
+                min-width: 58px;
+                flex-shrink: 0;
                 min-height: 48px; /* Kích thước click tối thiểu 44px của Apple/Google */
                 gap: 4px;
             }
