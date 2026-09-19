@@ -2774,16 +2774,19 @@
 
         function _parseJwtExp(token) {
             try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                return payload.exp ? payload.exp * 1000 : 0;
-            } catch { return 0; }
+                const parts = token.split('.');
+                if (parts.length !== 3) return -1;
+                const payload = JSON.parse(atob(parts[1]));
+                return payload.exp ? payload.exp * 1000 : -1;
+            } catch { return -1; }
         }
 
         function isLoggedIn() {
             const t = localStorage.getItem(_AUTH_KEY);
             if (!t) return false;
             const exp = _parseJwtExp(t);
-            return exp === 0 || exp > Date.now();
+            if (exp === -1) return false; // malformed token
+            return exp > Date.now();
         }
 
         function doLogout() {
@@ -2837,7 +2840,8 @@
         }
 
         // Cho phép nhấn Enter trong ô mật khẩu để đăng nhập
-        document.getElementById('login-password').addEventListener('keydown', function(e) {
+        const _loginPwEl = document.getElementById('login-password');
+        if (_loginPwEl) _loginPwEl.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') doLogin();
         });
 
@@ -5240,7 +5244,7 @@
         async function submitAddMember() {
             const email = (document.getElementById('mf-email') || {}).value.trim();
             const name  = (document.getElementById('mf-name')  || {}).value.trim();
-            const pw    = (document.getElementById('mf-password') || {}).value.trim();
+            const pw    = (document.getElementById('mf-password') || {}).value;
             const role  = (document.getElementById('mf-role')  || {}).value || 'thanh_vien_bks';
 
             if (!email || !name) {
@@ -5340,10 +5344,15 @@
             // Highlight selected button
             document.querySelectorAll('.btn-preset-role').forEach(b => b.classList.remove('active-preset'));
             document.querySelectorAll(`.btn-preset-role[data-role="${roleKey}"]`).forEach(b => b.classList.add('active-preset'));
-            // Compute permissions
+            // Compute permissions — phải đồng bộ với server-side add_member logic
             let perms = {};
             MODULES_LIST.forEach(m => { perms[m.id] = "view"; });
-            if (roleKey === "guest") {
+            if (roleKey === "admin") {
+                perms["M1"] = "edit";
+                perms["M2"] = "edit";
+                perms["M10"] = "edit";
+            } else {
+                // member: all view, M19 hidden
                 perms["M19"] = "hidden";
             }
             activeMemberPermissions = perms;
@@ -5359,6 +5368,7 @@
                     headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
                     body: JSON.stringify(body)
                 });
+                if (resp.status === 401) { doLogout(); return; }
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 closePermissionModal();
                 loadMembersTab(true);
@@ -5404,6 +5414,7 @@
                     headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
                     body: JSON.stringify({ password: pw })
                 });
+                if (resp.status === 401) { doLogout(); return; }
                 const json = await resp.json();
                 if (!resp.ok) throw new Error(json.detail || 'Không thể đổi mật khẩu');
                 alert(json.message || 'Đã đặt lại mật khẩu thành công!');
@@ -5423,6 +5434,7 @@
             if (!confirm('Xóa thành viên "' + name + '"?\nTrên Vercel cần deploy lại để có hiệu lực.')) return;
             try {
                 const resp = await fetch(HOST + '/api/members/' + id, {method: 'DELETE', headers: getAuthHeaders()});
+                if (resp.status === 401) { doLogout(); return; }
                 const json = await resp.json();
                 if (!resp.ok) { alert(json.detail || 'Không thể xóa trên Vercel.'); return; }
                 const grid = document.getElementById('members-grid');

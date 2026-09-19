@@ -2224,6 +2224,8 @@ def _create_token(email: str, role: str, name: str) -> str:
 def _require_auth(authorization: str = Header(default=None)):
     """FastAPI dependency — yêu cầu JWT hợp lệ. Dev-mode (JWT_SECRET chưa set): bỏ qua."""
     if not _JWT_SECRET:
+        print("[WARN] JWT_SECRET chưa được cấu hình — mọi request đều được cấp quyền admin (dev mode). "
+              "Đặt biến môi trường JWT_SECRET trước khi deploy lên Vercel!", flush=True)
         return {"sub": "dev", "role": "admin", "name": "Dev"}
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Vui lòng đăng nhập để tiếp tục")
@@ -2325,8 +2327,14 @@ def get_members(user=Depends(_require_auth)):
     }
 
 
+def _require_admin(user: dict = Depends(_require_auth)):
+    if user.get("role") not in ("admin", "truong_bks", "tong_giam_doc"):
+        raise HTTPException(status_code=403, detail="Chỉ quản trị viên mới có thể thực hiện thao tác này")
+    return user
+
+
 @app.post("/api/members")
-def add_member(body: dict, user=Depends(_require_auth)):
+def add_member(body: dict, user=Depends(_require_admin)):
     """Thêm thành viên mới kèm mật khẩu và mẫu vai trò ban đầu."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
@@ -2366,10 +2374,12 @@ def add_member(body: dict, user=Depends(_require_auth)):
 
 
 @app.put("/api/members/{member_id}/permissions")
-def update_member_permissions(member_id: str, body: dict, user=Depends(_require_auth)):
+def update_member_permissions(member_id: str, body: dict, user=Depends(_require_admin)):
     """Cập nhật phân quyền 19 phân hệ cho thành viên."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
+    if not _MEMBERS_FILE.exists():
+        raise HTTPException(404, detail="Không tìm thấy file members.json")
     with open(_MEMBERS_FILE, encoding="utf-8") as f:
         data = json.load(f)
     members = data.get("members", [])
@@ -2386,11 +2396,12 @@ def update_member_permissions(member_id: str, body: dict, user=Depends(_require_
         raise HTTPException(404, detail="Không tìm thấy thành viên")
     with open(_MEMBERS_FILE, "w", encoding="utf-8") as f:
         json.dump({"members": members}, f, ensure_ascii=False, indent=2)
-    return {"success": True, "member": target}
+    safe = {k: v for k, v in target.items() if k != "password"}
+    return {"success": True, "member": safe}
 
 
 @app.put("/api/members/{member_id}/password")
-def reset_member_password(member_id: str, body: dict, user=Depends(_require_auth)):
+def reset_member_password(member_id: str, body: dict, user=Depends(_require_admin)):
     """Đặt lại mật khẩu cho thành viên (hash bcrypt trước khi lưu)."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
@@ -2414,7 +2425,7 @@ def reset_member_password(member_id: str, body: dict, user=Depends(_require_auth
 
 
 @app.delete("/api/members/{member_id}")
-def delete_member(member_id: str, user=Depends(_require_auth)):
+def delete_member(member_id: str, user=Depends(_require_admin)):
     """Xóa thành viên theo id."""
     if not os.access(str(_MEMBERS_FILE.parent), os.W_OK):
         raise HTTPException(503, detail="Filesystem chỉ đọc (Vercel). Sửa trực tiếp data/members.json rồi deploy.")
