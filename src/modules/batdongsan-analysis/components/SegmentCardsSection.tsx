@@ -109,6 +109,13 @@ export const SegmentCardsSection: React.FC = () => {
                   {seg.strategicAdvice}
                 </p>
               </div>
+
+              {/* Historical Case */}
+              {seg.historicalCase && (
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium leading-relaxed">
+                  {seg.historicalCase}
+                </div>
+              )}
             </div>
           ))}
         </div>

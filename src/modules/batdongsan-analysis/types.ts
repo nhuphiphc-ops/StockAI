@@ -7,6 +7,7 @@ export interface CauseEffectItem {
   impactType: ImpactType;
   impactGroup: string;
   detail: string;
+  realExample?: string; // Ví dụ sống động thực tế lịch sử / thị trường
 }
 
 export interface FactorDetail {
@@ -16,6 +17,7 @@ export interface FactorDetail {
   bearScenario: string;
   bearImpact: string;
   impactedSegments: string[];
+  realCaseStudy?: string; // Bài học thực chiến / Ví dụ minh họa thực tế
 }
 
 export interface FactorGroup {
@@ -36,6 +38,7 @@ export interface SegmentItem {
   riskLevel: 'Thấp' | 'Trung bình' | 'Cao' | 'Rất cao';
   summary: string;
   strategicAdvice: string;
+  historicalCase?: string; // Ví dụ thực tế lịch sử phân khúc
 }
 
 export interface PrincipleItem {
@@ -44,6 +47,7 @@ export interface PrincipleItem {
   subtitle: string;
   description: string;
   bulletPoints: string[];
+  vividIllustration?: string; // Minh họa sống động thực tế
 }
 
 export interface IndicatorMetric {
@@ -53,6 +57,7 @@ export interface IndicatorMetric {
   warningVal: string;
   dangerVal: string;
   realEstateImpact: string;
+  historicalCase?: string; // Ví dụ lịch sử chỉ số
 }
 
 export interface CrisisStage {
@@ -61,6 +66,7 @@ export interface CrisisStage {
   timeHorizon: string;
   description: string;
   keySignals: string[];
+  historicalExample?: string; // Ví dụ thực tế giai đoạn
 }
 
 export type RiskLevel = 'normal' | 'warning' | 'high' | 'crisis';
@@ -74,6 +80,7 @@ export interface ActionMatrixLevel {
   textClass: string;
   description: string;
   actionStrategy: string[];
+  vividStrategyExample?: string; // Ví dụ hành động thực chiến
 }
 
 export interface TransmissionChannel {
@@ -82,6 +89,7 @@ export interface TransmissionChannel {
   iconName: string;
   description: string;
   realEstateConsequence: string;
+  vividExample?: string; // Minh họa kênh truyền dẫn thực tế
 }
 
 export interface ChecklistItem {
@@ -102,4 +110,5 @@ export interface MonitorMetric {
   macroConclusion: string;
   actionSuggestion: string;
   lastUpdated: string;
+  realWorldContext?: string; // Bối cảnh thực tế thời điểm
 }

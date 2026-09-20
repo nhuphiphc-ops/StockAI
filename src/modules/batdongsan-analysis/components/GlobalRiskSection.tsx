@@ -125,7 +125,12 @@ export const GlobalRiskSection: React.FC = () => {
                     <td className="p-4 font-medium text-emerald-400 bg-emerald-950/10">{ind.normalVal}</td>
                     <td className="p-4 font-medium text-amber-400 bg-amber-950/10">{ind.warningVal}</td>
                     <td className="p-4 font-bold text-rose-400 bg-rose-950/10">{ind.dangerVal}</td>
-                    <td className="p-4 text-slate-300 leading-relaxed text-sm">{ind.realEstateImpact}</td>
+                    <td className="p-4 text-slate-300 leading-relaxed text-sm space-y-1">
+                      <div>{ind.realEstateImpact}</div>
+                      {ind.historicalCase && (
+                        <div className="text-xs text-amber-300 font-medium italic pt-1">{ind.historicalCase}</div>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -161,16 +166,24 @@ export const GlobalRiskSection: React.FC = () => {
                   <p className="text-sm text-slate-300 leading-relaxed">{st.description}</p>
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 space-y-1.5">
-                  <div className="text-xs font-bold text-amber-400 uppercase tracking-wider">TÍN HIỆU NHẬN BIẾT:</div>
+                <div className="pt-3 border-t border-slate-800 space-y-2">
                   <div className="space-y-1">
-                    {st.keySignals.map((sig, sIdx) => (
-                      <div key={sIdx} className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                        <span>{sig}</span>
-                      </div>
-                    ))}
+                    <div className="text-xs font-bold text-amber-400 uppercase tracking-wider">TÍN HIỆU NHẬN BIẾT:</div>
+                    <div className="space-y-1">
+                      {st.keySignals.map((sig, sIdx) => (
+                        <div key={sIdx} className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                          <span>{sig}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
+                  {st.historicalExample && (
+                    <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium leading-relaxed">
+                      {st.historicalExample}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -213,6 +226,12 @@ export const GlobalRiskSection: React.FC = () => {
                       </li>
                     ))}
                   </ul>
+
+                  {act.vividStrategyExample && (
+                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium leading-relaxed mt-2">
+                      {act.vividStrategyExample}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -234,9 +253,14 @@ export const GlobalRiskSection: React.FC = () => {
               >
                 <h4 className="text-lg font-bold text-amber-300">{tc.channelTitle}</h4>
                 <p className="text-base text-slate-300 leading-relaxed">{tc.description}</p>
-                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                   <div className="text-xs font-bold text-rose-400 uppercase tracking-wider">HỆ QUẢ TRỰC TIẾP BĐS VN:</div>
                   <p className="text-sm font-medium text-slate-200 leading-relaxed">{tc.realEstateConsequence}</p>
+                  {tc.vividExample && (
+                    <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium leading-relaxed mt-1">
+                      {tc.vividExample}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

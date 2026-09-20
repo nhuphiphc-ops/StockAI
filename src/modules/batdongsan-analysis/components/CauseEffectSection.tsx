@@ -159,6 +159,13 @@ export const CauseEffectSection: React.FC = () => {
                 <p className="text-slate-300 text-base leading-relaxed pt-1">
                   {item.detail}
                 </p>
+
+                {/* Real Example */}
+                {item.realExample && (
+                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium leading-relaxed">
+                    {item.realExample}
+                  </div>
+                )}
               </div>
             </div>
           ))}

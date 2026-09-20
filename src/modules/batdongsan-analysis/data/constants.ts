@@ -19,6 +19,7 @@ export const INITIAL_CAUSE_EFFECT_DATA: CauseEffectItem[] = [
     impactType: 'increase',
     impactGroup: 'Tài chính - Tiền tệ',
     detail: 'Chi phí vốn rẻ làm giảm áp lực trả nợ cho nhà đầu tư dùng đòn bẩy. Dòng tiền gửi tiết kiệm rút ra tìm kiếm kênh lợi suất cao hơn, thúc đẩy sức mua ở thực và đầu cơ tích lũy.',
+    realExample: '📌 Ví dụ sống động (Sốt đất tiền rẻ 2020 - 2021): SBV 3 lần hạ lãi suất điều hành về mốc kỷ lục 4.0%. Lãi tiết kiệm rơi xuống 3-4%/năm khiến hàng trăm nghìn tỷ đồng chảy vào đất nền Nhơn Trạch, Phan Thiết, Lâm Đồng, đẩy giá đất tăng 50-100% chỉ trong 18 tháng.',
   },
   {
     id: 'ce-2',
@@ -27,6 +28,7 @@ export const INITIAL_CAUSE_EFFECT_DATA: CauseEffectItem[] = [
     impactType: 'decrease',
     impactGroup: 'Tài chính - Tiền tệ',
     detail: 'Áp lực chi phí tài chính tăng vọt. Nhà đầu tư lỡ dùng đòn bẩy cao (>50%) buộc phải cắt lỗ hoặc giảm giá 20-35% để thu hồi dòng tiền trả gốc vay ngân hàng.',
+    realExample: '📌 Ví dụ sống động (Cú sốc thắt chặt 2022 - 2023): Sau sự cố SCB và Vạn Thịnh Phát, SBV tăng 200 điểm cơ bản lãi suất điều hành. Lãi suất vay thả nổi nhảy vọt lên 13-15%/năm. Hàng nghìn nhà đầu tư lướt sóng đòn bẩy >60% tại Nhơn Trạch, Đan Phượng ngợp nợ buộc chiết khấu 30-40% xả hàng.',
   },
   {
     id: 'ce-3',
@@ -35,6 +37,7 @@ export const INITIAL_CAUSE_EFFECT_DATA: CauseEffectItem[] = [
     impactType: 'increase',
     impactGroup: 'Hạ tầng - Quy hoạch',
     detail: 'Hạ tầng giao thông rút ngắn thời gian di chuyển, nâng cao giá trị thương mại và khai thác thực tế của quỹ đất xung quanh các nút giao và tuyến kết nối.',
+    realExample: '📌 Ví dụ sống động (Cao tốc Dầu Giây - Phan Thiết & Sân bay Long Thành 2020-2023): Đất mặt tiền kết nối nút giao cao tốc tại Hàm Thuận Nam & Tiến Thành vọt từ 2-3 triệu/m2 lên 8-12 triệu/m2 khi dự án thông xe. Các vùng không có đường nối trực tiếp hoàn toàn không tăng giá.',
   },
   {
     id: 'ce-4',
@@ -43,6 +46,7 @@ export const INITIAL_CAUSE_EFFECT_DATA: CauseEffectItem[] = [
     impactType: 'freeze',
     impactGroup: 'Chính sách - Pháp lý',
     detail: 'Chủ đầu tư không tiếp cận được vốn vay để triển khai dự án mới; người mua không được duyệt giải ngân khiến giao dịch thứ cấp rơi vào trạng thái đứng yên.',
+    realExample: '📌 Ví dụ sống động (Khóa Room tín dụng Q3/2022): Ngân hàng chạm trần tín dụng BĐS, người mua căn hộ tại Vinhomes Grand Park, Aqua City dù đã cọc 30% nhưng không được giải ngân vay thứ cấp, làm thanh khoản thị trường đóng băng 6 tháng.',
   },
   {
     id: 'ce-5',
@@ -51,6 +55,7 @@ export const INITIAL_CAUSE_EFFECT_DATA: CauseEffectItem[] = [
     impactType: 'freeze',
     impactGroup: 'Vĩ mô quốc tế',
     detail: 'Trong ngắn hạn, NHNN phải hút tiền ròng làm dòng tiền ngưng trệ. Dài hạn, BĐS gắn liền với đất vẫn là kênh chống mất giá tiền tệ hiệu quả hàng đầu.',
+    realExample: '📌 Ví dụ sống động (Căng thẳng Tỷ giá Q2/2024): Tỷ giá USD/VND tự do vượt mốc 25,480 VND/USD (tăng 4.5%). SBV phát hành 170.000 tỷ tín phiếu hút tiền. Dòng tiền đầu cơ đất tỉnh co cụm, rút về gom căn hộ chung cư Hà Nội có dòng tiền cho thuê 5%/năm.',
   },
   {
     id: 'ce-6',
@@ -59,6 +64,7 @@ export const INITIAL_CAUSE_EFFECT_DATA: CauseEffectItem[] = [
     impactType: 'increase',
     impactGroup: 'Chi phí đầu vào',
     detail: 'Chi phí xây dựng chiếm 30-40% tổng vốn đầu tư. Khi giá đầu vào đắt đỏ, các chủ đầu tư bắt buộc phải đẩy giá bán căn hộ/nhà phố mới lên cao hơn.',
+    realExample: '📌 Ví dụ sống động (Bùng nổ giá thép 2021-2022): Giá thép xây dựng tăng >40% (từ 12.000 lên 19.000 VNĐ/kg) kèm giá cát tăng gấp 2. Các chủ đầu tư TP.HCM & Hà Nội buộc phải điều chỉnh giá bán căn hộ sơ cấp mở bán đợt mới tăng thêm 10-15%.',
   },
   {
     id: 'ce-7',
@@ -67,6 +73,7 @@ export const INITIAL_CAUSE_EFFECT_DATA: CauseEffectItem[] = [
     impactType: 'increase',
     impactGroup: 'Hạ tầng - Quy hoạch',
     detail: 'Tin tức quy hoạch kích thích dòng tiền đầu cơ đi trước đón đầu. Tuy nhiên nếu hạ tầng thực tế chậm triển khai, thị trường dễ xuất hiện bong bóng ảo.',
+    realExample: '📌 Ví dụ sống động (Sốt đất ảo Hớn Quản 2021 & Đông Anh 2019): Khi xuất hiện tin đồn quy hoạch sân bay Hớn Quản (Bình Phước), giá đất rẫy tăng 3-5 lần trong 10 ngày. Sau khi tỉnh xác minh chưa có quy hoạch, thị trường bốc hơi thanh khoản, nhiều nhà đầu tư kẹp hàng nặng.',
   },
   {
     id: 'ce-8',
@@ -75,6 +82,7 @@ export const INITIAL_CAUSE_EFFECT_DATA: CauseEffectItem[] = [
     impactType: 'decrease',
     impactGroup: 'Kinh tế - Xã hội',
     detail: 'Thu nhập người dân thắt chặt làm giảm khả năng chi trả tiền vay mua nhà. Giá thuê chung cư, mặt bằng kinh doanh bị chiết khấu để giữ chân khách thuê.',
+    realExample: '📌 Ví dụ sống động (Làn sóng sa thải dệt may & gỗ 2023): Sa thải hàng loạt tại các KCN Bình Dương & Đồng Nai khiến hàng nghìn dãy phòng trọ công nhân bỏ trống, kéo theo giá thuê nhà phố kinh doanh tại cổng KCN giảm 20-30%.',
   },
 ];
 
@@ -92,6 +100,7 @@ export const FACTOR_TABS_DATA: FactorGroup[] = [
         bearScenario: 'Lãi suất thả nổi vượt 12-14%/năm',
         bearImpact: 'Thị trường đóng băng. Áp lực bán tháo cắt lỗ từ nhà đầu tư cá nhân vay đòn bẩy quá đà.',
         impactedSegments: ['Đất nền', 'Chung cư', 'Nhà phố'],
+        realCaseStudy: '💡 Bài học thực chiến (Đợt gãy sóng đòn bẩy 2022-2023): Khi lãi suất thả nổi nhảy từ 8.5% lên 14.5%, khoản trả gốc+lãi hàng tháng của khoản vay 3 tỷ VND tăng từ 21 triệu lên 36 triệu VNĐ/tháng, vượt quá thu nhập gia đình khiến nhiều nhà đầu tư buộc phải chiết khấu 30% cắt lỗ khẩn cấp.',
       },
       {
         name: 'Chính sách tỷ giá USD/VND & Hành động Fed',
@@ -100,6 +109,7 @@ export const FACTOR_TABS_DATA: FactorGroup[] = [
         bearScenario: 'DXY tăng vọt >106, Fed kéo dài lãi suất cao',
         bearImpact: 'NHNN buộc phải nâng lãi suất hoặc bán ngoại tệ hút tiền về, thắt chặt dòng tiền chảy vào BĐS.',
         impactedSegments: ['BĐS Công nghiệp', 'Đất nền', 'Nhà phố'],
+        realCaseStudy: '💡 Bài học thực chiến (Fed nâng lãi suất lên 5.5% năm 2023): Khối ngoại liên tục bán ròng rút khỏi thị trường tài sản các nước đang phát triển. SBV buộc phải duy trì chênh lệch lãi suất VND-USD để bảo vệ tỷ giá, khiến room hạ lãi suất vay BĐS trong nước bị hạn chế.',
       },
       {
         name: 'Hạn mức tăng trưởng tín dụng (Credit Room)',
@@ -108,6 +118,7 @@ export const FACTOR_TABS_DATA: FactorGroup[] = [
         bearScenario: 'Kiểm soát chặt tín dụng BĐS ở mức thấp',
         bearImpact: 'Chủ đầu tư đói vốn, dự án chậm tiến độ, người mua thiếu nguồn vay thứ cấp.',
         impactedSegments: ['Chung cư', 'Nhà phố', 'BĐS Công nghiệp'],
+        realCaseStudy: '💡 Bài học thực chiến (Tắc nghẽn tín dụng BĐS 2022): Các chủ đầu tư lớn như Novaland, Đất Xanh bị tắc cả nguồn vay ngân hàng lẫn kênh phát hành trái phiếu, dẫn tới hàng chục dự án đại đô thị phải tạm ngưng thi công.',
       },
     ],
   },
@@ -124,6 +135,7 @@ export const FACTOR_TABS_DATA: FactorGroup[] = [
         bearScenario: 'Bảng giá đất sát giá thị trường làm chi phí tiền sử dụng đất tăng vọt',
         bearImpact: 'Đẩy giá thành BĐS sơ cấp tăng cao, giảm biên lợi nhuận của nhà phát triển.',
         impactedSegments: ['Chung cư', 'Đất nền', 'Nhà phố'],
+        realCaseStudy: '💡 Bài học thực chiến (Luật Đất đai 2024 hiệu lực sớm): Việc bỏ khung giá đất cũ và áp dụng Bảng giá đất mới theo thị trường khiến tiền sử dụng đất dự án chung cư mới tại Hà Nội & TP.HCM tăng 2-3 lần, đẩy giá sơ cấp chung cư từ 40-50 triệu/m2 vọt lên >70-90 triệu/m2.',
       },
       {
         name: 'Tiến độ giải ngân Đầu tư công',
@@ -132,6 +144,7 @@ export const FACTOR_TABS_DATA: FactorGroup[] = [
         bearScenario: 'Chậm giải ngân do vướng đền bù giải phóng mặt bằng',
         bearImpact: 'Hạ tầng dậm chân tại chỗ, các cơn sóng đất theo hạ tầng bị xẹp lép nhanh chóng.',
         impactedSegments: ['Đất nền', 'BĐS Công nghiệp', 'Nhà phố'],
+        realCaseStudy: '💡 Bài học thực chiến (Vành đai 4 Hà Nội & Vành đai 3 TP.HCM 2023-2024): Việc giải ngân thần tốc hàng chục nghìn tỷ đồng hạ tầng đường vành đai đã kích hoạt làn sóng dịch chuyển dân cư và tăng giá BĐS tại các vùng ven như Hoài Đức, Thanh Oai, Nhơn Trạch.',
       },
     ],
   },
@@ -148,6 +161,7 @@ export const FACTOR_TABS_DATA: FactorGroup[] = [
         bearScenario: 'Kinh tế tăng trưởng chậm <5%, doanh nghiệp thu hẹp',
         bearImpact: 'Nhu cầu mở rộng mặt bằng kinh doanh giảm, người dân ưu tiên nắm giữ tiền mặt.',
         impactedSegments: ['Chung cư', 'Nhà phố - Shophouse'],
+        realCaseStudy: '💡 Bài học thực chiến (Thu nhập hộ gia đình đô thị Hà Nội/TP.HCM đạt >150-200 triệu/năm): Tạo bệ phóng vững chắc cho xu hướng mua trả góp chung cư 2PN giá 2.5 - 3.5 tỷ VNĐ, giúp phân khúc chung cư giữ sóng ổn định nhất.',
       },
       {
         name: 'Dòng vốn đầu tư trực tiếp nước ngoài (FDI)',
@@ -156,6 +170,7 @@ export const FACTOR_TABS_DATA: FactorGroup[] = [
         bearScenario: 'Dòng vốn FDI chậm lại do bất ổn chuỗi cung ứng toàn cầu',
         bearImpact: 'Giá thuê và tỷ lệ lấp đầy KCN tăng chậm, dòng tiền ngoại vào BĐS chững lại.',
         impactedSegments: ['BĐS Công nghiệp', 'Chung cư cao cấp'],
+        realCaseStudy: '💡 Bài học thực chiến (Siêu dự án LEGO 1 tỷ USD tại Bình Dương): Kéo theo hàng nghìn nhà cung cấp phụ trợ & chuyên gia nước ngoài, đẩy giá thuê đất KCN VSIP III lên mốc 160 USD/m2 và tăng cầu thuê căn hộ cao cấp tại Thủ Dầu Một.',
       },
     ],
   },
@@ -172,6 +187,7 @@ export const FACTOR_TABS_DATA: FactorGroup[] = [
         bearScenario: 'Giá thép, cát xây dựng tăng phi mã 25-40%',
         bearImpact: 'Chủ đầu tư buộc phải tăng giá bán sơ cấp hoặc giảm chất lượng hoàn thiện.',
         impactedSegments: ['Chung cư', 'Nhà phố - Shophouse'],
+        realCaseStudy: '💡 Bài học thực chiến (Bão giá cát xây dựng miền Nam 2023-2024): Thiếu hụt cát san lấp cho các tuyến cao tốc và đại dự án đô thị làm chi phí san lấp mặt bằng vọt tăng 50%, buộc chủ đầu tư phải tính vào giá thành đất nền/căn hộ mở bán.',
       },
       {
         name: 'Chi phí đền bù giải phóng mặt bằng & Tiền sử dụng đất',
@@ -180,6 +196,7 @@ export const FACTOR_TABS_DATA: FactorGroup[] = [
         bearScenario: 'Chi phí bồi thường theo giá thị trường tăng quá cao',
         bearImpact: 'Đẩy suất đầu tư mỗi m2 đất lên mức kỷ lục, chỉ phù hợp làm sản phẩm hạng sang.',
         impactedSegments: ['Đất nền', 'Chung cư', 'BĐS Công nghiệp'],
+        realCaseStudy: '💡 Bài học thực chiến (Giá đền bù theo giá thị trường): Nhiều dự án tại Thủ Thiêm TP.HCM chậm tiến độ 5-7 năm do không giải phóng được mặt bằng khi giá đền bù chênh lệch lớn so với kỳ vọng của người dân.',
       },
     ],
   },
@@ -200,6 +217,7 @@ export const SEGMENTS_DATA: SegmentItem[] = [
     riskLevel: 'Cao',
     summary: 'Phân khúc mang tính bùng nổ khi có sóng tiền rẻ hoặc tin quy hoạch. Khi thị trường thắt chặt, đây là phân khúc mất thanh khoản đầu tiên và lâu nhất.',
     strategicAdvice: 'Chỉ đầu tư đất nền bằng vốn tự có (>70%), chọn vị trí có dân cư hiện hữu và pháp lý sổ đỏ trao tay. Tránh mua đất trồng cây/đất rừng đón sóng ảo.',
+    historicalCase: '🏛️ Bài học thực tế lịch sử (Cơn sốt đất Ba Vì 2010): Tin đồn dời Trung tâm Hành chính Quốc gia về Ba Vì khiến giá đất tăng 4 lần chỉ trong 1 tháng. Khi đồ án bị bác bỏ, giá đất bốc hơi 70% và mất thanh khoản suốt 10 năm.',
   },
   {
     id: 'seg-apartment',
@@ -215,6 +233,7 @@ export const SEGMENTS_DATA: SegmentItem[] = [
     riskLevel: 'Trung bình',
     summary: 'Giữ giá tốt trong chu kỳ suy thoái nhờ cầu ở thực cao tại các đô thị lớn. Tỷ suất dòng tiền cho thuê trung bình từ 3.5% - 5.5%/năm.',
     strategicAdvice: 'Ưu tiên các dự án đã hoàn thiện pháp lý, bàn giao đúng tiến độ, mật độ cư dân về ở đông đúc. Tận dụng gói vay lãi suất cố định 2-3 năm đầu.',
+    historicalCase: '🏛️ Bài học thực tế lịch sử (Sóng ngược chung cư Hà Nội 2023-2024): Trong khi đất nền tỉnh giảm 30%, giá chung cư Hà Nội (Vinhomes Smart City, Ocean Park, Masteri) tăng 40-60% nhờ lệch pha cung-cầu và dòng tiền cho thuê thực 5%/năm.',
   },
   {
     id: 'seg-townhouse',
@@ -230,6 +249,7 @@ export const SEGMENTS_DATA: SegmentItem[] = [
     riskLevel: 'Thấp',
     summary: 'Là kênh tích sản an toàn của nhà đầu tư có tài chính mạnh. Giá trị nhà phố nội thành ít khi giảm sâu, tăng trưởng bền vững theo thời gian.',
     strategicAdvice: 'Tính toán kỹ tỷ suất dòng tiền cho thuê thực tế (tối thiểu >3%/năm). Tránh mua Shophouse tại các dự án nghỉ dưỡng/đô thị ma thiếu cư dân.',
+    historicalCase: '🏛️ Bài học thực tế lịch sử (Sự đối lập Shophouse Phố Cổ vs Shophouse Nghỉ dưỡng): Shophouse Q1 TP.HCM hay Hoàn Kiếm Hà Nội cho thuê 3-4%/năm giữ giá bền vững qua 30 năm; trong khi Shophouse nghỉ dưỡng xa dân cư cắt lỗ 50% vẫn không có người thuê.',
   },
   {
     id: 'seg-industrial',
@@ -245,6 +265,7 @@ export const SEGMENTS_DATA: SegmentItem[] = [
     riskLevel: 'Thấp',
     summary: 'Hưởng lợi lớn từ xu hướng chuyển dịch sản xuất China+1. Giá thuê đất KCN duy trì đà tăng ổn định 5-10%/năm tại các thủ phủ công nghiệp.',
     strategicAdvice: 'Theo dõi sát tiến độ hoàn thiện hạ tầng kết nối liên vùng và danh sách các tập đoàn đa quốc gia đăng ký cấp phép đầu tư mới.',
+    historicalCase: '🏛️ Bài học thực tế lịch sử (KCN Hải Phòng & Quảng Ninh): Nhờ mở hạ tầng Cảng biển nước sâu Lạch Huyện và Cao tốc Hà Nội - Hải Phòng - Móng Cái, LG rót >9 tỷ USD, đưa tỷ lệ lấp đầy KCN Tràng Duệ đạt 95% và giá thuê tăng ổn định 8%/năm.',
   },
 ];
 
@@ -259,6 +280,7 @@ export const FORMULA_PRINCIPLES_DATA: PrincipleItem[] = [
       'Tháng 6 - 9: Các gói vay rẻ được giải ngân ➔ Thanh khoản chung cư tăng.',
       'Tháng 12+: Dòng tiền lan tỏa sang đất nền và bất động sản đầu cơ.',
     ],
+    vividIllustration: '📌 Minh họa sống động thực tế: SBV hạ lãi suất điều hành từ Tháng 3/2023, nhưng phải tới Tháng 4/2024 (sau 13 tháng độ trễ), dòng tiền tiết kiệm hết hạn mới thực sự tràn vào thị trường giúp thanh khoản chung cư bùng nổ.',
   },
   {
     id: 'pr-2',
@@ -269,6 +291,7 @@ export const FORMULA_PRINCIPLES_DATA: PrincipleItem[] = [
       'Chung cư/Nhà ở: Cầu ổn định, dòng tiền thuê thực tế làm giá sàn vững chắc.',
       'Đất nền xa trung tâm: Tăng nhanh nhờ sóng truyền thông nhưng sụt giảm mạnh khi thắt chặt tín dụng.',
     ],
+    vividIllustration: '📌 Minh họa sống động thực tế: Năm 2023, trong khi chung cư Cầu Giấy (Hà Nội) vẫn giao dịch sôi động vì người dân cần ở thực, thì đất nền phân lô tại Lâm Đồng hay Bình Phước ngưng trệ 100% giao dịch do vắng bóng giới đầu cơ.',
   },
   {
     id: 'pr-3',
@@ -279,6 +302,7 @@ export const FORMULA_PRINCIPLES_DATA: PrincipleItem[] = [
       'Biên độ điều chỉnh chậm: Cần 3-6 tháng thắt chặt tiền tệ giá mới bắt đầu giảm.',
       'Rủi ro chôn vốn: Không dành cho dòng tiền cần dự phòng khẩn cấp.',
     ],
+    vividIllustration: '📌 Minh họa sống động thực tế: Khi thị trường trầm lắng cuối 2022, 1 căn biệt thự biển niêm yết 20 tỷ nếu chủ nhà chỉ chiết khấu 10% (xuống 18 tỷ) thì nửa năm không ai hỏi. Phải hạ hẳn 35-40% (về 12-13 tỷ) mới có nhà đầu tư tiền mặt giải ngân.',
   },
   {
     id: 'pr-4',
@@ -289,6 +313,7 @@ export const FORMULA_PRINCIPLES_DATA: PrincipleItem[] = [
       'Vị trí lõi trung tâm: Luôn giữ giá và chống chịu lạm phát tốt nhất.',
       'Vùng ven chưa có hạ tầng: Chịu biến động mạnh và rủi ro chôn vốn kéo dài.',
     ],
+    vividIllustration: '📌 Minh họa sống động thực tế: Cùng trong đợt suy thoái 2023, nhà phố mặt tiền lõi Q1 TP.HCM hoặc Hoàn Kiếm Hà Nội vẫn tăng giá nhẹ 3-5%, trong khi đất nông nghiệp đón sóng ảo ở tỉnh xa giảm giá trên 50%.',
   },
 ];
 
@@ -305,6 +330,7 @@ export const GLOBAL_CRISIS_DATA = {
       warningVal: '25 – 35 điểm',
       dangerVal: '> 40 điểm (Tâm lý hoảng loạn)',
       realEstateImpact: 'VIX vọt cao phản ánh hoảng loạn toàn cầu. Khối ngoại bán ròng tài sản thị trường mới nổi, tiền tháo chạy về USD/Trái phiếu Mỹ.',
+      historicalCase: '🏛️ Lịch sử thực tế: Tháng 10/2008 (sụp đổ Lehman Brothers) VIX vọt lên 89.5 điểm; Tháng 3/2020 (Covid-19) VIX vọt 82.6 điểm. Khối ngoại tháo chạy rút vốn khỏi BĐS thị trường mới nổi.',
     },
     {
       id: 'ind-yield-curve',
@@ -313,6 +339,7 @@ export const GLOBAL_CRISIS_DATA = {
       warningVal: 'Đảo ngược (< -0.3%)',
       dangerVal: 'Đảo ngược kéo dài >3 tháng',
       realEstateImpact: 'Dấu hiệu dự báo suy thoái kinh tế Mỹ sau 12-18 tháng với độ chính xác >90%. Xuất khẩu VN suy giảm ➔ dòng tiền BĐS thu hẹp.',
+      historicalCase: '🏛️ Lịch sử thực tế: Đường cong 10Y-2Y Mỹ đảo ngược sâu vào năm 2006 (dẫn tới khủng hoảng subprime BĐS 2008) và Tháng 7/2022 (dẫn tới chu kỳ thắt chặt tín dụng kỷ lục 2022-2023).',
     },
     {
       id: 'ind-us10y',
@@ -321,6 +348,7 @@ export const GLOBAL_CRISIS_DATA = {
       warningVal: '4.5% – 5.0%',
       dangerVal: '> 5.5% (Chi phí vốn toàn cầu đắt)',
       realEstateImpact: 'Lãi suất Mỹ quá cao buộc SBV phải duy trì lãi suất VND ở mức cao để chống mất giá tỷ giá ➔ Lãi suất vay BĐS VN không thể hạ sâu.',
+      historicalCase: '🏛️ Lịch sử thực tế: Lãi suất Mỹ 10Y chạm mốc 5.0% năm 2023 khiến SBV chịu áp lực tỷ giá khủng khiếp, ngưng hẳn các đợt giảm lãi suất tiền gửi trong nước.',
     },
     {
       id: 'ind-wti',
@@ -329,6 +357,7 @@ export const GLOBAL_CRISIS_DATA = {
       warningVal: '90 – 110 USD/thùng',
       dangerVal: '> 110 USD kéo dài (>2 tháng)',
       realEstateImpact: 'Giá dầu cao bùng nổ lạm phát nhập khẩu ➔ Chi phí vật liệu xây dựng (thép, xi măng, nhựa, vận tải) tăng phi mã đẩy giá nhà sơ cấp.',
+      historicalCase: '🏛️ Lịch sử thực tế: Năm 2022 giá dầu WTI vượt 120 USD/thùng do chiến sự Nga-Ukraine làm giá thép, bê tông, vận tải trong nước tăng vọt 30%, đẩy chi phí xây dựng dự án vọt đỉnh.',
     },
     {
       id: 'ind-dxy',
@@ -337,6 +366,7 @@ export const GLOBAL_CRISIS_DATA = {
       warningVal: '102 – 105',
       dangerVal: '> 106 (USD siêu mạnh)',
       realEstateImpact: 'DXY tăng vọt gây áp lực mất giá lớn lên VND. NHNN phải bán ngoại tệ hút tiền ròng ➔ Thắt chặt thanh khoản hệ thống ngân hàng.',
+      historicalCase: '🏛️ Lịch sử thực tế: Chỉ số DXY chạm 114 điểm vào tháng 9/2022 ép tỷ giá USD/VND tăng nóng, SBV buộc phải bán hơn 20 tỷ USD dự trữ ngoại hối và tăng lãi suất 2% cấp tập.',
     },
     {
       id: 'ind-gdp-global',
@@ -345,6 +375,7 @@ export const GLOBAL_CRISIS_DATA = {
       warningVal: '2.0% – 2.5%',
       dangerVal: '< 1.5% (Suy thoái toàn cầu)',
       realEstateImpact: 'Suy thoái toàn cầu làm suy giảm cầu du lịch, dịch vụ thương mại, FDI chững lại ➔ BĐS nghỉ dưỡng & công nghiệp chịu đòn.',
+      historicalCase: '🏛️ Lịch sử thực tế: Khủng hoảng tài chính toàn cầu 2008 khiến lượng khách du lịch quốc tế sụt giảm 40%, làm toàn bộ phân khúc BĐS nghỉ dưỡng & biệt thự biển Việt Nam đóng băng 6 năm.',
     },
     {
       id: 'ind-forex-vn',
@@ -353,6 +384,7 @@ export const GLOBAL_CRISIS_DATA = {
       warningVal: 'Giảm 5 – 10%/quý',
       dangerVal: 'Giảm >15% (Cực kỳ căng thẳng)',
       realEstateImpact: 'Dự trữ ngoại hối cạn làm giảm dư địa can thiệp tỷ giá. Nguy cơ SBV phải nâng lãi suất đột ngột ➔ Ép giá BĐS điều chỉnh.',
+      historicalCase: '🏛️ Lịch sử thực tế: Năm 2022, dự trữ ngoại hối Việt Nam bị sụt giảm từ 110 tỷ USD xuống còn dưới 85 tỷ USD để can thiệp tỷ giá, làm hạn mức thanh khoản ngân hàng thắt chặt.',
     },
   ] as IndicatorMetric[],
   stages: [
@@ -362,6 +394,7 @@ export const GLOBAL_CRISIS_DATA = {
       timeHorizon: 'Tháng 1 - 6',
       description: 'Xung đột địa chính trị hoặc giá năng lượng tăng vọt gây bùng nổ lạm phát toàn cầu. Thị trường chứng khoán chao đảo, chỉ số VIX nhảy vọt.',
       keySignals: ['VIX > 30', 'Giá dầu WTI > 100 USD', 'DXY vượt mốc 104'],
+      historicalExample: '🔍 Minh họa thực tế: Quý 1-2/2022 chiến sự Nga-Ukraine bùng nổ, giá dầu WTI vọt >120 USD, lạm phát Mỹ đạt 9.1% đỉnh 40 năm.',
     },
     {
       stageNumber: 2,
@@ -369,6 +402,7 @@ export const GLOBAL_CRISIS_DATA = {
       timeHorizon: 'Tháng 6 - 12',
       description: 'Fed và ECB liên tục nâng lãi suất đột ngột để dập lạm phát. Đường cong lãi suất đảo ngược sâu, tín dụng doanh nghiệp bị thắt chặt.',
       keySignals: ['Lãi suất Mỹ > 5.5%', 'Đường cong 10Y-2Y đảo ngược', 'Tín dụng BĐS đóng băng'],
+      historicalExample: '🔍 Minh họa thực tế: Quý 3-4/2022 Fed tăng lãi suất 0.75% liên tiếp 4 lần, đường cong lãi suất đảo ngược kỷ lục, thị trường trái phiếu BĐS Việt Nam ngưng trệ.',
     },
     {
       stageNumber: 3,
@@ -376,6 +410,7 @@ export const GLOBAL_CRISIS_DATA = {
       timeHorizon: 'Tháng 12 - 18',
       description: 'Dòng vốn ngoại tháo chạy khỏi các nước đang phát triển. SBV buộc phải bán dự trữ ngoại hối và nâng lãi suất VND để giữ tỷ giá.',
       keySignals: ['VND mất giá > 4%', 'Lãi suất vay BĐS > 13%', 'Dự trữ ngoại hối giảm mạnh'],
+      historicalExample: '🔍 Minh họa thực tế: Cuối 2022 - 2023 tỷ giá USD/VND tăng >4.5%, SBV tăng lãi suất điều hành 200 điểm cơ bản, lãi suất cho vay BĐS vọt lên 13-15%.',
     },
     {
       stageNumber: 4,
@@ -383,6 +418,7 @@ export const GLOBAL_CRISIS_DATA = {
       timeHorizon: 'Tháng 18 - 36',
       description: 'Kinh tế suy thoái đa trung tâm. Thanh khoản BĐS rơi về 0, áp lực giải chấp tài sản nợ xấu. Thị trường bắt đầu giai đoạn tạo đáy và thanh lọc 2-4 năm.',
       keySignals: ['Giá BĐS đầu cơ giảm 25-40%', 'Nợ xấu ngân hàng tăng', 'Giao dịch đứng yên'],
+      historicalExample: '🔍 Minh họa thực tế: Giai đoạn 2008-2013 và 2022-2024, thanh khoản đất nền tỉnh rơi về 0, giá cắt lỗ 30-50%, thị trường mất 2-3 năm để tích lũy tạo đáy.',
     },
   ] as CrisisStage[],
   actionLevels: [
@@ -399,6 +435,7 @@ export const GLOBAL_CRISIS_DATA = {
         'Sử dụng đòn bẩy tài chính hợp lý (dưới 30-40% giá trị tài sản).',
         'Tập trung tích lũy các bất động sản có pháp lý chuẩn và dòng tiền tốt.',
       ],
+      vividStrategyExample: '🎯 Ví dụ thực chiến: Giai đoạn 2016-2019 vĩ mô ổn định, nhà đầu tư vay 30% mua căn hộ chung cư hoặc nhà phố trung tâm hưởng trọn sóng tăng giá 15-20%/năm.',
     },
     {
       level: 'warning',
@@ -413,6 +450,7 @@ export const GLOBAL_CRISIS_DATA = {
         'Rà soát và giảm tỷ lệ nợ vay ngân hàng về mức an toàn (<25%).',
         'Tăng tỷ lệ nắm giữ tiền mặt lên 30-40% danh mục đầu tư.',
       ],
+      vividStrategyExample: '🎯 Ví dụ thực chiến: Đầu năm 2022 khi VIX và DXY rục rịch tăng, nhà đầu tư khôn ngoan đã chủ động chốt lời đất nền tỉnh, hạ nợ vay về 0.',
     },
     {
       level: 'high',
@@ -427,6 +465,7 @@ export const GLOBAL_CRISIS_DATA = {
         'Tuyệt đối không dùng đòn bẩy tài chính vay mua mới.',
         'Chuẩn bị lượng tiền mặt dồi dào sẵn sàng cho kịch bản mua chiết khấu sâu.',
       ],
+      vividStrategyExample: '🎯 Ví dụ thực chiến: Quý 3/2022 khi ngân hàng nâng lãi suất vay lên 13%, bán cắt lỗ ngay các suất đất ven chưa hạ tầng giúp nhà đầu tư bảo toàn vốn trước cú sụp.',
     },
     {
       level: 'crisis',
@@ -441,6 +480,7 @@ export const GLOBAL_CRISIS_DATA = {
         'Kiên nhẫn quan sát và chờ đợi thị trường xác nhận tín hiệu tạo đáy.',
         'Tập trung săn lùng các BĐS cốt lõi trung tâm bị ngợp nợ chiết khấu 30-50%.',
       ],
+      vividStrategyExample: '🎯 Ví dụ thực chiến: Năm 2011-2012 & 2023, nhà đầu tư ôm lượng lớn tiền mặt đi săn các căn hộ/nhà phố trung tâm ngợp nợ chiết khấu 35-40%, thu về tỷ suất dòng tiền 6-7%/năm.',
     },
   ] as ActionMatrixLevel[],
   transmissionChannels: [
@@ -450,6 +490,7 @@ export const GLOBAL_CRISIS_DATA = {
       iconName: 'Building',
       description: 'Khi kinh tế toàn cầu suy thoái, các tập đoàn đa quốc gia cắt giảm ngân sách mở rộng nhà máy.',
       realEstateConsequence: 'Tốc độ lấp đầy KCN chậm lại, cầu thuê kho bãi logistics suy giảm, ảnh hưởng trực tiếp BĐS công nghiệp.',
+      vividExample: '💡 Minh họa thực tế: Đợt suy thoái kinh tế 2023 khiến các tập đoàn công nghệ toàn cầu hoãn dự án mở rộng nhà máy tại Bắc Ninh, làm tốc độ lấp đầy KCN giảm 15%.',
     },
     {
       id: 'tc-export',
@@ -457,6 +498,7 @@ export const GLOBAL_CRISIS_DATA = {
       iconName: 'Ship',
       description: 'Sức mua tại Mỹ & EU sụt giảm mạnh làm các doanh nghiệp xuất khẩu (dệt may, da giày, gỗ, điện tử) thiếu đơn hàng.',
       realEstateConsequence: 'Công nhân và người lao động bị giảm giờ làm/sa thải ➔ Sức mua nhà ở bình dân & nhu cầu thuê trọ sụt giảm.',
+      vividExample: '💡 Minh họa thực tế: Mỹ & Châu Âu sụt giảm đơn hàng năm 2023 khiến hàng chục nghìn công nhân tại Bình Dương bị nghỉ luân phiên, làm các dãy phòng trọ bỏ trống 30%.',
     },
     {
       id: 'tc-fx',
@@ -464,6 +506,7 @@ export const GLOBAL_CRISIS_DATA = {
       iconName: 'ArrowRightLeft',
       description: 'USD tăng giá kỷ lục khiến áp lực mất giá VND tăng cao, buộc SBV phải can thiệp bằng chính sách tiền tệ.',
       realEstateConsequence: 'Lãi suất điều hành VND tăng lên ➔ Lãi suất vay mua nhà vọt cao ➔ Ép giá BĐS thứ cấp phải điều chỉnh.',
+      vividExample: '💡 Minh họa thực tế: Tỷ giá USD tăng kỷ lục năm 2024 buộc SBV hút ròng tiền qua tín phiếu 170.000 tỷ, kéo lãi suất liên ngân hàng tăng làm chững lại đà hạ lãi suất BĐS.',
     },
     {
       id: 'tc-credit',
@@ -471,6 +514,7 @@ export const GLOBAL_CRISIS_DATA = {
       iconName: 'CreditCard',
       description: 'Thanh khoản hệ thống ngân hàng bị thắt chặt do chi phí huy động vốn tăng và nợ xấu gia tăng.',
       realEstateConsequence: 'Hạn mức cho vay BĐS bị siết chặt ➔ Chủ đầu tư khó ra hàng, người mua không tiếp cận được vốn.',
+      vividExample: '💡 Minh họa thực tế: Cuối 2022 ngân hàng siết chặt tỷ lệ an toàn vốn khiến người mua nhà không vay được ngân hàng, các dự án dừng triển khai vì không thu được tiền độ.',
     },
   ] as TransmissionChannel[],
   defaultChecklist: [

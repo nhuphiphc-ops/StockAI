@@ -122,6 +122,12 @@ export const FormulaPrinciplesSection: React.FC = () => {
                     ))}
                   </ul>
                 </div>
+
+                {pr.vividIllustration && (
+                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium leading-relaxed">
+                    {pr.vividIllustration}
+                  </div>
+                )}
               </div>
             ))}
           </div>

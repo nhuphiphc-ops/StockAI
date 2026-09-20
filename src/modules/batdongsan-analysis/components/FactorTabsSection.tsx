@@ -130,6 +130,13 @@ export const FactorTabsSection: React.FC = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Real Case Study */}
+              {factor.realCaseStudy && (
+                <div className="p-4 rounded-xl bg-cyan-950/30 border border-cyan-800/40 text-cyan-300 text-sm font-medium leading-relaxed">
+                  {factor.realCaseStudy}
+                </div>
+              )}
             </div>
           ))}
         </div>
