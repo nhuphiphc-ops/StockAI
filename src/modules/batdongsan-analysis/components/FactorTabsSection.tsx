@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { FACTOR_TABS_DATA } from '../data/constants';
 import { Landmark, FileText, TrendingUp, HardHat, CheckCircle2, AlertTriangle, Layers } from 'lucide-react';
+import { SpeakerButton } from './SpeakerButton';
 
 export const FactorTabsSection: React.FC = () => {
   const [activeTabId, setActiveTabId] = useState<string>('financial');
@@ -81,10 +82,13 @@ export const FactorTabsSection: React.FC = () => {
             >
               {/* Factor Name & Target Segments */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800 pb-4">
-                <h4 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                  {factor.name}
-                </h4>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                    {factor.name}
+                  </h4>
+                  <SpeakerButton text={`${factor.name}. Kịch bản tích cực: ${factor.bullScenario}. Tác động: ${factor.bullImpact}. Kịch bản tiêu cực: ${factor.bearScenario}. Tác động: ${factor.bearImpact}. ${factor.realCaseStudy || ''}`} />
+                </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Phân khúc ảnh hưởng:</span>
                   {factor.impactedSegments.map((seg, sIdx) => (

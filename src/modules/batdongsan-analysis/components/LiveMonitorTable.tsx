@@ -3,17 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { MonitorMetric, TrendDirection, MonitorRiskLevel } from '../types';
 import { INITIAL_MONITOR_METRICS } from '../data/constants';
+import { SpeakerButton } from './SpeakerButton';
 import {
   Activity,
+  Download,
   Save,
   RotateCcw,
-  Download,
-  Edit3,
   TrendingUp,
   TrendingDown,
   Minus,
-  CheckCircle2,
+  Edit3,
   X,
+  CheckCircle2,
 } from 'lucide-react';
 
 const LOCAL_MONITOR_KEY = 'bds_live_monitor_metrics_v1';
@@ -210,14 +211,17 @@ export const LiveMonitorTable: React.FC = () => {
                   <td className="p-4 font-medium whitespace-nowrap">{getRiskBadge(item.riskLevel)}</td>
                   <td className="p-4 text-slate-300 text-sm leading-relaxed max-w-xs">{item.macroConclusion}</td>
                   <td className="p-4 text-slate-300 text-sm leading-relaxed max-w-xs">{item.actionSuggestion}</td>
-                  <td className="p-4 text-center">
-                    <button
-                      onClick={() => handleOpenEditModal(item)}
-                      className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition-colors"
-                      title="Chỉnh sửa chỉ số này"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
+                  <td className="p-4 text-center whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-2">
+                      <SpeakerButton text={`${item.name}. Giá trị hiện tại: ${item.currentValue}. Kết luận vĩ mô: ${item.macroConclusion}. Gợi ý hành động: ${item.actionSuggestion}`} />
+                      <button
+                        onClick={() => handleOpenEditModal(item)}
+                        className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 transition-colors"
+                        title="Chỉnh sửa chỉ số này"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

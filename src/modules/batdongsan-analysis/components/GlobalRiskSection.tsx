@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { GLOBAL_CRISIS_DATA } from '../data/constants';
 import { ChecklistItem } from '../types';
+import { SpeakerButton } from './SpeakerButton';
 import {
   Globe2,
   AlertTriangle,
@@ -89,9 +90,12 @@ export const GlobalRiskSection: React.FC = () => {
 
         {/* 7.1 Crisis Principle Banner */}
         <div className="bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-500/40 rounded-3xl p-6 sm:p-8 space-y-4 shadow-2xl">
-          <div className="flex items-center gap-3 text-rose-400 font-extrabold text-lg sm:text-xl">
-            <AlertTriangle className="w-6 h-6 shrink-0" />
-            <span>{GLOBAL_CRISIS_DATA.principleBanner.title}</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 text-rose-400 font-extrabold text-lg sm:text-xl">
+              <AlertTriangle className="w-6 h-6 shrink-0" />
+              <span>{GLOBAL_CRISIS_DATA.principleBanner.title}</span>
+            </div>
+            <SpeakerButton text={`${GLOBAL_CRISIS_DATA.principleBanner.title}. ${GLOBAL_CRISIS_DATA.principleBanner.description}`} />
           </div>
           <p className="text-slate-200 text-base leading-relaxed font-medium">
             {GLOBAL_CRISIS_DATA.principleBanner.description}
@@ -156,9 +160,12 @@ export const GlobalRiskSection: React.FC = () => {
                     <span className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-sm">
                       0{st.stageNumber}
                     </span>
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-800 px-2.5 py-1 rounded-md">
-                      {st.timeHorizon}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <SpeakerButton text={`${st.stageTitle}. Khung thời gian: ${st.timeHorizon}. Mô tả: ${st.description}. Tín hiệu: ${st.keySignals.join(', ')}. ${st.historicalExample || ''}`} />
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-800 px-2.5 py-1 rounded-md">
+                        {st.timeHorizon}
+                      </span>
+                    </div>
                   </div>
 
                   <h4 className="text-lg font-bold text-slate-100 leading-snug">{st.stageTitle}</h4>
@@ -208,6 +215,7 @@ export const GlobalRiskSection: React.FC = () => {
                     <span className={`px-3 py-1 rounded-full text-xs font-extrabold border ${act.badgeColor}`}>
                       {act.levelName}
                     </span>
+                    <SpeakerButton text={`${act.levelName}. Mô tả: ${act.description}. Chiến lược hành động: ${act.actionStrategy.join('. ')}. ${act.vividStrategyExample || ''}`} />
                   </div>
                   <p className="text-base font-semibold text-slate-200 leading-relaxed">
                     {act.description}
@@ -251,7 +259,10 @@ export const GlobalRiskSection: React.FC = () => {
                 key={tc.id}
                 className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl"
               >
-                <h4 className="text-lg font-bold text-amber-300">{tc.channelTitle}</h4>
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="text-lg font-bold text-amber-300">{tc.channelTitle}</h4>
+                  <SpeakerButton text={`${tc.channelTitle}. Mô tả: ${tc.description}. Hệ quả Bất động sản Việt Nam: ${tc.realEstateConsequence}. ${tc.vividExample || ''}`} />
+                </div>
                 <p className="text-base text-slate-300 leading-relaxed">{tc.description}</p>
                 <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                   <div className="text-xs font-bold text-rose-400 uppercase tracking-wider">HỆ QUẢ TRỰC TIẾP BĐS VN:</div>

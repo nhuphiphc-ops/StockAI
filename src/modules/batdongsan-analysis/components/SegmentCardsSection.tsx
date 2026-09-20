@@ -3,6 +3,7 @@
 import React from 'react';
 import { SEGMENTS_DATA } from '../data/constants';
 import { Trees, Building2, Home, Factory, ShieldAlert, Zap, Compass, Check } from 'lucide-react';
+import { SpeakerButton } from './SpeakerButton';
 
 export const SegmentCardsSection: React.FC = () => {
   const getSegmentIcon = (iconName: string) => {
@@ -63,7 +64,10 @@ export const SegmentCardsSection: React.FC = () => {
                       {getSegmentIcon(seg.iconName)}
                     </div>
                     <div>
-                      <h3 className="text-xl font-extrabold text-slate-100">{seg.title}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-extrabold text-slate-100">{seg.title}</h3>
+                        <SpeakerButton text={`${seg.title}. ${seg.subtitle}. Độ nhạy: ${seg.sensitivity}. Tóm tắt: ${seg.summary}. Lời khuyên đầu tư: ${seg.strategicAdvice}. ${seg.historicalCase || ''}`} />
+                      </div>
                       <p className="text-sm font-medium text-slate-400 mt-0.5">{seg.subtitle}</p>
                     </div>
                   </div>

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { CauseEffectItem, ImpactType } from '../types';
 import { INITIAL_CAUSE_EFFECT_DATA } from '../data/constants';
 import { Search, TrendingUp, TrendingDown, Snowflake, Filter, Compass } from 'lucide-react';
+import { SpeakerButton } from './SpeakerButton';
 
 export const CauseEffectSection: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -133,9 +134,12 @@ export const CauseEffectSection: React.FC = () => {
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
-                    {item.impactGroup}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700">
+                      {item.impactGroup}
+                    </span>
+                    <SpeakerButton text={`Nguyên nhân: ${item.cause}. Kết quả: ${item.effect}. Chi tiết: ${item.detail}. ${item.realExample || ''}`} />
+                  </div>
                   {getImpactBadge(item.impactType)}
                 </div>
 

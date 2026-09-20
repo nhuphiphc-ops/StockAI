@@ -147,6 +147,46 @@
             { id: 'mon-6', name: '6. Xu hướng giá trung bình phân khúc Căn hộ Đô thị', currentValue: 'Tăng 4.2% theo quý', trend: 'up', riskLevel: 'green', macroConclusion: 'Nguồn cung chung cư mới hạn chế trong khi cầu ở thực liên tục tăng đẩy mặt bằng giá sơ cấp lên cao.', actionSuggestion: 'Người mua ở thực nên quyết định sớm khi chọn được căn hộ có pháp lý đầy đủ và giá hợp lý.', lastUpdated: '17/09/2026' }
         ];
 
+        const SpeakerButton = ({ text }) => {
+            const [speaking, setSpeaking] = useState(false);
+
+            const toggle = (e) => {
+                e.stopPropagation();
+                if (!('speechSynthesis' in window)) {
+                    alert('Trình duyệt của bạn không hỗ trợ đọc giọng nói.');
+                    return;
+                }
+                const synth = window.speechSynthesis;
+                if (speaking) {
+                    synth.cancel();
+                    setSpeaking(false);
+                } else {
+                    synth.cancel();
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = 'vi-VN';
+                    u.rate = 1.0;
+                    const voices = synth.getVoices();
+                    const viVoice = voices.find(v => v.lang.toLowerCase().includes('vi'));
+                    if (viVoice) u.voice = viVoice;
+                    u.onend = () => setSpeaking(false);
+                    u.onerror = () => setSpeaking(false);
+                    synth.speak(u);
+                    setSpeaking(true);
+                }
+            };
+
+            return (
+                <button
+                    onClick={toggle}
+                    type="button"
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 select-none ${speaking ? 'bg-amber-500 text-slate-950 animate-pulse' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-amber-400 border border-slate-700'}`}
+                    title={speaking ? 'Bấm để dừng đọc' : 'Bấm để nghe đọc'}
+                >
+                    {speaking ? '🔇 Dừng' : '🔊 Nghe'}
+                </button>
+            );
+        };
+
         // Component App
         function App() {
             const [activeSection, setActiveSection] = useState('cause-effect');
@@ -305,9 +345,12 @@
                                     <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-lg">
                                         <div className="flex justify-between items-center">
                                             <span className="text-xs font-bold uppercase bg-slate-800 text-slate-400 px-3 py-1 rounded-md">{item.impactGroup}</span>
-                                            <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${item.impactType === 'increase' ? 'bg-emerald-500/20 text-emerald-400' : item.impactType === 'decrease' ? 'bg-rose-500/20 text-rose-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
-                                                {item.impactType === 'increase' ? 'Tăng giá ⬆️' : item.impactType === 'decrease' ? 'Giảm giá ⬇️' : 'Đóng băng ❄️'}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <SpeakerButton text={`Nguyên nhân: ${item.cause}. Tác động: ${item.effect}. Chi tiết: ${item.detail}. Ví dụ: ${item.realExample || ''}`} />
+                                                <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${item.impactType === 'increase' ? 'bg-emerald-500/20 text-emerald-400' : item.impactType === 'decrease' ? 'bg-rose-500/20 text-rose-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
+                                                    {item.impactType === 'increase' ? 'Tăng giá ⬆️' : item.impactType === 'decrease' ? 'Giảm giá ⬇️' : 'Đóng băng ❄️'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <h3 className="text-lg font-bold text-slate-100">⚡ {item.cause}</h3>
                                         <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-amber-400 font-bold text-base">🎯 {item.effect}</div>
@@ -342,7 +385,10 @@
                             <div className="space-y-6">
                                 {activeFactorGroup.factors.map((f, idx) => (
                                     <div key={idx} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                                        <h4 className="text-xl font-bold text-slate-100">{f.name}</h4>
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="text-xl font-bold text-slate-100">{f.name}</h4>
+                                            <SpeakerButton text={`${f.name}. Kịch bản tích cực: ${f.bullScenario}, ${f.bullImpact}. Kịch bản tiêu cực: ${f.bearScenario}, ${f.bearImpact}. Ví dụ: ${f.realCaseStudy || ''}`} />
+                                        </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="p-5 bg-emerald-950/20 border border-emerald-800/40 rounded-xl space-y-2">
                                                 <div className="text-emerald-400 font-bold text-sm">KỊCH BẢN TÍCH CỰC: {f.bullScenario}</div>
@@ -376,7 +422,10 @@
                                                 <h3 className="text-xl font-extrabold text-slate-100">{seg.title}</h3>
                                                 <p className="text-sm text-slate-400">{seg.subtitle}</p>
                                             </div>
-                                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400">Rủi ro: {seg.riskLevel}</span>
+                                            <div className="flex items-center gap-2">
+                                                <SpeakerButton text={`${seg.title}. ${seg.subtitle}. Độ nhạy: ${seg.sensitivity}. Tóm tắt: ${seg.summary}. Lời khuyên: ${seg.strategicAdvice}. Minh chứng: ${seg.historicalCase || ''}`} />
+                                                <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400">Rủi ro: {seg.riskLevel}</span>
+                                            </div>
                                         </div>
                                         <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 font-bold text-sm">⚡ {seg.sensitivity}</div>
                                         <p className="text-slate-300 text-base">{seg.summary}</p>
@@ -397,14 +446,20 @@
                             </div>
 
                             <div className="p-8 bg-slate-900 border border-amber-500/40 rounded-3xl text-center space-y-4">
-                                <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">CÔNG THỨC ĐỊNH GIÁ CỐT LÕI</div>
+                                <div className="flex justify-between items-center">
+                                    <div className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">CÔNG THỨC ĐỊNH GIÁ CỐT LÕI</div>
+                                    <SpeakerButton text="Công thức định giá cốt lõi: GIÁ BẤT ĐỘNG SẢN bằng GIÁ TRỊ SỬ DỤNG cộng KỲ VỌNG TƯƠNG LAI cộng CHI PHÍ TÀI CHÍNH" />
+                                </div>
                                 <div className="text-xl sm:text-3xl font-black text-amber-300 font-mono">GIÁ BĐS = GIÁ TRỊ SỬ DỤNG + KỲ VỌNG TƯƠNG LAI + CHI PHÍ TÀI CHÍNH</div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {FORMULA_PRINCIPLES_DATA.map(pr => (
                                     <div key={pr.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-3">
-                                        <h4 className="text-lg font-bold text-amber-400">{pr.title}</h4>
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="text-lg font-bold text-amber-400">{pr.title}</h4>
+                                            <SpeakerButton text={`${pr.title}. ${pr.description}. Ví dụ minh họa: ${pr.vividIllustration || ''}`} />
+                                        </div>
                                         <p className="text-slate-300 text-base">{pr.description}</p>
                                         {pr.vividIllustration && (
                                             <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm font-medium leading-relaxed">{pr.vividIllustration}</div>
@@ -422,7 +477,10 @@
                             </div>
 
                             <div className="p-6 bg-rose-950/30 border border-rose-800/50 rounded-2xl space-y-2">
-                                <h3 className="text-lg font-bold text-rose-400">{GLOBAL_CRISIS_DATA.principleBanner.title}</h3>
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-lg font-bold text-rose-400">{GLOBAL_CRISIS_DATA.principleBanner.title}</h3>
+                                    <SpeakerButton text={`${GLOBAL_CRISIS_DATA.principleBanner.title}. ${GLOBAL_CRISIS_DATA.principleBanner.description}`} />
+                                </div>
                                 <p className="text-slate-200 text-base">{GLOBAL_CRISIS_DATA.principleBanner.description}</p>
                             </div>
 
@@ -443,7 +501,10 @@
                                         <tbody className="divide-y divide-slate-800 text-sm">
                                             {GLOBAL_CRISIS_DATA.indicatorMetrics.map(ind => (
                                                 <tr key={ind.id} className="hover:bg-slate-800/40">
-                                                    <td className="p-4 font-bold text-slate-100">{ind.name}</td>
+                                                    <td className="p-4 font-bold text-slate-100 flex items-center justify-between gap-2">
+                                                        <span>{ind.name}</span>
+                                                        <SpeakerButton text={`Chỉ số ${ind.name}. Mức bình thường: ${ind.normalVal}. Mức cảnh báo: ${ind.warningVal}. Mức nguy hiểm: ${ind.dangerVal}. Tác động: ${ind.realEstateImpact}`} />
+                                                    </td>
                                                     <td className="p-4 text-emerald-400 font-mono text-xs">{ind.normalVal}</td>
                                                     <td className="p-4 text-amber-400 font-mono text-xs">{ind.warningVal}</td>
                                                     <td className="p-4 text-rose-400 font-mono text-xs">{ind.dangerVal}</td>
@@ -464,7 +525,10 @@
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {GLOBAL_CRISIS_DATA.stages.map(stage => (
                                         <div key={stage.stageNumber} className="bg-slate-900 border border-rose-800/40 rounded-2xl p-5 space-y-3">
-                                            <span className="inline-block px-2.5 py-1 bg-rose-500/20 text-rose-400 border border-rose-500/40 rounded-lg text-xs font-bold">{stage.timeHorizon}</span>
+                                            <div className="flex justify-between items-center">
+                                                <span className="inline-block px-2.5 py-1 bg-rose-500/20 text-rose-400 border border-rose-500/40 rounded-lg text-xs font-bold">{stage.timeHorizon}</span>
+                                                <SpeakerButton text={`${stage.stageTitle}. ${stage.description}. Tín hiệu: ${stage.keySignals.join(', ')}. Ví dụ: ${stage.historicalExample || ''}`} />
+                                            </div>
                                             <h4 className="text-base font-bold text-slate-100">{stage.stageTitle}</h4>
                                             <p className="text-slate-300 text-sm">{stage.description}</p>
                                             <div className="space-y-1">
@@ -486,7 +550,10 @@
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {GLOBAL_CRISIS_DATA.actionLevels.map(lvl => (
                                         <div key={lvl.level} className={`${lvl.bgClass} border ${lvl.borderClass} rounded-2xl p-5 space-y-3`}>
-                                            <span className={`inline-block px-3 py-1 rounded-lg text-xs font-bold border ${lvl.badgeColor}`}>{lvl.levelName}</span>
+                                            <div className="flex justify-between items-center">
+                                                <span className={`inline-block px-3 py-1 rounded-lg text-xs font-bold border ${lvl.badgeColor}`}>{lvl.levelName}</span>
+                                                <SpeakerButton text={`${lvl.levelName}. ${lvl.description}. Chiến lược: ${lvl.actionStrategy.join(', ')}. Ví dụ: ${lvl.vividStrategyExample || ''}`} />
+                                            </div>
                                             <p className={`text-sm ${lvl.textClass}`}>{lvl.description}</p>
                                             <ul className="space-y-1.5">
                                                 {lvl.actionStrategy.map((act, i) => (
@@ -507,7 +574,10 @@
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {GLOBAL_CRISIS_DATA.transmissionChannels.map(ch => (
                                         <div key={ch.id} className="bg-slate-900 border border-slate-700 rounded-2xl p-5 space-y-3">
-                                            <h4 className="text-base font-bold text-amber-400">{ch.channelTitle}</h4>
+                                            <div className="flex justify-between items-center">
+                                                <h4 className="text-base font-bold text-amber-400">{ch.channelTitle}</h4>
+                                                <SpeakerButton text={`${ch.channelTitle}. ${ch.description}. Hệ quả BĐS: ${ch.realEstateConsequence}. Ví dụ: ${ch.vividExample || ''}`} />
+                                            </div>
                                             <p className="text-slate-300 text-sm">{ch.description}</p>
                                             <div className="bg-slate-950 border border-slate-700 rounded-xl p-3 space-y-1">
                                                 <div>
@@ -568,7 +638,10 @@
                                     <tbody className="divide-y divide-slate-800 text-sm">
                                         {metrics.map(m => (
                                             <tr key={m.id} className="hover:bg-slate-800/40">
-                                                <td className="p-4 font-bold text-slate-100">{m.name}</td>
+                                                <td className="p-4 font-bold text-slate-100 flex items-center justify-between gap-2">
+                                                    <span>{m.name}</span>
+                                                    <SpeakerButton text={`Chỉ số ${m.name}: giá trị ${m.currentValue}, xu hướng ${m.trend === 'up' ? 'Tăng' : m.trend === 'down' ? 'Giảm' : 'Đi ngang'}, mức rủi ro ${m.riskLevel}. Kết luận: ${m.macroConclusion}. Gợi ý: ${m.actionSuggestion}`} />
+                                                </td>
                                                 <td className="p-4 font-bold text-amber-300 font-mono">{m.currentValue}</td>
                                                 <td className="p-4 font-bold">{m.trend === 'up' ? 'Tăng ⬆️' : m.trend === 'down' ? 'Giảm ⬇️' : 'Đi ngang ➡️'}</td>
                                                 <td className="p-4 font-bold text-amber-400">{m.riskLevel.toUpperCase()}</td>

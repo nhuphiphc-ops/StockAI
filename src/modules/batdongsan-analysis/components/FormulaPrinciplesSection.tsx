@@ -3,6 +3,7 @@
 import React from 'react';
 import { FORMULA_PRINCIPLES_DATA } from '../data/constants';
 import { Scale, Calculator, CheckCircle2, Clock, Split, Award } from 'lucide-react';
+import { SpeakerButton } from './SpeakerButton';
 
 export const FormulaPrinciplesSection: React.FC = () => {
   return (
@@ -27,9 +28,12 @@ export const FormulaPrinciplesSection: React.FC = () => {
             <Calculator className="w-64 h-64 text-amber-400" />
           </div>
 
-          <div className="flex items-center gap-3 text-amber-400 font-bold text-lg border-b border-slate-800 pb-4">
-            <Calculator className="w-6 h-6" />
-            <span>CÔNG THỨC CỐT LÕI ĐỊNH GIÁ BẤT ĐỘNG SẢN</span>
+          <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div className="flex items-center gap-3 text-amber-400 font-bold text-lg">
+              <Calculator className="w-6 h-6" />
+              <span>CÔNG THỨC CỐT LÕI ĐỊNH GIÁ BẤT ĐỘNG SẢN</span>
+            </div>
+            <SpeakerButton text="Công thức định giá cốt lõi: Giá Bất động sản bằng Giá trị sử dụng cộng Kỳ vọng tương lai cộng Chi phí tài chính. Giá trị sử dụng thực bao gồm khả năng ở thực tế và dòng tiền khai thác. Kỳ vọng tương lai bao gồm quy hoạch hạ tầng. Chi phí tài chính bao gồm lãi suất vay ngân hàng." />
           </div>
 
           {/* Formula Equation Banner */}
@@ -100,9 +104,12 @@ export const FormulaPrinciplesSection: React.FC = () => {
                       {pr.id === 'pr-3' && <Scale className="w-6 h-6" />}
                       {pr.id === 'pr-4' && <Split className="w-6 h-6" />}
                     </div>
-                    <div>
-                      <h4 className="text-lg font-bold text-slate-100">{pr.title}</h4>
-                      <p className="text-xs font-semibold text-amber-400 mt-0.5">{pr.subtitle}</p>
+                    <div className="flex items-center justify-between w-full">
+                      <div>
+                        <h4 className="text-lg font-bold text-slate-100">{pr.title}</h4>
+                        <p className="text-xs font-semibold text-amber-400 mt-0.5">{pr.subtitle}</p>
+                      </div>
+                      <SpeakerButton text={`${pr.title}. ${pr.subtitle}. ${pr.description}. ${pr.bulletPoints.join('. ')}. ${pr.vividIllustration || ''}`} />
                     </div>
                   </div>
 
