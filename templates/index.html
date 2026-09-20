@@ -1127,6 +1127,47 @@
         @media(max-width: 900px) {
             .macro-layout { grid-template-columns: 1fr; }
         }
+
+        /* Macro TTS Speaker Button */
+        .macro-tts-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            line-height: 1.2;
+            flex-shrink: 0;
+        }
+        .macro-tts-btn:hover {
+            background: rgba(0, 229, 255, 0.15);
+            color: #00e5ff;
+            border-color: rgba(0, 229, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        .macro-tts-btn-sm {
+            padding: 2px 7px;
+            font-size: 10.5px;
+            border-radius: 5px;
+        }
+        .macro-tts-btn.speaker-active {
+            background: #f59e0b !important;
+            color: #020617 !important;
+            border-color: #fbbf24 !important;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+            animation: macroSpeakerPulse 1.2s infinite;
+        }
+        @keyframes macroSpeakerPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.06); opacity: 0.88; }
+        }
         /* Khung nhập nến M5 và khung kết quả vốn để 2 cột cố định (1fr 1fr) viết thẳng
            trong style inline, mà style inline luôn thắng bất kỳ rule nào trong media
            query - phải khai lại grid-template-columns ở đây (không còn trong inline)
@@ -2395,8 +2436,9 @@
                 <div class="macro-layout" style="height: auto; flex-shrink: 0;">
                     <!-- Table A: Macro Indicators -->
                     <div class="glass-card macro-table-box" style="padding: 16px; margin: 0; height: auto;">
-                        <div class="panel-header" style="border: none; padding: 0 0 10px 0;">
-                            <h2><i class="fa-solid fa-chart-column"></i> CHỈ SỐ VĨ MÔ VIỆT NAM</h2>
+                        <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <h2 style="margin: 0;"><i class="fa-solid fa-chart-column"></i> CHỈ SỐ VĨ MÔ VIỆT NAM</h2>
+                            <button class="macro-tts-btn" onclick="speakAllMacroIndicators(this)" title="Nghe tổng quan các chỉ số vĩ mô"><i class="fa-solid fa-volume-high"></i> Nghe tổng quan</button>
                         </div>
                         
                         <div style="overflow: auto; flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px;">
@@ -2419,8 +2461,9 @@
 
                     <!-- Table B: Geopolitics risk settings -->
                     <div class="glass-card" style="padding: 16px; display: flex; flex-direction: column; overflow: hidden; margin: 0; height: auto;">
-                        <div class="panel-header" style="border: none; padding: 0 0 10px 0;">
-                            <h2><i class="fa-solid fa-shield-halved"></i> SCORE ĐỊA CHÍNH TRỊ TOÀN CẦU & SLIDERS ĐIỀU CHỈNH RỦI RO</h2>
+                        <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <h2 style="margin: 0;"><i class="fa-solid fa-shield-halved"></i> SCORE ĐỊA CHÍNH TRỊ &amp; SLIDERS RỦI RO</h2>
+                            <button class="macro-tts-btn" onclick="speakAllGeopolitics(this)" title="Nghe tổng hợp các điểm nóng địa chính trị"><i class="fa-solid fa-volume-high"></i> Nghe rủi ro</button>
                         </div>
                         
                         <div class="panel-body" style="padding: 0; overflow-y: auto;">
@@ -2433,26 +2476,33 @@
 
                 <!-- AI Commentary Card -->
                 <div class="glass-card" style="padding: 16px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; background: linear-gradient(135deg, rgba(2, 8, 16, 0.4), rgba(6, 12, 24, 0.25)); border: 1px solid rgba(0, 229, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.05); margin-bottom: 10px;">
-                    <div class="panel-header" style="border: none; padding: 0 0 10px 0;">
-                        <h2 style="font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                    <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                        <h2 style="font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; margin: 0;">
                             <i class="fa-solid fa-brain" style="color: #00e5ff;"></i> NHẬN ĐỊNH TỔNG QUÁT: TÁC ĐỘNG VĨ MÔ &amp; ĐỊA CHÍNH TRỊ ĐẾN THỊ TRƯỜNG CỔ PHIẾU VIỆT NAM
                         </h2>
+                        <button class="macro-tts-btn" onclick="speakAllMacroCommentary(this)" title="Nghe toàn bộ nhận định vĩ mô &amp; chiến lược"><i class="fa-solid fa-volume-high"></i> Nghe toàn bộ nhận định</button>
                     </div>
                     
                     <div class="analysis-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 12.5px; line-height: 1.6; color: var(--color-text-secondary);">
                         <!-- Column 1: Analysis -->
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                             <div>
-                                <h3 style="font-size: 12.5px; font-weight: 600; color: #00e5ff; margin: 0 0 4px 0; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fa-solid fa-building-columns"></i> 1. Vĩ mô Việt Nam, Tỷ giá &amp; Lãi suất SBV
-                                </h3>
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                                    <h3 style="font-size: 12.5px; font-weight: 600; color: #00e5ff; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-building-columns"></i> 1. Vĩ mô Việt Nam, Tỷ giá &amp; Lãi suất SBV
+                                    </h3>
+                                    <button class="macro-tts-btn macro-tts-btn-sm" onclick="speakMacroSection('geo-analysis-text', '1. Vĩ mô Việt Nam, Tỷ giá và Lãi suất SBV', this)" title="Nghe mục 1"><i class="fa-solid fa-volume-high"></i> Nghe</button>
+                                </div>
                                 <p id="geo-analysis-text" style="margin: 0; text-align: justify;">Đang phân tích...</p>
                             </div>
                             
                             <div style="margin-top: 8px;">
-                                <h3 style="font-size: 12.5px; font-weight: 600; color: #a855f7; margin: 0 0 4px 0; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fa-solid fa-chart-line"></i> 2. Tác động Dòng vốn Ngoại, Tiến trình Nâng hạng &amp; BCTC Q2
-                                </h3>
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                                    <h3 style="font-size: 12.5px; font-weight: 600; color: #a855f7; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-chart-line"></i> 2. Tác động Dòng vốn Ngoại, Tiến trình Nâng hạng &amp; BCTC Q2
+                                    </h3>
+                                    <button class="macro-tts-btn macro-tts-btn-sm" onclick="speakMacroSection('macro-analysis-text', '2. Tác động Dòng vốn Ngoại, Tiến trình Nâng hạng và Báo cáo tài chính Quý 2', this)" title="Nghe mục 2"><i class="fa-solid fa-volume-high"></i> Nghe</button>
+                                </div>
                                 <p id="macro-analysis-text" style="margin: 0; text-align: justify;">Đang phân tích...</p>
                             </div>
                         </div>
@@ -2460,20 +2510,29 @@
                         <!-- Column 2: Strategy & Recommendations -->
                         <div style="display: flex; flex-direction: column; gap: 10px; background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 12px;">
                             <div>
-                                <h3 style="font-size: 12.5px; font-weight: 600; color: #4caf50; margin: 0 0 4px 0; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fa-solid fa-compass"></i> 3. Nhận định VN-Index &amp; Khuyến nghị Chiến lược
-                                </h3>
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                                    <h3 style="font-size: 12.5px; font-weight: 600; color: #4caf50; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-compass"></i> 3. Nhận định VN-Index &amp; Khuyến nghị Chiến lược
+                                    </h3>
+                                    <button class="macro-tts-btn macro-tts-btn-sm" onclick="speakMacroSection('strategy-analysis-text', '3. Nhận định VN-Index và Khuyến nghị Chiến lược', this)" title="Nghe mục 3"><i class="fa-solid fa-volume-high"></i> Nghe</button>
+                                </div>
                                 <p id="strategy-analysis-text" style="margin: 0; text-align: justify;">Đang tính toán chiến lược...</p>
                             </div>
                             
-                            <div style="margin-top: auto; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.05); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px;">
-                                <div style="background: rgba(0, 230, 118, 0.03); border: 1px solid rgba(0, 230, 118, 0.1); border-radius: 6px; padding: 6px 10px;">
-                                    <span style="color: #00e676; font-weight: 600; display: block; margin-bottom: 2px;"><i class="fa-solid fa-circle-check"></i> Nhóm hưởng lợi chính</span>
-                                    Công nghệ (FPT), Chứng khoán (SSI, MBS), Đầu tư công (HHV), Ngân hàng (VCB, BID).
+                            <div style="margin-top: auto; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.05);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 11px; font-weight: 600; color: #94a3b8;">TỔNG KẾT ĐẦU TƯ:</span>
+                                    <button class="macro-tts-btn macro-tts-btn-sm" onclick="speakBeneficiariesAndRisks(this)" title="Nghe nhóm ngành và rủi ro"><i class="fa-solid fa-volume-high"></i> Nghe ngành</button>
                                 </div>
-                                <div style="background: rgba(255, 23, 68, 0.03); border: 1px solid rgba(255, 23, 68, 0.1); border-radius: 6px; padding: 6px 10px;">
-                                    <span style="color: #ff1744; font-weight: 600; display: block; margin-bottom: 2px;"><i class="fa-solid fa-triangle-exclamation"></i> Rủi ro cần theo dõi</span>
-                                    Áp lực tỷ giá USD/VND kéo dài; rủi ro lạm phát dịch vụ công; khối ngoại bán ròng FII.
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px;">
+                                    <div id="macro-beneficiaries-box" style="background: rgba(0, 230, 118, 0.03); border: 1px solid rgba(0, 230, 118, 0.1); border-radius: 6px; padding: 6px 10px;">
+                                        <span style="color: #00e676; font-weight: 600; display: block; margin-bottom: 2px;"><i class="fa-solid fa-circle-check"></i> Nhóm hưởng lợi chính</span>
+                                        Công nghệ (FPT), Chứng khoán (SSI, MBS), Đầu tư công (HHV), Ngân hàng (VCB, BID).
+                                    </div>
+                                    <div id="macro-risks-box" style="background: rgba(255, 23, 68, 0.03); border: 1px solid rgba(255, 23, 68, 0.1); border-radius: 6px; padding: 6px 10px;">
+                                        <span style="color: #ff1744; font-weight: 600; display: block; margin-bottom: 2px;"><i class="fa-solid fa-triangle-exclamation"></i> Rủi ro cần theo dõi</span>
+                                        Áp lực tỷ giá USD/VND kéo dài; rủi ro lạm phát dịch vụ công; khối ngoại bán ròng FII.
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2485,12 +2544,13 @@
                     <div class="panel-header" style="border: none; padding: 0 0 10px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
                         <!-- Cỡ chữ khối lịch đã phóng 1.7 lần cho dễ đọc. Phần dựng bằng JS
                              dùng hàm fs() với cùng hệ số FONT_SCALE, sửa thì sửa cả hai chỗ. -->
-                        <h2 style="font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <h2 style="font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0;">
                             <i class="fa-solid fa-calendar-days" style="color: #00e5ff;"></i>
                             <span>LỊCH SỰ KIỆN VĨ MÔ ẢNH HƯỞNG ĐẾN THỊ TRƯỜNG VIỆT NAM</span>
                             <span id="macro-events-month" style="color: #00e5ff;">(ĐANG TẢI...)</span>
                         </h2>
-                        <div style="display: flex; align-items: center; gap: 6px;">
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <button class="macro-tts-btn" onclick="speakCurrentMonthEvents(this)" title="Nghe tóm tắt toàn bộ sự kiện tháng này"><i class="fa-solid fa-volume-high"></i> Nghe sự kiện tháng</button>
                             <button id="macro-events-prev" title="Tháng trước" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 14px; cursor: pointer; font-size: 15px;"><i class="fa-solid fa-chevron-left"></i></button>
                             <button id="macro-events-today" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 16px; cursor: pointer; font-size: 15px;">Tháng này</button>
                             <button id="macro-events-next" title="Tháng sau" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,229,255,0.15); color: #9fb3c8; border-radius: 6px; padding: 7px 14px; cursor: pointer; font-size: 15px;"><i class="fa-solid fa-chevron-right"></i></button>
@@ -3004,6 +3064,12 @@
                 console.log("Target view element shown:", targetView);
             } else {
                 console.error("View element not found: view-" + viewId);
+            }
+
+            // If switching away from macro, cancel any running speech
+            if (viewId !== 'macro' && typeof window.speechSynthesis !== 'undefined') {
+                window.speechSynthesis.cancel();
+                if (typeof resetMacroSpeakerBtn === 'function') resetMacroSpeakerBtn();
             }
 
             // Specific tab initializations
@@ -5469,10 +5535,16 @@
                             const isPositive = m.comment.includes("Tích cực");
                             const isNegative = m.comment.includes("Tiêu cực");
                             const cls = isPositive ? 'txt-up' : (isNegative ? 'txt-down' : 'txt-ref');
+                            const safeComment = (m.comment || '').replace(/'/g, "\\'");
                             
                             const tds = tr.getElementsByTagName('td');
                             if (tds.length >= 5) {
-                                tds[0].innerText = m.indicator;
+                                tds[0].innerHTML = `
+                                    <div style="display:inline-flex;align-items:center;gap:6px;">
+                                        <button class="macro-tts-btn macro-tts-btn-sm" onclick="speakMacroRow('${m.indicator}', '${formatMacroVal(m.current, m.indicator)}', '${formatMacroVal(m.previous, m.indicator)}', '${(m.change*100).toFixed(2)}', '${safeComment}', this)" title="Nghe chỉ số ${m.indicator}"><i class="fa-solid fa-volume-high"></i></button>
+                                        <span>${m.indicator}</span>
+                                    </div>
+                                `;
                                 tds[1].innerText = formatMacroVal(m.current, m.indicator);
                                 tds[2].innerText = formatMacroVal(m.previous, m.indicator);
                                 
@@ -5491,9 +5563,15 @@
                             const isPositive = m.comment.includes("Tích cực");
                             const isNegative = m.comment.includes("Tiêu cực");
                             const cls = isPositive ? 'txt-up' : (isNegative ? 'txt-down' : 'txt-ref');
+                            const safeComment = (m.comment || '').replace(/'/g, "\\'");
                             
                             tr.innerHTML = `
-                                <td class="bold">${m.indicator}</td>
+                                <td class="bold">
+                                    <div style="display:inline-flex;align-items:center;gap:6px;">
+                                        <button class="macro-tts-btn macro-tts-btn-sm" onclick="speakMacroRow('${m.indicator}', '${formatMacroVal(m.current, m.indicator)}', '${formatMacroVal(m.previous, m.indicator)}', '${(m.change*100).toFixed(2)}', '${safeComment}', this)" title="Nghe chỉ số ${m.indicator}"><i class="fa-solid fa-volume-high"></i></button>
+                                        <span>${m.indicator}</span>
+                                    </div>
+                                </td>
                                 <td class="num">${formatMacroVal(m.current, m.indicator)}</td>
                                 <td class="num">${formatMacroVal(m.previous, m.indicator)}</td>
                                 <td class="num ${cls}">${m.change > 0 ? '+' : ''}${(m.change*100).toFixed(2)}%</td>
@@ -5525,13 +5603,17 @@
                         data.geopolitics.forEach(g => {
                             const div = document.createElement('div');
                             div.className = "slider-item";
+                            const safeIssues = (g.key_issues || '').replace(/'/g, "\\'");
                             div.innerHTML = `
                                 <div class="slider-info">
                                     <span class="slider-region geo-clickable" data-region="${g.region}" style="color:#22d3ee;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
                                         ${g.region}
                                         <svg style="display:inline-block;width:13px;height:13px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-19 0 9 9 0 0119 0z" /></svg>
                                     </span>
-                                    <span class="slider-score" id="lbl-score-${g.region}">${g.risk_score} / 100</span>
+                                    <div style="display:inline-flex;align-items:center;gap:6px;">
+                                        <button class="macro-tts-btn macro-tts-btn-sm" onclick="speakRegionGeo('${g.region}', ${g.risk_score}, ${g.vnindex_impact}, '${safeIssues}', this)" title="Nghe rủi ro khu vực ${g.region}"><i class="fa-solid fa-volume-high"></i></button>
+                                        <span class="slider-score" id="lbl-score-${g.region}">${g.risk_score} / 100</span>
+                                    </div>
                                 </div>
                                 <div class="slider-control">
                                     <input type="range" min="0" max="100" value="${g.risk_score}" id="slide-${g.region}" oninput="updateSliderLabel('${g.region}')" onchange="submitGeopoliticalRisk('${g.region}', ${g.vnindex_impact})">
@@ -6291,6 +6373,153 @@
         }
     };
 
+    // ── MACRO MODULE TEXT-TO-SPEECH (TTS) SYSTEM ──────────
+    var activeMacroSpeakerBtn = null;
+
+    function speakMacroText(text, btn) {
+        if (!('speechSynthesis' in window)) {
+            alert('Trình duyệt của bạn không hỗ trợ tính năng đọc giọng nói (Web Speech API).');
+            return;
+        }
+        var synth = window.speechSynthesis;
+
+        if (activeMacroSpeakerBtn === btn && synth.speaking) {
+            synth.cancel();
+            resetMacroSpeakerBtn();
+            return;
+        }
+
+        synth.cancel();
+        resetMacroSpeakerBtn();
+
+        if (!text || !text.trim()) return;
+
+        var cleanText = text.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+        var utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'vi-VN';
+        utterance.rate = 1.0;
+
+        var voices = synth.getVoices();
+        var viVoice = voices.find(function(v) { return v.lang && v.lang.toLowerCase().includes('vi'); });
+        if (viVoice) utterance.voice = viVoice;
+
+        if (btn) {
+            activeMacroSpeakerBtn = btn;
+            btn.setAttribute('data-orig-html', btn.innerHTML);
+            btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Dừng';
+            btn.classList.add('speaker-active');
+        }
+
+        utterance.onend = function() {
+            resetMacroSpeakerBtn();
+        };
+        utterance.onerror = function() {
+            resetMacroSpeakerBtn();
+        };
+
+        synth.speak(utterance);
+    }
+
+    function resetMacroSpeakerBtn() {
+        if (activeMacroSpeakerBtn) {
+            var orig = activeMacroSpeakerBtn.getAttribute('data-orig-html');
+            if (orig) activeMacroSpeakerBtn.innerHTML = orig;
+            activeMacroSpeakerBtn.classList.remove('speaker-active');
+            activeMacroSpeakerBtn = null;
+        }
+    }
+
+    function speakMacroRow(indicator, cur, prev, change, comment, btn) {
+        var text = 'Chỉ số ' + indicator + '. Kỳ này ' + cur + ', kỳ trước ' + prev + ', biến động ' + change + ' phần trăm. Nhận định AI: ' + comment;
+        speakMacroText(text, btn);
+    }
+
+    function speakRegionGeo(region, score, impact, issues, btn) {
+        var text = 'Khu vực ' + region + '. Điểm rủi ro ' + score + ' trên 100, mức độ ảnh hưởng VN-Index ' + impact + ' phần trăm. Điểm nóng chính: ' + issues;
+        speakMacroText(text, btn);
+    }
+
+    function speakMacroSection(elementId, title, btn) {
+        var el = document.getElementById(elementId);
+        var content = el ? el.innerText : '';
+        var text = title + '. ' + content;
+        speakMacroText(text, btn);
+    }
+
+    function speakBeneficiariesAndRisks(btn) {
+        var ben = document.getElementById('macro-beneficiaries-box');
+        var rsk = document.getElementById('macro-risks-box');
+        var text = 'Tổng kết đầu tư theo vĩ mô. ' + (ben ? ben.innerText : '') + '. ' + (rsk ? rsk.innerText : '');
+        speakMacroText(text, btn);
+    }
+
+    function speakAllMacroIndicators(btn) {
+        var rows = document.querySelectorAll('#macro-rows-container tr');
+        if (!rows || !rows.length) {
+            speakMacroText('Chưa có dữ liệu chỉ số vĩ mô để đọc.', btn);
+            return;
+        }
+        var summary = 'Tổng hợp các chỉ số vĩ mô Việt Nam. ';
+        rows.forEach(function(tr) {
+            var tds = tr.getElementsByTagName('td');
+            if (tds.length >= 5) {
+                summary += tds[0].innerText.trim() + ': kỳ này ' + tds[1].innerText.trim() + ', thay đổi ' + tds[3].innerText.trim() + ', nhận định ' + tds[4].innerText.trim() + '. ';
+            }
+        });
+        speakMacroText(summary, btn);
+    }
+
+    function speakAllGeopolitics(btn) {
+        var sliders = document.querySelectorAll('#geopolitical-sliders-container .slider-item');
+        if (!sliders || !sliders.length) {
+            speakMacroText('Chưa có dữ liệu điểm nóng địa chính trị để đọc.', btn);
+            return;
+        }
+        var summary = 'Tổng hợp điểm rủi ro địa chính trị toàn cầu tác động đến Việt Nam. ';
+        sliders.forEach(function(item) {
+            var region = item.querySelector('.slider-region') ? item.querySelector('.slider-region').innerText.trim() : '';
+            var score = item.querySelector('.slider-score') ? item.querySelector('.slider-score').innerText.trim() : '';
+            var issues = item.querySelector('.slider-issues') ? item.querySelector('.slider-issues').innerText.trim() : '';
+            summary += 'Khu vực ' + region + ', điểm ' + score + ', ' + issues + '. ';
+        });
+        speakMacroText(summary, btn);
+    }
+
+    function speakAllMacroCommentary(btn) {
+        var s1 = document.getElementById('geo-analysis-text') ? document.getElementById('geo-analysis-text').innerText : '';
+        var s2 = document.getElementById('macro-analysis-text') ? document.getElementById('macro-analysis-text').innerText : '';
+        var s3 = document.getElementById('strategy-analysis-text') ? document.getElementById('strategy-analysis-text').innerText : '';
+        var ben = document.getElementById('macro-beneficiaries-box') ? document.getElementById('macro-beneficiaries-box').innerText : '';
+        var rsk = document.getElementById('macro-risks-box') ? document.getElementById('macro-risks-box').innerText : '';
+
+        var fullText = 'Nhận định tổng quát tác động vĩ mô và địa chính trị đến thị trường cổ phiếu Việt Nam. Phần 1: Vĩ mô Việt Nam, Tỷ giá và Lãi suất SBV. ' + s1 + ' Phần 2: Tác động Dòng vốn Ngoại, Tiến trình Nâng hạng và Báo cáo tài chính Quý 2. ' + s2 + ' Phần 3: Nhận định VN-Index và Khuyến nghị Chiến lược. ' + s3 + ' Về nhóm ngành: ' + ben + '. Về rủi ro cần theo dõi: ' + rsk;
+        speakMacroText(fullText, btn);
+    }
+
+    function speakGeoModalText(btn) {
+        var title = document.querySelector('#geo-modal-body span') ? document.querySelector('#geo-modal-body span').innerText : '';
+        var impact = document.getElementById('geo-modal-impact-text') ? document.getElementById('geo-modal-impact-text').innerText : '';
+        speakMacroText(title + '. Lý do ảnh hưởng tới Việt Nam: ' + impact, btn);
+    }
+
+    function speakCurrentMonthEvents(btn) {
+        var monthEl = document.getElementById('macro-events-month');
+        var monthText = monthEl ? monthEl.innerText : '';
+        var cards = document.querySelectorAll('#macro-events-grid > div');
+        if (!cards || !cards.length) {
+            speakMacroText('Chưa có danh sách sự kiện vĩ mô cho tháng này.', btn);
+            return;
+        }
+        var summary = 'Lịch các sự kiện vĩ mô ảnh hưởng đến thị trường Việt Nam ' + monthText + '. Có ' + cards.length + ' sự kiện đáng chú ý: ';
+        cards.forEach(function(card, idx) {
+            var title = card.querySelector('div[style*="font-weight: 600; color: #fff;"]') || card.querySelector('div[style*="font-weight:600;color:#fff;"]');
+            var titleText = title ? title.innerText.trim() : '';
+            summary += 'Sự kiện ' + (idx + 1) + ': ' + titleText + '. ';
+        });
+        summary += 'Bạn có thể bấm nút loa ở từng sự kiện cụ thể để nghe phân tích chi tiết.';
+        speakMacroText(summary, btn);
+    }
+
     function openGeoModal(region, score) {
         var modal = document.getElementById('geo-detail-modal');
         var body = document.getElementById('geo-modal-body');
@@ -6304,16 +6533,21 @@
         }
         var titleText = info ? info.title : (region + ' (' + score + '/100)');
         var impactText = info ? info.impact : 'Chưa có thông tin phân tích chi tiết.';
-        body.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
+        body.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px;">' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
             '<svg style="width:20px;height:20px;color:#22d3ee;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="#22d3ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-19 0 9 9 0 0119 0z" /></svg>' +
             '<span style="color:#f1f5f9;font-size:14px;font-weight:700;">' + titleText + '</span></div>' +
+            '<button class="macro-tts-btn macro-tts-btn-sm" onclick="speakGeoModalText(this)" title="Nghe phân tích chi tiết"><i class="fa-solid fa-volume-high"></i> Nghe</button>' +
+            '</div>' +
             '<div style="background:#1e293b;border:1px solid #334155;border-radius:8px;padding:14px;">' +
             '<div style="color:#fbbf24;font-weight:700;font-size:12px;margin-bottom:8px;">💡 LÝ DO ẢNH HƯỞNG TỚI VIỆT NAM:</div>' +
-            '<div style="color:#cbd5e1;font-size:13px;line-height:1.6;">' + impactText + '</div></div>';
+            '<div id="geo-modal-impact-text" style="color:#cbd5e1;font-size:13px;line-height:1.6;">' + impactText + '</div></div>';
         modal.style.display = 'flex';
     }
 
     function closeGeoModal() {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        resetMacroSpeakerBtn();
         var modal = document.getElementById('geo-detail-modal');
         if (modal) modal.style.display = 'none';
     }
@@ -6419,6 +6653,15 @@
                   + 'border-radius:4px;padding:0 5px;">FRED</span>'
                 : '';
 
+            var ttsParts = [];
+            if (ev.date_display) ttsParts.push('Ngày ' + ev.date_display);
+            if (ev.title) ttsParts.push(ev.title);
+            if (ev.summary) ttsParts.push(ev.summary);
+            if (ev.detail) ttsParts.push(ev.detail);
+            if (ev.vn_impact) ttsParts.push('Tác động Việt Nam: ' + ev.vn_impact);
+            if (ev.recommendation) ttsParts.push('Khuyến nghị: ' + ev.recommendation);
+            var safeTts = esc(ttsParts.join('. ')).replace(/'/g, "&#39;");
+
             return ''
                 + '<div style="background: ' + st.bg + '; border: 1px solid ' + st.border + '; '
                 +      'border-radius: 8px; padding: 16px; display: flex; flex-direction: column; '
@@ -6428,7 +6671,8 @@
                 +          'display: flex; align-items: center; gap: 5px;">'
                 +       '<i class="fa-solid ' + st.icon + '"></i> ' + esc(ev.date_display)
                 +     '</div>'
-                +     '<div style="display:flex;align-items:center;gap:5px;">' + fredTag
+                +     '<div style="display:flex;align-items:center;gap:6px;">' + fredTag
+                +       '<button class="macro-tts-btn macro-tts-btn-sm" onclick="speakMacroText(\'' + safeTts + '\', this)" title="Nghe sự kiện này"><i class="fa-solid fa-volume-high"></i> Nghe</button>'
                 +       '<span style="' + fs(9) + 'font-weight:700;color:' + status.color + ';">'
                 +         status.text + '</span>'
                 +     '</div>'
